@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import type {
   AppData,
@@ -441,16 +441,6 @@ export default function Admin() {
 
           {activeTab === 'products' && <div>{tables.products.map((row) => <div key={row.id} style={{ border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: 16, marginBottom: 20, background: 'rgba(255,255,255,0.02)' }}>
             <div style={{ marginBottom: 12, color: '#e2e8f0', fontWeight: 700 }}>Product: {row.id}</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr 1.2fr 0.8fr 0.8fr 0.8fr 1fr auto', gap: 8, color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>
-              <div>ID</div>
-              <div>名称</div>
-              <div>Name (EN)</div>
-              <div>出口退税率</div>
-              <div>采购增值税率</div>
-              <div>开票加点</div>
-              <div>起运港</div>
-              <div>操作</div>
-            </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr 1.2fr 0.8fr 0.8fr 0.8fr 1fr auto', gap: 8, marginBottom: 12 }}>
               <input type="text" value={row.id} readOnly style={{ ...inputBaseStyle, backgroundColor: '#111827' }} />
               <input type="text" value={row.name ?? ''} onChange={(e) => updateRow('products', row.id, 'name', e.target.value)} style={inputBaseStyle} />
