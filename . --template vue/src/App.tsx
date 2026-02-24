@@ -17,6 +17,8 @@ import type {
   QtyInputType,
 } from '@/types/domain'
 
+const APP_VERSION = '2.3.6'
+
 function parseNumber(value: string): number | null {
   const trimmed = value.trim()
   if (!trimmed) return null
@@ -43,6 +45,8 @@ function Quoter() {
   const [containerType, setContainerType] = useState<ContainerType>('20GP')
 
   const [fclTonsHint, setFclTonsHint] = useState('')
+  const [fclBagsHint, setFclBagsHint] = useState('')
+  const [fclLastEdited, setFclLastEdited] = useState<'tons' | 'bags' | null>(null)
   const [lclInputType, setLclInputType] = useState<QtyInputType>('tons')
   const [lclInputValue, setLclInputValue] = useState('')
 
@@ -164,6 +168,55 @@ function Quoter() {
     const custom = parseNumber(customUnitWeightKg)
     return custom ?? selectedPackaging.unit_weight_kg
   }, [selectedPackaging, showCustomPackaging, customUnitWeightKg])
+
+  const handleFclTonsChange = (value: string) => {
+    setFclLastEdited('tons')
+    setFclTonsHint(value)
+    const tons = parseNumber(value)
+    if (
+      !effectiveUnitWeight ||
+      !Number.isFinite(effectiveUnitWeight) ||
+      effectiveUnitWeight <= 0 ||
+      tons === null
+    ) {
+      setFclBagsHint('')
+      return
+    }
+    const bags = (tons * 1000) / effectiveUnitWeight
+    setFclBagsHint(String(bags))
+  }
+
+  const handleFclBagsChange = (value: string) => {
+    setFclLastEdited('bags')
+    setFclBagsHint(value)
+    const bags = parseNumber(value)
+    if (
+      !effectiveUnitWeight ||
+      !Number.isFinite(effectiveUnitWeight) ||
+      effectiveUnitWeight <= 0 ||
+      bags === null
+    ) {
+      setFclTonsHint('')
+      return
+    }
+    const tons = (bags * effectiveUnitWeight) / 1000
+    setFclTonsHint(String(tons))
+  }
+
+  useEffect(() => {
+    if (!effectiveUnitWeight || !Number.isFinite(effectiveUnitWeight) || effectiveUnitWeight <= 0) return
+    if (fclLastEdited === 'tons') {
+      const tons = parseNumber(fclTonsHint)
+      if (tons === null) return
+      setFclBagsHint(String((tons * 1000) / effectiveUnitWeight))
+      return
+    }
+    if (fclLastEdited === 'bags') {
+      const bags = parseNumber(fclBagsHint)
+      if (bags === null) return
+      setFclTonsHint(String((bags * effectiveUnitWeight) / 1000))
+    }
+  }, [effectiveUnitWeight, fclLastEdited, fclTonsHint, fclBagsHint])
 
   const bagsPerTon = effectiveUnitWeight ? 1000 / effectiveUnitWeight : null
 
@@ -515,10 +568,10 @@ function Quoter() {
         quote_valid_days: data.settings.quote_valid_days,
         terms_template: data.settings.terms_template,
       },
-      meta: {
-        appVersion: '0.0.0',
-        exportedAtISO: new Date().toISOString(),
-      },
+          meta: {
+            appVersion: APP_VERSION,
+            exportedAtISO: new Date().toISOString(),
+          },
     }
 
     try {
@@ -706,36 +759,54 @@ function Quoter() {
           </div>
 
           <div style={{ marginTop: 14 }}>
-            <label style={labelStyle}>运输模式 / 柜型</label>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <select
-                value={mode}
-                onChange={(e) => setMode(e.target.value as Mode)}
-                style={{ ...selectStyle, width: 140 }}
-              >
-                <option value="FCL">FCL</option>
-                <option value="LCL">LCL</option>
-              </select>
-              <select
-                value={containerType}
-                onChange={(e) => setContainerType(e.target.value as ContainerType)}
-                style={{ ...selectStyle, width: 160 }}
-              >
-                <option value="20GP">20GP</option>
-                <option value="40HQ">40HQ</option>
-              </select>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
+              <div>
+                <label style={labelStyle}>运输模式</label>
+                <select
+                  value={mode}
+                  onChange={(e) => setMode(e.target.value as Mode)}
+                  style={{ ...selectStyle, width: 140 }}
+                >
+                  <option value="FCL">FCL</option>
+                  <option value="LCL">LCL</option>
+                </select>
+              </div>
+              <div>
+                <label style={labelStyle}>柜型</label>
+                <select
+                  value={containerType}
+                  onChange={(e) => setContainerType(e.target.value as ContainerType)}
+                  style={{ ...selectStyle, width: 160 }}
+                >
+                  <option value="20GP">20GP</option>
+                  <option value="40HQ">40HQ</option>
+                </select>
+              </div>
             </div>
           </div>
 
           {mode === 'FCL' && (
             <div style={{ marginTop: 14 }}>
-              <label style={labelStyle}>吨数（可选，仅用于自动切换判定）</label>
-              <input
-                type="number"
-                value={fclTonsHint}
-                onChange={(e) => setFclTonsHint(e.target.value)}
-                style={inputSmall}
-              />
+              <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
+                <div>
+                  <label style={labelStyle}>袋数</label>
+                  <input
+                    type="number"
+                    value={fclBagsHint}
+                    onChange={(e) => handleFclBagsChange(e.target.value)}
+                    style={inputSmall}
+                  />
+                </div>
+                <div>
+                  <label style={labelStyle}>吨数（可选，仅用于自动切换判定）</label>
+                  <input
+                    type="number"
+                    value={fclTonsHint}
+                    onChange={(e) => handleFclTonsChange(e.target.value)}
+                    style={inputSmall}
+                  />
+                </div>
+              </div>
             </div>
           )}
 
@@ -777,22 +848,27 @@ function Quoter() {
           )}
 
           <div style={{ marginTop: 14 }}>
-            <label style={labelStyle}>汇率 / 毛利率</label>
-            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-              <input
-                type="number"
-                step="0.01"
-                value={fxRate}
-                onChange={(e) => setFxRate(e.target.value)}
-                style={inputSmall}
-              />
-              <input
-                type="number"
-                step="0.01"
-                value={marginPct}
-                onChange={(e) => setMarginPct(e.target.value)}
-                style={inputSmall}
-              />
+            <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end' }}>
+              <div>
+                <label style={labelStyle}>汇率</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={fxRate}
+                  onChange={(e) => setFxRate(e.target.value)}
+                  style={inputSmall}
+                />
+              </div>
+              <div>
+                <label style={labelStyle}>毛利率</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={marginPct}
+                  onChange={(e) => setMarginPct(e.target.value)}
+                  style={inputSmall}
+                />
+              </div>
             </div>
           </div>
 
@@ -1107,6 +1183,10 @@ function Quoter() {
                   ))}
                 </div>
               )}
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 6, color: '#9ca3af', fontSize: 12 }}>
+                版本：v{APP_VERSION}
+              </div>
             </div>
           )}
         </div>
@@ -1150,7 +1230,12 @@ function App() {
           </button>
         </div>
 
-        {activeTab === 'quoter' ? <Quoter /> : <Admin />}
+        <div style={{ display: activeTab === 'quoter' ? 'block' : 'none' }}>
+          <Quoter />
+        </div>
+        <div style={{ display: activeTab === 'admin' ? 'block' : 'none' }}>
+          <Admin />
+        </div>
       </div>
     </div>
   )

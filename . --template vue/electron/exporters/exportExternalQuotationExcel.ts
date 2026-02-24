@@ -150,7 +150,10 @@ export async function exportExternalQuotationExcel(
   const amountUsd = Number((sellUsdPerBag * bagsInt).toFixed(2))
   const containerType = payload.input?.containerType ?? payload.quoteResult?.summary?.container_type ?? '20GP'
   const polPortName = resolvePortNameEnglish(payload.input)
-  const descriptionText = buildDescriptionEnglish(payload.input)
+  const desc =
+    (payload.input?.description_en && payload.input.description_en.trim()) ||
+    (payload.input?.description && String(payload.input.description).trim()) ||
+    ''
   const packagingText = buildPackagingEnglish(payload.input)
   const quantityBlockText = buildQuantityBlock(containerType, bagsInt)
   const remarksText = buildRemarksEnglish(payload.settings, polPortName)
@@ -189,7 +192,9 @@ export async function exportExternalQuotationExcel(
     sheet.getCell('A5').value = `Quotation Date: ${quotationDate}`
   }
 
-  sheet.getCell('B9').value = descriptionText
+  sheet.getCell('B9').value = desc
+  const b9Alignment = sheet.getCell('B9').alignment ?? {}
+  sheet.getCell('B9').alignment = { ...b9Alignment, wrapText: true, vertical: 'top' }
   sheet.getCell('C9').value = packagingText
   sheet.getCell('D9').value = quantityBlockText
   sheet.getCell('E9').value = Number(sellUsdPerBag.toFixed(2))

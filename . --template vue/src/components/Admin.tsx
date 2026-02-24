@@ -440,26 +440,39 @@ export default function Admin() {
           </div>
 
           {activeTab === 'products' && <div>{tables.products.map((row) => <div key={row.id} style={{ border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: 16, marginBottom: 20, background: 'rgba(255,255,255,0.02)' }}>
-            <div style={{ marginBottom: 12, color: '#e2e8f0', fontWeight: 700 }}>Product: {row.id}</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr 1.2fr 0.8fr 0.8fr 0.8fr 1fr auto', gap: 8, color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>
-              <div>ID</div>
-              <div>名称</div>
-              <div>Name (EN)</div>
-              <div>出口退税率</div>
-              <div>采购增值税率</div>
-              <div>开票加点</div>
-              <div>起运港</div>
-              <div>操作</div>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr 1.2fr 0.8fr 0.8fr 0.8fr 1fr auto', gap: 8, marginBottom: 12 }}>
-              <input type="text" value={row.id} readOnly style={{ ...inputBaseStyle, backgroundColor: '#111827' }} />
-              <input type="text" value={row.name ?? ''} onChange={(e) => updateRow('products', row.id, 'name', e.target.value)} style={inputBaseStyle} />
-              <input type="text" value={row.name_en ?? ''} onChange={(e) => updateRow('products', row.id, 'name_en', e.target.value)} style={inputBaseStyle} />
-              <input type="number" value={formatNumberInput(row.refund_rate)} onChange={(e) => updateRow('products', row.id, 'refund_rate', parseNumberInput(e.target.value, false))} style={inputBaseStyle} />
-              <input type="number" value={formatNumberInput(row.purchase_vat_rate)} onChange={(e) => updateRow('products', row.id, 'purchase_vat_rate', parseNumberInput(e.target.value, false))} style={inputBaseStyle} />
-              <input type="number" value={formatNumberInput(row.invoice_tax_point)} onChange={(e) => updateRow('products', row.id, 'invoice_tax_point', parseNumberInput(e.target.value, false))} style={inputBaseStyle} />
-              <select value={row.pol_port_id ?? ''} onChange={(e) => updateRow('products', row.id, 'pol_port_id', e.target.value)} style={inputBaseStyle}>{portOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
+            <div style={{ marginBottom: 12, color: '#e2e8f0', fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>Product: {row.id}</span>
               <button onClick={() => deleteRow('products', row.id)} style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid #7f1d1d', backgroundColor: '#2a1111', color: '#fecaca', cursor: 'pointer' }}>删除</button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr 1.2fr 0.8fr 0.8fr 0.8fr 1fr', gap: 8, marginBottom: 12 }}>
+              <div>
+                <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>ID</div>
+                <input type="text" value={row.id} readOnly style={{ ...inputBaseStyle, backgroundColor: '#111827' }} />
+              </div>
+              <div>
+                <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>名称</div>
+                <input type="text" value={row.name ?? ''} onChange={(e) => updateRow('products', row.id, 'name', e.target.value)} style={inputBaseStyle} />
+              </div>
+              <div>
+                <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>Name (EN)</div>
+                <input type="text" value={row.name_en ?? ''} onChange={(e) => updateRow('products', row.id, 'name_en', e.target.value)} style={inputBaseStyle} />
+              </div>
+              <div>
+                <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>出口退税率</div>
+                <input type="number" value={formatNumberInput(row.refund_rate)} onChange={(e) => updateRow('products', row.id, 'refund_rate', parseNumberInput(e.target.value, false))} style={inputBaseStyle} />
+              </div>
+              <div>
+                <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>采购增值税率</div>
+                <input type="number" value={formatNumberInput(row.purchase_vat_rate)} onChange={(e) => updateRow('products', row.id, 'purchase_vat_rate', parseNumberInput(e.target.value, false))} style={inputBaseStyle} />
+              </div>
+              <div>
+                <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>开票加点</div>
+                <input type="number" value={formatNumberInput(row.invoice_tax_point)} onChange={(e) => updateRow('products', row.id, 'invoice_tax_point', parseNumberInput(e.target.value, false))} style={inputBaseStyle} />
+              </div>
+              <div>
+                <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>起运港</div>
+                <select value={row.pol_port_id ?? ''} onChange={(e) => updateRow('products', row.id, 'pol_port_id', e.target.value)} style={inputBaseStyle}>{portOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
+              </div>
             </div>
             <div style={{ display: 'flex', gap: 12, alignItems: 'stretch' }}>
               <div style={{ flex: 1 }}>
@@ -494,7 +507,195 @@ export default function Admin() {
             </div>
           </div>)}</div>}
 
-          {activeTab === 'packaging_options' && <EditableTable columns={columnsByTable.packaging_options} rows={tables.packaging_options} onChange={(id, k, v) => updateRow('packaging_options', id, String(k), v)} onDelete={(id) => deleteRow('packaging_options', id)} />}
+          {activeTab === 'packaging_options' && (
+            <div>
+              {tables.packaging_options.map((pack) => (
+                <div
+                  key={pack.id}
+                  style={{
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: 12,
+                    padding: 16,
+                    marginBottom: 20,
+                    background: 'rgba(255,255,255,0.02)',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: 12,
+                    }}
+                  >
+                    <div style={{ color: '#e2e8f0', fontWeight: 700 }}>Packaging: {pack.id}</div>
+                    <button
+                      onClick={() => deleteRow('packaging_options', pack.id)}
+                      style={{
+                        padding: '6px 10px',
+                        borderRadius: 6,
+                        border: '1px solid #7f1d1d',
+                        backgroundColor: '#2a1111',
+                        color: '#fecaca',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      删除
+                    </button>
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1.2fr 1.2fr',
+                      gap: 8,
+                      marginBottom: 12,
+                    }}
+                  >
+                    <div>
+                      <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>ID</div>
+                      <input
+                        type="text"
+                        value={pack.id}
+                        readOnly
+                        style={{ ...inputBaseStyle, backgroundColor: '#111827' }}
+                      />
+                    </div>
+                    <div>
+                      <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>产品</div>
+                      <select
+                        value={pack.product_id}
+                        onChange={(e) =>
+                          updateRow('packaging_options', pack.id, 'product_id', e.target.value)
+                        }
+                        style={inputBaseStyle}
+                      >
+                        {productOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>名称</div>
+                      <input
+                        type="text"
+                        value={pack.name}
+                        onChange={(e) => updateRow('packaging_options', pack.id, 'name', e.target.value)}
+                        style={inputBaseStyle}
+                      />
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr 0.7fr',
+                      gap: 8,
+                    }}
+                  >
+                    <div>
+                      <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>每袋重量(kg)</div>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={formatNumberInput(pack.unit_weight_kg)}
+                        onChange={(e) =>
+                          updateRow(
+                            'packaging_options',
+                            pack.id,
+                            'unit_weight_kg',
+                            parseNumberInput(e.target.value, false),
+                          )
+                        }
+                        style={inputBaseStyle}
+                      />
+                    </div>
+                    <div>
+                      <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>每箱袋数</div>
+                      <input
+                        type="number"
+                        step="1"
+                        value={formatNumberInput(pack.units_per_carton)}
+                        onChange={(e) =>
+                          updateRow(
+                            'packaging_options',
+                            pack.id,
+                            'units_per_carton',
+                            parseNumberInput(e.target.value, true),
+                          )
+                        }
+                        style={inputBaseStyle}
+                      />
+                    </div>
+                    <div>
+                      <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>
+                        每箱纸箱成本(RMB)
+                      </div>
+                      <input
+                        type="number"
+                        value={formatNumberInput(pack.carton_price_rmb)}
+                        onChange={(e) =>
+                          updateRow(
+                            'packaging_options',
+                            pack.id,
+                            'carton_price_rmb',
+                            parseNumberInput(e.target.value, false),
+                          )
+                        }
+                        style={inputBaseStyle}
+                      />
+                    </div>
+                    <div>
+                      <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>
+                        每袋包装成本(RMB)
+                      </div>
+                      <input
+                        type="number"
+                        value={formatNumberInput(pack.bag_price_rmb)}
+                        onChange={(e) =>
+                          updateRow(
+                            'packaging_options',
+                            pack.id,
+                            'bag_price_rmb',
+                            parseNumberInput(e.target.value, false),
+                          )
+                        }
+                        style={inputBaseStyle}
+                      />
+                    </div>
+                    <div>
+                      <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>内包装类型</div>
+                      <select
+                        value={pack.inner_pack_type}
+                        onChange={(e) =>
+                          updateRow('packaging_options', pack.id, 'inner_pack_type', e.target.value)
+                        }
+                        style={inputBaseStyle}
+                      >
+                        {innerPackOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>默认</div>
+                      <input
+                        type="checkbox"
+                        checked={Boolean(pack.default_selected)}
+                        onChange={(e) =>
+                          updateRow('packaging_options', pack.id, 'default_selected', e.target.checked)
+                        }
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
           {activeTab === 'packaging_recommendations' && <EditableTable columns={columnsByTable.packaging_recommendations} rows={tables.packaging_recommendations} onChange={(id, k, v) => updateRow('packaging_recommendations', id, String(k), v)} onDelete={(id) => deleteRow('packaging_recommendations', id)} />}
           {activeTab === 'factories' && <EditableTable columns={columnsByTable.factories} rows={tables.factories} onChange={(id, k, v) => updateRow('factories', id, String(k), v)} onDelete={(id) => deleteRow('factories', id)} />}
           {activeTab === 'factory_product_costs' && <EditableTable columns={columnsByTable.factory_product_costs} rows={tables.factory_product_costs} onChange={(id, k, v) => updateRow('factory_product_costs', id, String(k), v)} onDelete={(id) => deleteRow('factory_product_costs', id)} />}

@@ -61817,15 +61817,6 @@ function resolvePortNameEnglish(input) {
   if (containsChinese(raw)) return "Tianjin Port";
   return raw;
 }
-function buildDescriptionEnglish(input) {
-  const productName = isNonEmptyText(input.name_en) ? input.name_en.trim() : isNonEmptyText(input.productNameEn) ? input.productNameEn.trim() : "Cat Litter";
-  const descriptionEn = isNonEmptyText(input.description_en) ? input.description_en.trim() : isNonEmptyText(input.descriptionEn) ? input.descriptionEn.trim() : "";
-  const unitWeightKg = asNumber(input.unitWeightKg, 0);
-  const lines = [`${productName}`];
-  if (descriptionEn) lines.push(descriptionEn);
-  lines.push(`Net Weight: ${formatKg(unitWeightKg)}kg per bag`);
-  return lines.join("\n");
-}
 function buildPackagingEnglish(input) {
   const unitWeightKg = asNumber(input.unitWeightKg, 0);
   const unitsPerCarton = asNumber(input.unitsPerCarton, 0);
@@ -61848,7 +61839,7 @@ Validity: ${quoteValidDays} days from quotation date.
 Payment Terms: T/T.`;
 }
 async function exportExternalQuotationExcel(payload, templatePath, outputPath) {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u;
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w;
   const workbook2 = new ExcelJS.Workbook();
   await workbook2.xlsx.readFile(templatePath);
   const sheet = workbook2.getWorksheet("Quotation");
@@ -61862,42 +61853,44 @@ async function exportExternalQuotationExcel(payload, templatePath, outputPath) {
   const amountUsd = Number((sellUsdPerBag * bagsInt).toFixed(2));
   const containerType = ((_f = payload.input) == null ? void 0 : _f.containerType) ?? ((_h = (_g = payload.quoteResult) == null ? void 0 : _g.summary) == null ? void 0 : _h.container_type) ?? "20GP";
   const polPortName = resolvePortNameEnglish(payload.input);
-  const descriptionText = buildDescriptionEnglish(payload.input);
+  const desc = ((_i = payload.input) == null ? void 0 : _i.description_en) && payload.input.description_en.trim() || ((_j = payload.input) == null ? void 0 : _j.description) && String(payload.input.description).trim() || "";
   const packagingText = buildPackagingEnglish(payload.input);
   const quantityBlockText = buildQuantityBlock(containerType, bagsInt);
   const remarksText = buildRemarksEnglish(payload.settings, polPortName);
-  const whatsapp = (_j = (_i = payload.settings) == null ? void 0 : _i.whatsapp) == null ? void 0 : _j.trim();
-  const wechat = (_l = (_k = payload.settings) == null ? void 0 : _k.wechat) == null ? void 0 : _l.trim();
-  const email = (_n = (_m = payload.settings) == null ? void 0 : _m.email) == null ? void 0 : _n.trim();
+  const whatsapp = (_l = (_k = payload.settings) == null ? void 0 : _k.whatsapp) == null ? void 0 : _l.trim();
+  const wechat = (_n = (_m = payload.settings) == null ? void 0 : _m.wechat) == null ? void 0 : _n.trim();
+  const email = (_p = (_o = payload.settings) == null ? void 0 : _o.email) == null ? void 0 : _p.trim();
   const contactItems = [];
   if (whatsapp) contactItems.push(`WhatsApp: ${whatsapp}`);
   if (wechat) contactItems.push(`Wechat: ${wechat}`);
   if (email) contactItems.push(`Email: ${email}`);
-  if (isNonEmptyText((_o = payload.settings) == null ? void 0 : _o.companyName)) {
+  if (isNonEmptyText((_q = payload.settings) == null ? void 0 : _q.companyName)) {
     sheet.getCell("C1").value = payload.settings.companyName.trim();
   }
-  if (isNonEmptyText((_p = payload.settings) == null ? void 0 : _p.address)) {
+  if (isNonEmptyText((_r = payload.settings) == null ? void 0 : _r.address)) {
     sheet.getCell("C2").value = payload.settings.address.trim();
   }
-  if (isNonEmptyText((_q = payload.settings) == null ? void 0 : _q.postCode)) {
+  if (isNonEmptyText((_s = payload.settings) == null ? void 0 : _s.postCode)) {
     sheet.getCell("C3").value = payload.settings.postCode.trim();
   }
-  if (isNonEmptyText((_r = payload.settings) == null ? void 0 : _r.tel)) {
+  if (isNonEmptyText((_t = payload.settings) == null ? void 0 : _t.tel)) {
     sheet.getCell("C4").value = payload.settings.tel.trim();
   }
   if (contactItems.length > 0) {
     sheet.getCell("C5").value = contactItems.join(" | ");
   }
-  if (isNonEmptyText((_s = payload.input) == null ? void 0 : _s.customerName)) {
+  if (isNonEmptyText((_u = payload.input) == null ? void 0 : _u.customerName)) {
     sheet.getCell("B3").value = payload.input.customerName.trim();
   }
-  if (isNonEmptyText((_t = payload.settings) == null ? void 0 : _t.export_from_name)) {
+  if (isNonEmptyText((_v = payload.settings) == null ? void 0 : _v.export_from_name)) {
     sheet.getCell("A4").value = `From: ${payload.settings.export_from_name.trim()}`;
   }
   if (isNonEmptyText(quotationDate)) {
     sheet.getCell("A5").value = `Quotation Date: ${quotationDate}`;
   }
-  sheet.getCell("B9").value = descriptionText;
+  sheet.getCell("B9").value = desc;
+  const b9Alignment = sheet.getCell("B9").alignment ?? {};
+  sheet.getCell("B9").alignment = { ...b9Alignment, wrapText: true, vertical: "top" };
   sheet.getCell("C9").value = packagingText;
   sheet.getCell("D9").value = quantityBlockText;
   sheet.getCell("E9").value = Number(sellUsdPerBag.toFixed(2));
@@ -61917,7 +61910,7 @@ async function exportExternalQuotationExcel(payload, templatePath, outputPath) {
     });
   } catch {
   }
-  if (isNonEmptyText((_u = payload.input) == null ? void 0 : _u.image_path)) {
+  if (isNonEmptyText((_w = payload.input) == null ? void 0 : _w.image_path)) {
     const imagePath = payload.input.image_path.trim();
     try {
       await access(imagePath, constants$7.F_OK);
