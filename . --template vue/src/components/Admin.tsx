@@ -462,8 +462,35 @@ export default function Admin() {
               <button onClick={() => deleteRow('products', row.id)} style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid #7f1d1d', backgroundColor: '#2a1111', color: '#fecaca', cursor: 'pointer' }}>删除</button>
             </div>
             <div style={{ display: 'flex', gap: 12, alignItems: 'stretch' }}>
-              <div style={{ flex: 1 }}><div style={{ color: '#cbd5f5', marginBottom: 6 }}>Description (EN)</div><textarea value={row.description_en ?? ''} onChange={(e) => updateRow('products', row.id, 'description_en', e.target.value)} style={{ ...inputBaseStyle, minHeight: 80, padding: '8px 10px' }} /></div>
-              <div style={{ width: 360, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 10 }}><div><div style={{ color: '#cbd5f5', marginBottom: 6 }}>Image Path</div><input type="text" value={row.image_path ?? ''} readOnly style={{ ...inputBaseStyle, padding: '8px 10px', backgroundColor: '#111827' }} /></div><div style={{ display: 'flex', justifyContent: 'flex-end' }}><button onClick={() => void handleUploadProductImage(row.id)} style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #1d4ed8', backgroundColor: '#172554', color: '#bfdbfe', cursor: 'pointer' }}>上传图片</button></div></div>
+              <div style={{ flex: 1 }}>
+                <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>Description (EN)</div>
+                <textarea
+                  value={row.description_en ?? ''}
+                  onChange={(e) => updateRow('products', row.id, 'description_en', e.target.value)}
+                  style={{ ...inputBaseStyle, minHeight: 80, padding: '8px 10px' }}
+                />
+              </div>
+              <div
+                style={{ width: 360, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 10 }}
+              >
+                <div>
+                  <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>Image Path</div>
+                  <input
+                    type="text"
+                    value={row.image_path ?? ''}
+                    readOnly
+                    style={{ ...inputBaseStyle, padding: '8px 10px', backgroundColor: '#111827' }}
+                  />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <button
+                    onClick={() => void handleUploadProductImage(row.id)}
+                    style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #1d4ed8', backgroundColor: '#172554', color: '#bfdbfe', cursor: 'pointer' }}
+                  >
+                    上传图片
+                  </button>
+                </div>
+              </div>
             </div>
           </div>)}</div>}
 
