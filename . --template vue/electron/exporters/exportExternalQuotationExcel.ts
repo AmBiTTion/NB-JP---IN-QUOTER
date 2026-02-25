@@ -95,24 +95,6 @@ function resolvePortNameEnglish(input: ExternalQuotationPayload['input']): strin
   return raw
 }
 
-function buildDescriptionEnglish(input: ExternalQuotationPayload['input']): string {
-  const productName = isNonEmptyText(input.name_en)
-    ? input.name_en.trim()
-    : isNonEmptyText(input.productNameEn)
-      ? input.productNameEn.trim()
-      : 'Cat Litter'
-  const descriptionEn = isNonEmptyText(input.description_en)
-    ? input.description_en.trim()
-    : isNonEmptyText(input.descriptionEn)
-      ? input.descriptionEn.trim()
-      : ''
-  const unitWeightKg = asNumber(input.unitWeightKg, 0)
-  const lines = [`${productName}`]
-  if (descriptionEn) lines.push(descriptionEn)
-  lines.push(`Net Weight: ${formatKg(unitWeightKg)}kg per bag`)
-  return lines.join('\n')
-}
-
 function buildPackagingEnglish(input: ExternalQuotationPayload['input']): string {
   const unitWeightKg = asNumber(input.unitWeightKg, 0)
   const unitsPerCarton = asNumber(input.unitsPerCarton, 0)

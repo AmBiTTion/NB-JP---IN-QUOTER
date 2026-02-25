@@ -9,6 +9,11 @@
     "backup": "node scripts/backup-critical-files.mjs"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mantine/core": "^8.3.15",
+    "@mantine/hooks": "^8.3.15",
+    "@mantine/notifications": "^8.3.15",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-slot": "^1.2.4",
     "@radix-ui/react-tabs": "^1.1.13",

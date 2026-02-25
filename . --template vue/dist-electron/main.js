@@ -62061,7 +62061,8 @@ function nonEmptyText(value, fallback2) {
 }
 function normalizeUiTheme(value, fallback2 = "classic") {
   const v = String(value ?? "").trim();
-  if (v === "classic" || v === "creative" || v === "minimal") return v;
+  if (v === "classic" || v === "neon" || v === "minimal") return v;
+  if (v === "creative") return "neon";
   return fallback2;
 }
 function toHistory(input, fallbackTimestamp) {

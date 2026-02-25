@@ -18,7 +18,7 @@ interface Settings {
   fx_rate: number
   margin_pct: number
   quote_valid_days: number
-  ui_theme?: 'classic' | 'creative' | 'minimal'
+  ui_theme?: 'classic' | 'neon' | 'minimal'
   money_format: {
     rmb_decimals: number
     usd_decimals: number
@@ -308,10 +308,11 @@ function nonEmptyText(value: unknown, fallback: string): string {
 
 function normalizeUiTheme(
   value: unknown,
-  fallback: 'classic' | 'creative' | 'minimal' = 'classic',
-): 'classic' | 'creative' | 'minimal' {
+  fallback: 'classic' | 'neon' | 'minimal' = 'classic',
+): 'classic' | 'neon' | 'minimal' {
   const v = String(value ?? '').trim()
-  if (v === 'classic' || v === 'creative' || v === 'minimal') return v
+  if (v === 'classic' || v === 'neon' || v === 'minimal') return v
+  if (v === 'creative') return 'neon'
   return fallback
 }
 

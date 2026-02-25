@@ -1,5 +1,6 @@
 ﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
+import { Select as MantineSelect, Text } from '@mantine/core'
 import type {
   AppData,
   ContainerLoadRule,
@@ -16,6 +17,7 @@ import type {
   Product,
 } from '@/types/domain'
 import { nextIdFromRows } from '@/utils/id'
+import { useUiTheme } from '@/ui/ThemeProvider'
 
 type TabKey = EditableTableKey | 'settings'
 type ColumnType = 'text' | 'number' | 'select' | 'checkbox'
@@ -114,6 +116,7 @@ function EditableTable<T extends { id: string }>(props: {
   )
 }
 export default function Admin() {
+  const { setUiThemeKey } = useUiTheme()
   const [data, setData] = useState<AppData | null>(null)
   const [tables, setTables] = useState<TableState>(createEmptyTables())
   const [activeTab, setActiveTab] = useState<TabKey>('products')
@@ -124,7 +127,7 @@ export default function Admin() {
   const [settingsUsdDecimals, setSettingsUsdDecimals] = useState('4')
   const [settingsPricingFormulaMode, setSettingsPricingFormulaMode] = useState('divide')
   const [settingsRoundingPolicy, setSettingsRoundingPolicy] = useState('ceil')
-  const [settingsUiTheme, setSettingsUiTheme] = useState<'classic' | 'creative' | 'minimal'>('classic')
+  const [settingsUiTheme, setSettingsUiTheme] = useState<'classic' | 'neon' | 'minimal'>('classic')
   const [settingsTermsTemplate, setSettingsTermsTemplate] = useState('')
   const [dirtyTables, setDirtyTables] = useState<EditableTableKey[]>([])
   const [dirtySettings, setDirtySettings] = useState(false)
@@ -158,7 +161,7 @@ export default function Admin() {
       })
       setSettingsFxRate(String(appData.settings.fx_rate ?? 6.9)); setSettingsMarginPct(String(appData.settings.margin_pct ?? 0.05)); setSettingsQuoteValidDays(String(appData.settings.quote_valid_days ?? 7))
       setSettingsRmbDecimals(String(appData.settings.money_format?.rmb_decimals ?? 4)); setSettingsUsdDecimals(String(appData.settings.money_format?.usd_decimals ?? 4))
-      setSettingsPricingFormulaMode(appData.settings.pricing_formula_mode ?? 'divide'); setSettingsRoundingPolicy(appData.settings.rounding_policy ?? 'ceil'); setSettingsUiTheme((appData.settings.ui_theme as 'classic' | 'creative' | 'minimal') ?? 'classic'); setSettingsTermsTemplate(appData.settings.terms_template ?? '')
+      setSettingsPricingFormulaMode(appData.settings.pricing_formula_mode ?? 'divide'); setSettingsRoundingPolicy(appData.settings.rounding_policy ?? 'ceil'); const rawUiTheme = String(appData.settings.ui_theme ?? 'classic'); const loadedUiTheme = ((rawUiTheme === 'creative' ? 'neon' : rawUiTheme) as 'classic' | 'neon' | 'minimal' | undefined) ?? 'classic'; setSettingsUiTheme(loadedUiTheme); setUiThemeKey(loadedUiTheme); setSettingsTermsTemplate(appData.settings.terms_template ?? '')
       suppressAutoSaveRef.current = true; setDirtyTables([]); setDirtySettings(false); setAutoSaveState('idle'); setStatus('数据已加载')
     } catch (e) {
       console.error(e); setError('加载失败，请检查控制台'); setStatus('')
@@ -425,7 +428,28 @@ export default function Admin() {
             <div><label>{labelFor('money_format_usd_decimals')}</label><input type="number" step="1" value={settingsUsdDecimals} onChange={(e) => { setSettingsUsdDecimals(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
             <div><label>{labelFor('pricing_formula_mode')}</label><select className="ui-select" value={settingsPricingFormulaMode} onChange={(e) => { setSettingsPricingFormulaMode(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }}><option value="divide">cost/(1-margin)</option></select></div>
             <div><label>{labelFor('rounding_policy')}</label><select className="ui-select" value={settingsRoundingPolicy} onChange={(e) => { setSettingsRoundingPolicy(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }}><option value="ceil">向上取整</option></select></div>
-            <div><label>{labelFor('ui_theme')}</label><select className="ui-select" value={settingsUiTheme} onChange={(e) => { const nextTheme = e.target.value as 'classic' | 'creative' | 'minimal'; setSettingsUiTheme(nextTheme); setDirtySettings(true); setAutoSaveState('idle'); window.dispatchEvent(new CustomEvent('ui-theme-change', { detail: { uiTheme: nextTheme } })) }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }}><option value="classic">经典深色</option><option value="creative">霓虹渐变</option><option value="minimal">极简清爽</option></select></div>
+            <div>
+              <label>{labelFor('ui_theme')}</label>
+              <MantineSelect
+                mt={6}
+                value={settingsUiTheme}
+                data={[
+                  { value: 'classic', label: 'Classic Admin (稳重)' },
+                  { value: 'neon', label: 'Neon Creative (渐变霓虹)' },
+                  { value: 'minimal', label: 'Minimal Clean (极简浅色)' },
+                ]}
+                onChange={(value) => {
+                  const nextTheme = (value ?? 'classic') as 'classic' | 'neon' | 'minimal'
+                  setSettingsUiTheme(nextTheme)
+                  setUiThemeKey(nextTheme)
+                  setDirtySettings(true)
+                  setAutoSaveState('idle')
+                }}
+              />
+              <Text size="xs" c="dimmed" mt={6}>
+                主题切换会立即应用到全局界面，并在保存后持久化。
+              </Text>
+            </div>
             <div style={{ gridColumn: '1 / span 2' }}><label>{labelFor('terms_template')}</label><textarea className="no-scroll" value={settingsTermsTemplate} onChange={(e) => { setSettingsTermsTemplate(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} rows={3} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
             <div style={{ display: 'flex', alignItems: 'end' }}><button onClick={() => void saveSettings()} style={{ padding: '8px 12px', borderRadius: 6, border: 'none', backgroundColor: '#4ade80', color: '#000', cursor: 'pointer', fontWeight: 700, height: 38 }}>保存</button></div>
           </div>

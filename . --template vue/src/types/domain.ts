@@ -7,7 +7,7 @@ export interface Settings {
   fx_rate: number
   margin_pct: number
   quote_valid_days: number
-  ui_theme?: 'classic' | 'creative' | 'minimal'
+  ui_theme?: 'classic' | 'neon' | 'minimal'
   money_format: {
     rmb_decimals: number
     usd_decimals: number

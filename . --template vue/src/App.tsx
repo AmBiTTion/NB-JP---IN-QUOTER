@@ -1,6 +1,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import type { CSSProperties } from 'react'
+import { Button, Card, NumberInput, Select } from '@mantine/core'
 import Admin from '@/components/Admin'
 import { calculateQuote, formatCurrency, type CalculateQuoteResult } from '@/utils/calculateQuote'
 import { INNER_PACK_LABELS, labelFor } from '@/utils/fieldLabels'
@@ -308,6 +309,38 @@ function Quoter() {
 
   const formatRmb = (value: number, decimals = rmbDecimals) => formatCurrency(value, 'CNY', decimals)
   const formatUsd = (value: number, decimals = usdDecimals) => formatCurrency(value, 'USD', decimals)
+  const toMantineNumber = (value: string): number | '' => {
+    if (value.trim() === '') return ''
+    const n = Number(value)
+    return Number.isFinite(n) ? n : ''
+  }
+
+  const productSelectData = useMemo(
+    () =>
+      products.map((product) => ({
+        value: product.id,
+        label: `${product.name} | ${portsById.get(product.pol_port_id)?.name ?? product.pol_port_id}`,
+      })),
+    [products, portsById],
+  )
+
+  const packagingSelectData = useMemo(
+    () =>
+      packagingOptions.map((item) => {
+        const cartonText =
+          item.units_per_carton && item.units_per_carton > 0 ? `姣忕${item.units_per_carton}琚?` : '不装箱'
+        return {
+          value: item.id,
+          label: `${item.name} | ${item.unit_weight_kg}kg | ${cartonText} | ${INNER_PACK_LABELS[item.inner_pack_type]}`,
+        }
+      }),
+    [packagingOptions],
+  )
+
+  const factorySelectData = useMemo(
+    () => factories.map((factory) => ({ value: factory.id, label: factory.name })),
+    [factories],
+  )
 
   const disableReason = useMemo(() => {
     if (!data) return '数据未加载完成'
@@ -630,14 +663,6 @@ function Quoter() {
     backgroundColor: '#111827',
   }
   const labelStyle: CSSProperties = { display: 'block', marginBottom: 6, color: '#cbd5f5' }
-  const selectStyle: CSSProperties = {
-    width: '100%',
-    padding: '8px 10px',
-    backgroundColor: '#0f172a',
-    color: '#fff',
-    border: '1px solid #334155',
-    borderRadius: 8,
-  }
   const inputSmall: CSSProperties = {
     width: 140,
     padding: '8px 10px',
@@ -674,23 +699,18 @@ function Quoter() {
 
           <div style={{ marginTop: 14 }}>
             <label style={labelStyle}>产品选择</label>
-            <select
+            <Select
               className="ui-select"
-              value={selectedProductId}
-              onChange={(e) => setSelectedProductId(e.target.value)}
-              style={selectStyle}
-            >
-              <option value="">请选择产品</option>
-              {products.map((product) => (
-                <option key={product.id} value={product.id}>
-                  {product.name} | {portsById.get(product.pol_port_id)?.name ?? product.pol_port_id}
-                </option>
-              ))}
-            </select>
+              value={selectedProductId || null}
+              onChange={(value) => setSelectedProductId(value ?? '')}
+              data={productSelectData}
+              placeholder="请选择产品"
+              radius="lg"
+            />
           </div>
 
           {selectedProduct && (
-            <div
+            <Card
               style={{
                 marginTop: 12,
                 padding: 10,
@@ -703,7 +723,7 @@ function Quoter() {
               <div>退税率：{(selectedProduct.refund_rate * 100).toFixed(2)}%</div>
               <div>采购 VAT：{(selectedProduct.purchase_vat_rate * 100).toFixed(2)}%</div>
               <div>税点：{(selectedProduct.invoice_tax_point * 100).toFixed(2)}%</div>
-            </div>
+            </Card>
           )}
 
           <div style={{ marginTop: 14 }}>
@@ -724,43 +744,26 @@ function Quoter() {
                 自定义包装...
               </button>
             </div>
-            <select
+            <Select
               className="ui-select"
-              value={selectedPackagingId}
-              onChange={(e) => setSelectedPackagingId(e.target.value)}
-              style={selectStyle}
-            >
-              <option value="">请选择包装方案</option>
-              {packagingOptions.map((item) => {
-                const cartonText =
-                  item.units_per_carton && item.units_per_carton > 0
-                    ? `每箱${item.units_per_carton}袋`
-                    : '不装箱'
-                return (
-                  <option key={item.id} value={item.id}>
-                    {item.name} | {item.unit_weight_kg}kg | {cartonText} |{' '}
-                    {INNER_PACK_LABELS[item.inner_pack_type]}
-                  </option>
-                )
-              })}
-            </select>
+              value={selectedPackagingId || null}
+              onChange={(value) => setSelectedPackagingId(value ?? '')}
+              data={packagingSelectData}
+              placeholder="请选择包装方案"
+              radius="lg"
+            />
           </div>
 
           <div style={{ marginTop: 14 }}>
             <label style={labelStyle}>工厂</label>
-            <select
+            <Select
               className="ui-select"
-              value={selectedFactoryId}
-              onChange={(e) => setSelectedFactoryId(e.target.value)}
-              style={selectStyle}
-            >
-              <option value="">请选择工厂</option>
-              {factories.map((factory) => (
-                <option key={factory.id} value={factory.id}>
-                  {factory.name}
-                </option>
-              ))}
-            </select>
+              value={selectedFactoryId || null}
+              onChange={(value) => setSelectedFactoryId(value ?? '')}
+              data={factorySelectData}
+              placeholder="请选择工厂"
+              radius="lg"
+            />
             {selectedFactoryId && (selectedFactoryCost === undefined || selectedFactoryCost === null || selectedFactoryCost <= 0) && (
               <div style={{ color: '#f87171', marginTop: 6 }}>请维护工厂吨成本。</div>
             )}
@@ -773,27 +776,31 @@ function Quoter() {
             <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
               <div>
                 <label style={labelStyle}>运输模式</label>
-                <select
+                <Select
                   className="ui-select"
                   value={mode}
-                  onChange={(e) => setMode(e.target.value as Mode)}
-                  style={{ ...selectStyle, width: 140 }}
-                >
-                  <option value="FCL">FCL</option>
-                  <option value="LCL">LCL</option>
-                </select>
+                  onChange={(value) => setMode((value as Mode | null) ?? 'FCL')}
+                  data={[
+                    { value: 'FCL', label: 'FCL' },
+                    { value: 'LCL', label: 'LCL' },
+                  ]}
+                  radius="lg"
+                  w={140}
+                />
               </div>
               <div>
                 <label style={labelStyle}>柜型</label>
-                <select
+                <Select
                   className="ui-select"
                   value={containerType}
-                  onChange={(e) => setContainerType(e.target.value as ContainerType)}
-                  style={{ ...selectStyle, width: 160 }}
-                >
-                  <option value="20GP">20GP</option>
-                  <option value="40HQ">40HQ</option>
-                </select>
+                  onChange={(value) => setContainerType((value as ContainerType | null) ?? '20GP')}
+                  data={[
+                    { value: '20GP', label: '20GP' },
+                    { value: '40HQ', label: '40HQ' },
+                  ]}
+                  radius="lg"
+                  w={160}
+                />
               </div>
             </div>
           </div>
@@ -803,20 +810,24 @@ function Quoter() {
               <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
                 <div>
                   <label style={labelStyle}>袋数</label>
-                  <input
-                    type="number"
-                    value={fclBagsHint}
-                    onChange={(e) => handleFclBagsChange(e.target.value)}
-                    style={inputSmall}
+                  <NumberInput
+                    className="ui-input"
+                    value={toMantineNumber(fclBagsHint)}
+                    onChange={(value) => handleFclBagsChange(String(value ?? ''))}
+                    hideControls
+                    radius="lg"
+                    w={140}
                   />
                 </div>
                 <div>
                   <label style={labelStyle}>吨数（可选，仅用于自动切换判定）</label>
-                  <input
-                    type="number"
-                    value={fclTonsHint}
-                    onChange={(e) => handleFclTonsChange(e.target.value)}
-                    style={inputSmall}
+                  <NumberInput
+                    className="ui-input"
+                    value={toMantineNumber(fclTonsHint)}
+                    onChange={(value) => handleFclTonsChange(String(value ?? ''))}
+                    hideControls
+                    radius="lg"
+                    w={140}
                   />
                 </div>
               </div>
@@ -845,11 +856,13 @@ function Quoter() {
                 </label>
               </div>
               <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                <input
-                  type="number"
-                  value={lclInputValue}
-                  onChange={(e) => setLclInputValue(e.target.value)}
-                  style={inputSmall}
+                <NumberInput
+                  className="ui-input"
+                  value={toMantineNumber(lclInputValue)}
+                  onChange={(value) => setLclInputValue(String(value ?? ''))}
+                  hideControls
+                  radius="lg"
+                  w={140}
                 />
                 <div style={{ color: '#9ca3af' }}>
                   {lclInputType === 'tons'
@@ -864,22 +877,26 @@ function Quoter() {
             <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end' }}>
               <div>
                 <label style={labelStyle}>汇率</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={fxRate}
-                  onChange={(e) => setFxRate(e.target.value)}
-                  style={inputSmall}
+                <NumberInput
+                  className="ui-input"
+                  value={toMantineNumber(fxRate)}
+                  onChange={(value) => setFxRate(String(value ?? ''))}
+                  decimalScale={4}
+                  hideControls
+                  radius="lg"
+                  w={140}
                 />
               </div>
               <div>
                 <label style={labelStyle}>毛利率</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={marginPct}
-                  onChange={(e) => setMarginPct(e.target.value)}
-                  style={inputSmall}
+                <NumberInput
+                  className="ui-input"
+                  value={toMantineNumber(marginPct)}
+                  onChange={(value) => setMarginPct(String(value ?? ''))}
+                  decimalScale={4}
+                  hideControls
+                  radius="lg"
+                  w={140}
                 />
               </div>
             </div>
@@ -887,12 +904,14 @@ function Quoter() {
 
           <div style={{ marginTop: 14 }}>
             <label style={labelStyle}>每吨国内运费到港（RMB/吨）</label>
-            <input
-              type="number"
-              value={landFreightOverridePerTon}
-              onChange={(e) => setLandFreightOverridePerTon(e.target.value)}
+            <NumberInput
+              className="ui-input"
+              value={toMantineNumber(landFreightOverridePerTon)}
+              onChange={(value) => setLandFreightOverridePerTon(String(value ?? ''))}
               placeholder={defaultLandFreightPerTon !== null ? `默认 ${defaultLandFreightPerTon}` : ''}
-              style={inputSmall}
+              hideControls
+              radius="lg"
+              w={140}
             />
             <div style={{ marginTop: 6, color: defaultLandFreightPerTon === null ? '#fbbf24' : '#9ca3af' }}>
               {defaultLandFreightPerTon === null
@@ -975,18 +994,17 @@ function Quoter() {
                 </div>
                 <div>
                   <label style={{ fontSize: 12, color: '#9ca3af' }}>{labelFor('inner_pack_type')}</label>
-                  <select
+                  <Select
                     className="ui-select"
                     value={customInnerPackType}
-                    onChange={(e) => setCustomInnerPackType(e.target.value as InnerPackType)}
-                    style={{ ...selectStyle, width: 180 }}
-                  >
-                    {Object.entries(INNER_PACK_LABELS).map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(value) => setCustomInnerPackType((value as InnerPackType | null) ?? 'carton')}
+                    data={Object.entries(INNER_PACK_LABELS).map(([value, label]) => ({
+                      value,
+                      label,
+                    }))}
+                    radius="lg"
+                    w={180}
+                  />
                 </div>
               </div>
 
@@ -1018,38 +1036,25 @@ function Quoter() {
           )}
 
           <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-            <button
+            <Button
               className="btn-primary"
               onClick={handleCalculate}
               disabled={Boolean(disableReason)}
-              style={{
-                padding: '10px 18px',
-                borderRadius: 10,
-                border: 'none',
-                backgroundColor: disableReason ? '#374151' : '#fbbf24',
-                color: '#111827',
-                fontWeight: 700,
-                cursor: disableReason ? 'not-allowed' : 'pointer',
-              }}
+              variant="gradient"
+              gradient={{ from: 'blue', to: 'violet', deg: 120 }}
+              radius="lg"
             >
               计算报价
-            </button>
-            <button
+            </Button>
+            <Button
               className="btn-primary"
               onClick={() => void handleExportExternalQuotation()}
               disabled={!quoteResult}
-              style={{
-                padding: '10px 18px',
-                borderRadius: 10,
-                border: '1px solid #334155',
-                backgroundColor: quoteResult ? '#2563eb' : '#374151',
-                color: '#fff',
-                fontWeight: 700,
-                cursor: quoteResult ? 'pointer' : 'not-allowed',
-              }}
+              variant="outline"
+              radius="lg"
             >
               导出外部报价单（Excel）
-            </button>
+            </Button>
             {disableReason && <div style={{ color: '#f87171' }}>{disableReason}</div>}
             {exportMessage && <div style={{ color: '#93c5fd' }}>{exportMessage}</div>}
           </div>
@@ -1241,11 +1246,12 @@ function Quoter() {
 }
 function App() {
   const [activeTab, setActiveTab] = useState<'quoter' | 'admin'>('quoter')
-  const [uiTheme, setUiTheme] = useState<'classic' | 'creative' | 'minimal'>('classic')
+  const [uiTheme, setUiTheme] = useState<'classic' | 'neon' | 'minimal'>('classic')
 
   useEffect(() => {
-    const toTheme = (value: unknown): 'classic' | 'creative' | 'minimal' => {
-      if (value === 'creative' || value === 'minimal' || value === 'classic') return value
+    const toTheme = (value: unknown): 'classic' | 'neon' | 'minimal' => {
+      if (value === 'neon' || value === 'minimal' || value === 'classic') return value
+      if (value === 'creative') return 'neon'
       return 'classic'
     }
 
@@ -1269,7 +1275,7 @@ function App() {
     return () => window.removeEventListener('ui-theme-change', handleThemeChange as EventListener)
   }, [])
 
-  const uiThemeClass = uiTheme === 'creative' ? 'theme-creative' : uiTheme === 'minimal' ? 'theme-minimal' : 'theme-classic'
+  const uiThemeClass = uiTheme === 'neon' ? 'theme-creative' : uiTheme === 'minimal' ? 'theme-minimal' : 'theme-classic'
 
   return (
     <div className={`app-root ${uiThemeClass}`} style={{ minHeight: '100vh', backgroundColor: '#0b0f1a', color: '#e5e7eb' }}>
