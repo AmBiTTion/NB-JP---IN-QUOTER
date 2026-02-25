@@ -72,7 +72,7 @@ const LABELS: Record<string, string> = {
   port_id: '港口', mode: '运输模式', container_type: '柜型', base_rmb: '基础费用(RMB)', extra_rmb_per_ton: '超吨费用(RMB/吨)',
   min_rmb_per_ton: '最低每吨运费(RMB/吨)', max_rmb_per_ton: '最高每吨运费(RMB/吨)', default_rmb_per_ton: '默认每吨运费(RMB/吨)',
   fx_rate: '汇率', margin_pct: '毛利率', quote_valid_days: '报价有效期(天)', pricing_formula_mode: '定价公式模式',
-  rounding_policy: '取整规则', terms_template: '条款模板', money_format_rmb_decimals: 'RMB 小数位', money_format_usd_decimals: 'USD 小数位',
+  rounding_policy: '取整规则', terms_template: '条款模板', ui_theme: '界面主题', money_format_rmb_decimals: 'RMB 小数位', money_format_usd_decimals: 'USD 小数位',
   recommended_units_per_carton: '推荐每箱袋数', notes: '备注', carton_price_rmb_override: '纸箱价覆盖(RMB/箱)', bag_price_rmb_override: '袋材价覆盖(RMB/袋)',
 }
 
@@ -105,7 +105,7 @@ function EditableTable<T extends { id: string }>(props: {
         <tbody>{rows.map((row) => <tr key={row.id} style={{ borderTop: '1px solid #1f2937' }}>{columns.map((c) => {
           const raw = row[c.key] as unknown
           if (c.type === 'checkbox') return <td key={String(c.key)} style={{ padding: '8px 6px' }}><input type="checkbox" checked={Boolean(raw)} disabled={c.readOnly} onChange={(e) => onChange(row.id, c.key, e.target.checked)} /></td>
-          if (c.type === 'select') return <td key={String(c.key)} style={{ padding: '8px 6px' }}><select value={(raw ?? '') as string} disabled={c.readOnly} onChange={(e) => onChange(row.id, c.key, e.target.value)} style={inputBaseStyle}>{(c.options ?? []).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select></td>
+          if (c.type === 'select') return <td key={String(c.key)} style={{ padding: '8px 6px' }}><select className="ui-select" value={(raw ?? '') as string} disabled={c.readOnly} onChange={(e) => onChange(row.id, c.key, e.target.value)} style={inputBaseStyle}>{(c.options ?? []).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select></td>
           if (c.type === 'number') return <td key={String(c.key)} style={{ padding: '8px 6px' }}><input type="number" step={c.step ?? '0.01'} value={formatNumberInput(raw)} readOnly={c.readOnly} onChange={(e) => onChange(row.id, c.key, parseNumberInput(e.target.value, Boolean(c.nullable)))} style={{ ...inputBaseStyle, backgroundColor: c.readOnly ? '#111827' : '#0f172a' }} /></td>
           return <td key={String(c.key)} style={{ padding: '8px 6px' }}><input type="text" value={(raw ?? '') as string} readOnly={c.readOnly} onChange={(e) => onChange(row.id, c.key, e.target.value)} style={{ ...inputBaseStyle, backgroundColor: c.readOnly ? '#111827' : '#0f172a' }} /></td>
         })}<td style={{ padding: '8px 6px' }}>{renderActions && <span style={{ marginRight: 8 }}>{renderActions(row)}</span>}<button onClick={() => onDelete(row.id)} style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid #7f1d1d', backgroundColor: '#2a1111', color: '#fecaca', cursor: 'pointer' }}>删除</button></td></tr>)}</tbody>
@@ -124,6 +124,7 @@ export default function Admin() {
   const [settingsUsdDecimals, setSettingsUsdDecimals] = useState('4')
   const [settingsPricingFormulaMode, setSettingsPricingFormulaMode] = useState('divide')
   const [settingsRoundingPolicy, setSettingsRoundingPolicy] = useState('ceil')
+  const [settingsUiTheme, setSettingsUiTheme] = useState<'classic' | 'creative' | 'minimal'>('classic')
   const [settingsTermsTemplate, setSettingsTermsTemplate] = useState('')
   const [dirtyTables, setDirtyTables] = useState<EditableTableKey[]>([])
   const [dirtySettings, setDirtySettings] = useState(false)
@@ -157,7 +158,7 @@ export default function Admin() {
       })
       setSettingsFxRate(String(appData.settings.fx_rate ?? 6.9)); setSettingsMarginPct(String(appData.settings.margin_pct ?? 0.05)); setSettingsQuoteValidDays(String(appData.settings.quote_valid_days ?? 7))
       setSettingsRmbDecimals(String(appData.settings.money_format?.rmb_decimals ?? 4)); setSettingsUsdDecimals(String(appData.settings.money_format?.usd_decimals ?? 4))
-      setSettingsPricingFormulaMode(appData.settings.pricing_formula_mode ?? 'divide'); setSettingsRoundingPolicy(appData.settings.rounding_policy ?? 'ceil'); setSettingsTermsTemplate(appData.settings.terms_template ?? '')
+      setSettingsPricingFormulaMode(appData.settings.pricing_formula_mode ?? 'divide'); setSettingsRoundingPolicy(appData.settings.rounding_policy ?? 'ceil'); setSettingsUiTheme((appData.settings.ui_theme as 'classic' | 'creative' | 'minimal') ?? 'classic'); setSettingsTermsTemplate(appData.settings.terms_template ?? '')
       suppressAutoSaveRef.current = true; setDirtyTables([]); setDirtySettings(false); setAutoSaveState('idle'); setStatus('数据已加载')
     } catch (e) {
       console.error(e); setError('加载失败，请检查控制台'); setStatus('')
@@ -351,15 +352,16 @@ export default function Admin() {
     if (!Number.isFinite(usd) || usd < 0) { setError('USD 小数位数必须为非负整数'); setAutoSaveState('error'); return }
     if (source === 'auto') setAutoSaveState('saving'); else setStatus('正在保存设置...')
     // @ts-ignore
-    const result = (await window.ipcRenderer.invoke('update-settings', { fx_rate: fx, margin_pct: margin, quote_valid_days: quoteDays, money_format: { rmb_decimals: rmb, usd_decimals: usd }, pricing_formula_mode: settingsPricingFormulaMode, rounding_policy: settingsRoundingPolicy, terms_template: settingsTermsTemplate })) as { success: boolean; message?: string }
+    const result = (await window.ipcRenderer.invoke('update-settings', { fx_rate: fx, margin_pct: margin, quote_valid_days: quoteDays, ui_theme: settingsUiTheme, money_format: { rmb_decimals: rmb, usd_decimals: usd }, pricing_formula_mode: settingsPricingFormulaMode, rounding_policy: settingsRoundingPolicy, terms_template: settingsTermsTemplate })) as { success: boolean; message?: string }
     if (!result.success) { setError(result.message ?? '保存失败'); setStatus(''); setAutoSaveState('error'); return }
     setDirtySettings(false)
+    window.dispatchEvent(new CustomEvent('ui-theme-change', { detail: { uiTheme: settingsUiTheme } }))
     if (source === 'auto') setAutoSaveState('saved'); else setStatus('设置已保存')
     if (!reload) {
-      setData((prev) => prev ? ({ ...prev, settings: { ...prev.settings, fx_rate: fx, margin_pct: margin, quote_valid_days: quoteDays, money_format: { rmb_decimals: rmb, usd_decimals: usd }, pricing_formula_mode: settingsPricingFormulaMode, rounding_policy: settingsRoundingPolicy, terms_template: settingsTermsTemplate } }) : prev)
+      setData((prev) => prev ? ({ ...prev, settings: { ...prev.settings, fx_rate: fx, margin_pct: margin, quote_valid_days: quoteDays, ui_theme: settingsUiTheme, money_format: { rmb_decimals: rmb, usd_decimals: usd }, pricing_formula_mode: settingsPricingFormulaMode, rounding_policy: settingsRoundingPolicy, terms_template: settingsTermsTemplate } }) : prev)
     }
     if (reload) await loadData()
-  }, [settingsFxRate, settingsMarginPct, settingsQuoteValidDays, settingsRmbDecimals, settingsUsdDecimals, settingsPricingFormulaMode, settingsRoundingPolicy, settingsTermsTemplate, loadData])
+  }, [settingsFxRate, settingsMarginPct, settingsQuoteValidDays, settingsRmbDecimals, settingsUsdDecimals, settingsPricingFormulaMode, settingsRoundingPolicy, settingsUiTheme, settingsTermsTemplate, loadData])
 
   useEffect(() => {
     if (suppressAutoSaveRef.current) { suppressAutoSaveRef.current = false; return }
@@ -421,9 +423,10 @@ export default function Admin() {
             <div><label>{labelFor('quote_valid_days')}</label><input type="number" step="1" value={settingsQuoteValidDays} onChange={(e) => { setSettingsQuoteValidDays(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
             <div><label>{labelFor('money_format_rmb_decimals')}</label><input type="number" step="1" value={settingsRmbDecimals} onChange={(e) => { setSettingsRmbDecimals(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
             <div><label>{labelFor('money_format_usd_decimals')}</label><input type="number" step="1" value={settingsUsdDecimals} onChange={(e) => { setSettingsUsdDecimals(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
-            <div><label>{labelFor('pricing_formula_mode')}</label><select value={settingsPricingFormulaMode} onChange={(e) => { setSettingsPricingFormulaMode(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }}><option value="divide">cost/(1-margin)</option></select></div>
-            <div><label>{labelFor('rounding_policy')}</label><select value={settingsRoundingPolicy} onChange={(e) => { setSettingsRoundingPolicy(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }}><option value="ceil">向上取整</option></select></div>
-            <div style={{ gridColumn: '1 / span 2' }}><label>{labelFor('terms_template')}</label><textarea value={settingsTermsTemplate} onChange={(e) => { setSettingsTermsTemplate(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} rows={3} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
+            <div><label>{labelFor('pricing_formula_mode')}</label><select className="ui-select" value={settingsPricingFormulaMode} onChange={(e) => { setSettingsPricingFormulaMode(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }}><option value="divide">cost/(1-margin)</option></select></div>
+            <div><label>{labelFor('rounding_policy')}</label><select className="ui-select" value={settingsRoundingPolicy} onChange={(e) => { setSettingsRoundingPolicy(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }}><option value="ceil">向上取整</option></select></div>
+            <div><label>{labelFor('ui_theme')}</label><select className="ui-select" value={settingsUiTheme} onChange={(e) => { const nextTheme = e.target.value as 'classic' | 'creative' | 'minimal'; setSettingsUiTheme(nextTheme); setDirtySettings(true); setAutoSaveState('idle'); window.dispatchEvent(new CustomEvent('ui-theme-change', { detail: { uiTheme: nextTheme } })) }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }}><option value="classic">经典深色</option><option value="creative">霓虹渐变</option><option value="minimal">极简清爽</option></select></div>
+            <div style={{ gridColumn: '1 / span 2' }}><label>{labelFor('terms_template')}</label><textarea className="no-scroll" value={settingsTermsTemplate} onChange={(e) => { setSettingsTermsTemplate(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} rows={3} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
             <div style={{ display: 'flex', alignItems: 'end' }}><button onClick={() => void saveSettings()} style={{ padding: '8px 12px', borderRadius: 6, border: 'none', backgroundColor: '#4ade80', color: '#000', cursor: 'pointer', fontWeight: 700, height: 38 }}>保存</button></div>
           </div>
         </div>
@@ -471,13 +474,14 @@ export default function Admin() {
               </div>
               <div>
                 <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>起运港</div>
-                <select value={row.pol_port_id ?? ''} onChange={(e) => updateRow('products', row.id, 'pol_port_id', e.target.value)} style={inputBaseStyle}>{portOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
+                <select className="ui-select" value={row.pol_port_id ?? ''} onChange={(e) => updateRow('products', row.id, 'pol_port_id', e.target.value)} style={inputBaseStyle}>{portOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
               </div>
             </div>
             <div style={{ display: 'flex', gap: 12, alignItems: 'stretch' }}>
               <div style={{ flex: 1 }}>
                 <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>Description (EN)</div>
                 <textarea
+                  className="no-scroll"
                   value={row.description_en ?? ''}
                   onChange={(e) => updateRow('products', row.id, 'description_en', e.target.value)}
                   style={{ ...inputBaseStyle, minHeight: 80, padding: '8px 10px' }}
@@ -564,6 +568,7 @@ export default function Admin() {
                     <div>
                       <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>产品</div>
                       <select
+                        className="ui-select"
                         value={pack.product_id}
                         onChange={(e) =>
                           updateRow('packaging_options', pack.id, 'product_id', e.target.value)
@@ -668,6 +673,7 @@ export default function Admin() {
                     <div>
                       <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>内包装类型</div>
                       <select
+                        className="ui-select"
                         value={pack.inner_pack_type}
                         onChange={(e) =>
                           updateRow('packaging_options', pack.id, 'inner_pack_type', e.target.value)

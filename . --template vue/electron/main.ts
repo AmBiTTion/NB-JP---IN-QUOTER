@@ -18,6 +18,7 @@ interface Settings {
   fx_rate: number
   margin_pct: number
   quote_valid_days: number
+  ui_theme?: 'classic' | 'creative' | 'minimal'
   money_format: {
     rmb_decimals: number
     usd_decimals: number
@@ -216,6 +217,15 @@ process.env.VITE_PUBLIC = path.join(process.env.APP_ROOT, 'public')
 
 let win: BrowserWindow | null = null
 
+function resolveAppIconPath(): string {
+  const candidates = [
+    path.join(process.cwd(), 'resources', 'app.ico'),
+    path.join(process.env.APP_ROOT ?? '', 'resources', 'app.ico'),
+    path.join(process.resourcesPath, 'resources', 'app.ico'),
+  ]
+  return candidates.find((item) => item && item.trim().length > 0) ?? path.join(process.cwd(), 'resources', 'app.ico')
+}
+
 function createEmptyData(): AppData {
   return {
     schema_version: SCHEMA_VERSION,
@@ -223,6 +233,7 @@ function createEmptyData(): AppData {
       fx_rate: 6.9,
       margin_pct: 0.05,
       quote_valid_days: 7,
+      ui_theme: 'classic',
       money_format: {
         rmb_decimals: 4,
         usd_decimals: 4,
@@ -293,6 +304,15 @@ function normalizeRate(value: unknown, fallback: number): number {
 function nonEmptyText(value: unknown, fallback: string): string {
   const str = String(value ?? '').trim()
   return str.length > 0 ? str : fallback
+}
+
+function normalizeUiTheme(
+  value: unknown,
+  fallback: 'classic' | 'creative' | 'minimal' = 'classic',
+): 'classic' | 'creative' | 'minimal' {
+  const v = String(value ?? '').trim()
+  if (v === 'classic' || v === 'creative' || v === 'minimal') return v
+  return fallback
 }
 
 function toHistory(input: unknown[], fallbackTimestamp: string): CalculationHistory[] {
@@ -491,6 +511,7 @@ function migrateLegacyData(raw: LegacyData): AppData {
       fx_rate: 6.9,
       margin_pct: 0.05,
       quote_valid_days: 7,
+      ui_theme: 'classic',
       money_format: {
         rmb_decimals: 4,
         usd_decimals: 4,
@@ -557,6 +578,7 @@ function normalizeAppData(raw: AppData): AppData {
     fx_rate: toNumber(raw.settings?.fx_rate, 6.9),
     margin_pct: toNumber(raw.settings?.margin_pct, 0.05),
     quote_valid_days: toNumber(raw.settings?.quote_valid_days, 7),
+    ui_theme: normalizeUiTheme(raw.settings?.ui_theme, 'classic'),
     money_format: {
       rmb_decimals: toNumber(raw.settings?.money_format?.rmb_decimals, 4),
       usd_decimals: toNumber(raw.settings?.money_format?.usd_decimals, 4),
@@ -623,8 +645,10 @@ async function loadProducts(): Promise<Product[]> {
 }
 
 function createWindow(): void {
+  const appIconPath = resolveAppIconPath()
+
   win = new BrowserWindow({
-    icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
+    icon: appIconPath,
     webPreferences: {
       preload: path.join(__dirname, 'preload.mjs'),
     },
@@ -658,6 +682,7 @@ app.on('activate', () => {
 })
 
 app.whenReady().then(async () => {
+  app.setAppUserModelId('com.myquater.app')
   await initializeDatabase()
   createWindow()
 })
@@ -698,6 +723,7 @@ ipcMain.handle('update-settings', async (_event, settings: Partial<Settings>) =>
       settings?.quote_valid_days,
       appData.settings.quote_valid_days ?? 7,
     ),
+    ui_theme: normalizeUiTheme(settings?.ui_theme, appData.settings.ui_theme ?? 'classic'),
     money_format: {
       rmb_decimals: toNumber(
         settings?.money_format?.rmb_decimals,
@@ -781,34 +807,53 @@ ipcMain.handle('export-external-quotation-xlsx', async (_event, payload: Externa
   try {
     const templatePath = path.join(process.cwd(), 'resources', 'quotation_template.xlsx')
     await access(templatePath, fsConstants.F_OK)
-    const now = new Date()
-    const yyyymmdd = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(
-      now.getDate(),
-    ).padStart(2, '0')}`
-    const defaultPath = path.join(process.cwd(), `Quotation_${yyyymmdd}.xlsx`)
 
-    const result = win
-      ? await dialog.showSaveDialog(win, {
-          title: '导出外部报价单（Excel）',
-          defaultPath,
-          filters: [{ name: 'Excel Workbook', extensions: ['xlsx'] }],
-        })
-      : await dialog.showSaveDialog({
-          title: '导出外部报价单（Excel）',
-          defaultPath,
-          filters: [{ name: 'Excel Workbook', extensions: ['xlsx'] }],
-        })
-    if (result.canceled || !result.filePath) {
-      return { success: false, canceled: true, message: '用户取消导出。' }
+    const sanitize = (value: unknown, fallback: string) => {
+      const raw = String(value ?? '').trim() || fallback
+      return raw
+        .replace(/[\/:*?"<>|]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+    }
+    const fmtDate = (date: Date) => {
+      const y = date.getFullYear()
+      const m = String(date.getMonth() + 1).padStart(2, '0')
+      const d = String(date.getDate()).padStart(2, '0')
+      return `${y}-${m}-${d}`
     }
 
-    await exportExternalQuotationExcel(payload, templatePath, result.filePath)
-    return { success: true, filePath: result.filePath }
+    const container = payload?.input?.containerType ?? payload?.quoteResult?.summary?.container_type ?? '20GP'
+    const containerText = container === '20GP' ? '20FT' : '40HQ'
+    const weight = Number(payload?.input?.unitWeightKg ?? 0)
+    const weightText = Number.isFinite(weight) && weight > 0 ? `${Number(weight.toFixed(2)).toString()}KG` : '0KG'
+    const productName = sanitize(
+      payload?.input?.name_en || payload?.input?.productNameEn || payload?.input?.productName,
+      'Cat Litter',
+    )
+    const dt = payload?.meta?.exportedAtISO ? new Date(payload.meta.exportedAtISO) : new Date()
+    const dateText = fmtDate(dt)
+    const baseName = `NINGBO JIUPENG TRADE CO. Quotation-${productName}-${weightText}${containerText}-${dateText}`
+    const desktopPath = app.getPath('desktop')
+    let outputPath = path.join(desktopPath, `${baseName}.xlsx`)
+
+    let index = 1
+    while (true) {
+      try {
+        await access(outputPath, fsConstants.F_OK)
+        outputPath = path.join(desktopPath, `${baseName} (${index}).xlsx`)
+        index += 1
+      } catch {
+        break
+      }
+    }
+
+    await exportExternalQuotationExcel(payload, templatePath, outputPath)
+    return { success: true, filePath: outputPath }
   } catch (error) {
     const code = (error as { code?: string })?.code
     const message =
       code === 'ENOENT'
-        ? '未找到模板文件 resources/quotation_template.xlsx，请先放入模板。'
+        ? 'Template file resources/quotation_template.xlsx not found.'
         : error instanceof Error
           ? error.message
           : String(error)

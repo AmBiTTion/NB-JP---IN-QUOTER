@@ -61976,6 +61976,14 @@ process.env.APP_ROOT = path$d.join(__dirname$1, "..");
 const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
 process.env.VITE_PUBLIC = path$d.join(process.env.APP_ROOT, "public");
 let win = null;
+function resolveAppIconPath() {
+  const candidates = [
+    path$d.join(process.cwd(), "resources", "app.ico"),
+    path$d.join(process.env.APP_ROOT ?? "", "resources", "app.ico"),
+    path$d.join(process.resourcesPath, "resources", "app.ico")
+  ];
+  return candidates.find((item) => item && item.trim().length > 0) ?? path$d.join(process.cwd(), "resources", "app.ico");
+}
 function createEmptyData() {
   return {
     schema_version: SCHEMA_VERSION,
@@ -61983,6 +61991,7 @@ function createEmptyData() {
       fx_rate: 6.9,
       margin_pct: 0.05,
       quote_valid_days: 7,
+      ui_theme: "classic",
       money_format: {
         rmb_decimals: 4,
         usd_decimals: 4
@@ -62049,6 +62058,11 @@ function normalizeRate(value, fallback2) {
 function nonEmptyText(value, fallback2) {
   const str = String(value ?? "").trim();
   return str.length > 0 ? str : fallback2;
+}
+function normalizeUiTheme(value, fallback2 = "classic") {
+  const v = String(value ?? "").trim();
+  if (v === "classic" || v === "creative" || v === "minimal") return v;
+  return fallback2;
 }
 function toHistory(input, fallbackTimestamp) {
   return input.map((item, index2) => {
@@ -62223,6 +62237,7 @@ function migrateLegacyData(raw) {
       fx_rate: 6.9,
       margin_pct: 0.05,
       quote_valid_days: 7,
+      ui_theme: "classic",
       money_format: {
         rmb_decimals: 4,
         usd_decimals: 4
@@ -62275,20 +62290,21 @@ function isAppDataLike(raw) {
   return Array.isArray(candidate.products) && Array.isArray(candidate.packaging_options) && Array.isArray(candidate.factories) && Array.isArray(candidate.factory_product_costs) && Array.isArray(candidate.factory_packaging_overrides);
 }
 function normalizeAppData(raw) {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j;
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
   const normalized = { ...createEmptyData(), ...raw };
   normalized.schema_version = SCHEMA_VERSION;
   normalized.settings = {
     fx_rate: toNumber((_a = raw.settings) == null ? void 0 : _a.fx_rate, 6.9),
     margin_pct: toNumber((_b = raw.settings) == null ? void 0 : _b.margin_pct, 0.05),
     quote_valid_days: toNumber((_c = raw.settings) == null ? void 0 : _c.quote_valid_days, 7),
+    ui_theme: normalizeUiTheme((_d = raw.settings) == null ? void 0 : _d.ui_theme, "classic"),
     money_format: {
-      rmb_decimals: toNumber((_e = (_d = raw.settings) == null ? void 0 : _d.money_format) == null ? void 0 : _e.rmb_decimals, 4),
-      usd_decimals: toNumber((_g = (_f = raw.settings) == null ? void 0 : _f.money_format) == null ? void 0 : _g.usd_decimals, 4)
+      rmb_decimals: toNumber((_f = (_e = raw.settings) == null ? void 0 : _e.money_format) == null ? void 0 : _f.rmb_decimals, 4),
+      usd_decimals: toNumber((_h = (_g = raw.settings) == null ? void 0 : _g.money_format) == null ? void 0 : _h.usd_decimals, 4)
     },
-    pricing_formula_mode: nonEmptyText((_h = raw.settings) == null ? void 0 : _h.pricing_formula_mode, "divide"),
-    rounding_policy: nonEmptyText((_i = raw.settings) == null ? void 0 : _i.rounding_policy, "ceil"),
-    terms_template: nonEmptyText((_j = raw.settings) == null ? void 0 : _j.terms_template, "")
+    pricing_formula_mode: nonEmptyText((_i = raw.settings) == null ? void 0 : _i.pricing_formula_mode, "divide"),
+    rounding_policy: nonEmptyText((_j = raw.settings) == null ? void 0 : _j.rounding_policy, "ceil"),
+    terms_template: nonEmptyText((_k = raw.settings) == null ? void 0 : _k.terms_template, "")
   };
   if (!Array.isArray(raw.ports) || raw.ports.length === 0) {
     normalized.ports = createEmptyData().ports;
@@ -62337,8 +62353,9 @@ async function loadProducts() {
   return getAppData().products;
 }
 function createWindow() {
+  const appIconPath = resolveAppIconPath();
   win = new BrowserWindow({
-    icon: path$d.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
+    icon: appIconPath,
     webPreferences: {
       preload: path$d.join(__dirname$1, "preload.mjs")
     }
@@ -62366,6 +62383,7 @@ app.on("activate", () => {
   }
 });
 app.whenReady().then(async () => {
+  app.setAppUserModelId("com.myquater.app");
   await initializeDatabase();
   createWindow();
 });
@@ -62401,6 +62419,7 @@ ipcMain.handle("update-settings", async (_event, settings) => {
       settings == null ? void 0 : settings.quote_valid_days,
       appData.settings.quote_valid_days ?? 7
     ),
+    ui_theme: normalizeUiTheme(settings == null ? void 0 : settings.ui_theme, appData.settings.ui_theme ?? "classic"),
     money_format: {
       rmb_decimals: toNumber(
         (_a = settings == null ? void 0 : settings.money_format) == null ? void 0 : _a.rmb_decimals,
@@ -62472,31 +62491,48 @@ ipcMain.handle("select-product-image", async (_event, payload) => {
   }
 });
 ipcMain.handle("export-external-quotation-xlsx", async (_event, payload) => {
+  var _a, _b, _c, _d, _e, _f, _g, _h;
   try {
     const templatePath = path$d.join(process.cwd(), "resources", "quotation_template.xlsx");
     await access(templatePath, constants$7.F_OK);
-    const now = /* @__PURE__ */ new Date();
-    const yyyymmdd = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(
-      now.getDate()
-    ).padStart(2, "0")}`;
-    const defaultPath = path$d.join(process.cwd(), `Quotation_${yyyymmdd}.xlsx`);
-    const result = win ? await dialog.showSaveDialog(win, {
-      title: "导出外部报价单（Excel）",
-      defaultPath,
-      filters: [{ name: "Excel Workbook", extensions: ["xlsx"] }]
-    }) : await dialog.showSaveDialog({
-      title: "导出外部报价单（Excel）",
-      defaultPath,
-      filters: [{ name: "Excel Workbook", extensions: ["xlsx"] }]
-    });
-    if (result.canceled || !result.filePath) {
-      return { success: false, canceled: true, message: "用户取消导出。" };
+    const sanitize = (value, fallback2) => {
+      const raw = String(value ?? "").trim() || fallback2;
+      return raw.replace(/[\/:*?"<>|]/g, "").replace(/\s+/g, " ").trim();
+    };
+    const fmtDate = (date) => {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    };
+    const container = ((_a = payload == null ? void 0 : payload.input) == null ? void 0 : _a.containerType) ?? ((_c = (_b = payload == null ? void 0 : payload.quoteResult) == null ? void 0 : _b.summary) == null ? void 0 : _c.container_type) ?? "20GP";
+    const containerText = container === "20GP" ? "20FT" : "40HQ";
+    const weight = Number(((_d = payload == null ? void 0 : payload.input) == null ? void 0 : _d.unitWeightKg) ?? 0);
+    const weightText = Number.isFinite(weight) && weight > 0 ? `${Number(weight.toFixed(2)).toString()}KG` : "0KG";
+    const productName = sanitize(
+      ((_e = payload == null ? void 0 : payload.input) == null ? void 0 : _e.name_en) || ((_f = payload == null ? void 0 : payload.input) == null ? void 0 : _f.productNameEn) || ((_g = payload == null ? void 0 : payload.input) == null ? void 0 : _g.productName),
+      "Cat Litter"
+    );
+    const dt = ((_h = payload == null ? void 0 : payload.meta) == null ? void 0 : _h.exportedAtISO) ? new Date(payload.meta.exportedAtISO) : /* @__PURE__ */ new Date();
+    const dateText = fmtDate(dt);
+    const baseName = `NINGBO JIUPENG TRADE CO. Quotation-${productName}-${weightText}${containerText}-${dateText}`;
+    const desktopPath = app.getPath("desktop");
+    let outputPath = path$d.join(desktopPath, `${baseName}.xlsx`);
+    let index2 = 1;
+    while (true) {
+      try {
+        await access(outputPath, constants$7.F_OK);
+        outputPath = path$d.join(desktopPath, `${baseName} (${index2}).xlsx`);
+        index2 += 1;
+      } catch {
+        break;
+      }
     }
-    await exportExternalQuotationExcel(payload, templatePath, result.filePath);
-    return { success: true, filePath: result.filePath };
+    await exportExternalQuotationExcel(payload, templatePath, outputPath);
+    return { success: true, filePath: outputPath };
   } catch (error2) {
     const code = error2 == null ? void 0 : error2.code;
-    const message = code === "ENOENT" ? "未找到模板文件 resources/quotation_template.xlsx，请先放入模板。" : error2 instanceof Error ? error2.message : String(error2);
+    const message = code === "ENOENT" ? "Template file resources/quotation_template.xlsx not found." : error2 instanceof Error ? error2.message : String(error2);
     return { success: false, message };
   }
 });

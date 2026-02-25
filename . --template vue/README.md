@@ -1,4 +1,4 @@
-# Product Quotation System v2.3.6 Preview
+# Product Quotation System v2.3.8 Preview
 
 ## 概述
 这是一个用于产品报价计算的Electron桌面应用程序。系统支持多种产品的报价计算，包括标准和定制包装模式。
@@ -33,4 +33,4 @@
 - 仅支持Windows平台
 
 ## 版本历史
-- v2.3.6: Current release
+- v2.3.8: Current release

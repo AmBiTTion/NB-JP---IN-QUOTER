@@ -17,7 +17,7 @@ import type {
   QtyInputType,
 } from '@/types/domain'
 
-const APP_VERSION = '2.3.6'
+const APP_VERSION = '2.3.8'
 
 function parseNumber(value: string): number | null {
   const trimmed = value.trim()
@@ -553,6 +553,10 @@ function Quoter() {
       quoteResult,
       input: {
         productName: selectedProduct.name,
+        name_en: selectedProduct.name_en,
+        productNameEn: selectedProduct.name_en,
+        description_en: selectedProduct.description_en,
+        descriptionEn: selectedProduct.description_en,
         description: `${selectedProduct.name} ${packagingText}`,
         packagingText,
         quantityBagsInt: quoteResult.summary.bags_int,
@@ -644,30 +648,34 @@ function Quoter() {
   }
 
   return (
-    <div style={pageStyle}>
-      <h1 style={{ fontSize: 24, marginBottom: 16 }}>FOB 报价（开发版）</h1>
+    <div style={pageStyle} className="quote-page">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <h1 style={{ fontSize: 24, margin: 0 }}>FOB报价系统</h1>
+        <button
+          className="btn-outline-neon"
+          onClick={() => void loadData()}
+          style={{
+            padding: '8px 12px',
+            borderRadius: 10,
+            border: '1px solid #334155',
+            backgroundColor: '#0f172a',
+            color: '#e5e7eb',
+          }}
+        >
+          刷新数据
+        </button>
+      </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '0.9fr 1.4fr', gap: 20 }}>
-        <div style={panelStyle}>
+        <div style={panelStyle} className="glass-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2 style={{ margin: 0, fontSize: 18 }}>输入区</h2>
-            <button
-              onClick={() => void loadData()}
-              style={{
-                padding: '6px 10px',
-                borderRadius: 8,
-                border: '1px solid #334155',
-                backgroundColor: '#0f172a',
-                color: '#e5e7eb',
-              }}
-            >
-              刷新数据
-            </button>
           </div>
 
           <div style={{ marginTop: 14 }}>
             <label style={labelStyle}>产品选择</label>
             <select
+              className="ui-select"
               value={selectedProductId}
               onChange={(e) => setSelectedProductId(e.target.value)}
               style={selectStyle}
@@ -702,6 +710,7 @@ function Quoter() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <label style={labelStyle}>包装方案</label>
               <button
+                className="btn-outline-neon"
                 onClick={() => setShowCustomPackaging((prev) => !prev)}
                 disabled={!selectedPackagingId}
                 style={{
@@ -716,6 +725,7 @@ function Quoter() {
               </button>
             </div>
             <select
+              className="ui-select"
               value={selectedPackagingId}
               onChange={(e) => setSelectedPackagingId(e.target.value)}
               style={selectStyle}
@@ -739,6 +749,7 @@ function Quoter() {
           <div style={{ marginTop: 14 }}>
             <label style={labelStyle}>工厂</label>
             <select
+              className="ui-select"
               value={selectedFactoryId}
               onChange={(e) => setSelectedFactoryId(e.target.value)}
               style={selectStyle}
@@ -763,6 +774,7 @@ function Quoter() {
               <div>
                 <label style={labelStyle}>运输模式</label>
                 <select
+                  className="ui-select"
                   value={mode}
                   onChange={(e) => setMode(e.target.value as Mode)}
                   style={{ ...selectStyle, width: 140 }}
@@ -774,6 +786,7 @@ function Quoter() {
               <div>
                 <label style={labelStyle}>柜型</label>
                 <select
+                  className="ui-select"
                   value={containerType}
                   onChange={(e) => setContainerType(e.target.value as ContainerType)}
                   style={{ ...selectStyle, width: 160 }}
@@ -890,6 +903,7 @@ function Quoter() {
 
           {selectedPackaging && showCustomPackaging && (
             <div
+              className="glass-card"
               style={{
                 marginTop: 14,
                 padding: 12,
@@ -901,6 +915,7 @@ function Quoter() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <strong>自定义包装（临时派生）</strong>
                 <button
+                  className="btn-outline-neon"
                   onClick={() => setShowCustomPackaging(false)}
                   style={{
                     padding: '4px 8px',
@@ -961,6 +976,7 @@ function Quoter() {
                 <div>
                   <label style={{ fontSize: 12, color: '#9ca3af' }}>{labelFor('inner_pack_type')}</label>
                   <select
+                    className="ui-select"
                     value={customInnerPackType}
                     onChange={(e) => setCustomInnerPackType(e.target.value as InnerPackType)}
                     style={{ ...selectStyle, width: 180 }}
@@ -982,6 +998,7 @@ function Quoter() {
 
               <div style={{ marginTop: 12, display: 'flex', gap: 8, alignItems: 'center' }}>
                 <button
+                  className="btn-primary"
                   onClick={handleSaveDerivedPackaging}
                   style={{
                     padding: '6px 12px',
@@ -1002,6 +1019,7 @@ function Quoter() {
 
           <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             <button
+              className="btn-primary"
               onClick={handleCalculate}
               disabled={Boolean(disableReason)}
               style={{
@@ -1017,6 +1035,7 @@ function Quoter() {
               计算报价
             </button>
             <button
+              className="btn-primary"
               onClick={() => void handleExportExternalQuotation()}
               disabled={!quoteResult}
               style={{
@@ -1050,7 +1069,7 @@ function Quoter() {
             </div>
           )}
         </div>
-        <div style={panelStyle}>
+        <div style={panelStyle} className="glass-card">
           <h2 style={{ margin: 0, fontSize: 18 }}>结果区</h2>
 
           {!quoteResult && (
@@ -1059,7 +1078,31 @@ function Quoter() {
 
           {quoteResult && (
             <div style={{ marginTop: 12, display: 'grid', gap: 12 }}>
+              <div className="kpi-row">
+                <div className="kpi-card">
+                  <div className="kpi-title">销售单价</div>
+                  <div className="kpi-value">{formatUsd(quoteResult.summary.sell_usd_per_bag)}</div>
+                  <div className="kpi-unit">USD/袋</div>
+                </div>
+                <div className="kpi-card">
+                  <div className="kpi-title">净成本</div>
+                  <div className="kpi-value">{formatRmb(quoteResult.summary.net_rmb_per_bag)}</div>
+                  <div className="kpi-unit">RMB/袋</div>
+                </div>
+                <div className="kpi-card">
+                  <div className="kpi-title">毛利/袋</div>
+                  <div className="kpi-value">{formatRmb(quoteResult.summary.gp_rmb_per_bag)}</div>
+                  <div className="kpi-unit">RMB/袋</div>
+                </div>
+                <div className="kpi-card">
+                  <div className="kpi-title">毛利合计</div>
+                  <div className="kpi-value">{formatRmb(quoteResult.summary.gp_rmb_total, rmbDecimals)}</div>
+                  <div className="kpi-unit">RMB</div>
+                </div>
+              </div>
+
               <div
+                className="glass-card-strong"
                 style={{
                   padding: 12,
                   border: '1px solid #1f2937',
@@ -1085,6 +1128,7 @@ function Quoter() {
               </div>
 
               <div
+                className="glass-card"
                 style={{
                   padding: 12,
                   border: '1px solid #1f2937',
@@ -1167,6 +1211,7 @@ function Quoter() {
 
               {quoteResult.warnings.length > 0 && (
                 <div
+                  className="glass-card"
                   style={{
                     padding: 12,
                     border: '1px solid #b45309',
@@ -1196,12 +1241,42 @@ function Quoter() {
 }
 function App() {
   const [activeTab, setActiveTab] = useState<'quoter' | 'admin'>('quoter')
+  const [uiTheme, setUiTheme] = useState<'classic' | 'creative' | 'minimal'>('classic')
+
+  useEffect(() => {
+    const toTheme = (value: unknown): 'classic' | 'creative' | 'minimal' => {
+      if (value === 'creative' || value === 'minimal' || value === 'classic') return value
+      return 'classic'
+    }
+
+    const loadTheme = async () => {
+      try {
+        // @ts-ignore
+        const appData = (await window.ipcRenderer.invoke('get-app-data')) as AppData
+        setUiTheme(toTheme(appData?.settings?.ui_theme))
+      } catch {
+        setUiTheme('classic')
+      }
+    }
+
+    const handleThemeChange = (event: Event) => {
+      const customEvent = event as CustomEvent<{ uiTheme?: unknown }>
+      setUiTheme(toTheme(customEvent.detail?.uiTheme))
+    }
+
+    void loadTheme()
+    window.addEventListener('ui-theme-change', handleThemeChange as EventListener)
+    return () => window.removeEventListener('ui-theme-change', handleThemeChange as EventListener)
+  }, [])
+
+  const uiThemeClass = uiTheme === 'creative' ? 'theme-creative' : uiTheme === 'minimal' ? 'theme-minimal' : 'theme-classic'
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0b0f1a', color: '#e5e7eb' }}>
+    <div className={`app-root ${uiThemeClass}`} style={{ minHeight: '100vh', backgroundColor: '#0b0f1a', color: '#e5e7eb' }}>
       <div style={{ maxWidth: 1600, margin: '0 auto', padding: 20 }}>
-        <div style={{ display: 'flex', marginBottom: 16 }}>
+        <div className="nav-glass" style={{ display: 'flex', marginBottom: 16, gap: 10, padding: 8, borderRadius: 16 }}>
           <button
+            className={`tab-btn ${activeTab === 'quoter' ? 'active' : ''}`}
             onClick={() => setActiveTab('quoter')}
             style={{
               flex: 1,
@@ -1209,13 +1284,14 @@ function App() {
               backgroundColor: activeTab === 'quoter' ? '#1f2937' : '#0f172a',
               color: '#fff',
               border: '1px solid #1f2937',
-              borderRight: 'none',
+              borderRadius: 12,
               cursor: 'pointer',
             }}
           >
             报价
           </button>
           <button
+            className={`tab-btn ${activeTab === 'admin' ? 'active' : ''}`}
             onClick={() => setActiveTab('admin')}
             style={{
               flex: 1,
@@ -1223,6 +1299,7 @@ function App() {
               backgroundColor: activeTab === 'admin' ? '#1f2937' : '#0f172a',
               color: '#fff',
               border: '1px solid #1f2937',
+              borderRadius: 12,
               cursor: 'pointer',
             }}
           >

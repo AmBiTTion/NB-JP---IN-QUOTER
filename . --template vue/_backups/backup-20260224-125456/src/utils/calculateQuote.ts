@@ -169,7 +169,7 @@ function resolveLclPortTotalRmb(
 ): number {
   const rule = findPortRule(data.port_charges_rules, 'LCL', null, portId)
   if (!rule) {
-    warnings.push('ȱ�� LCL ���ӹ������� Admin ά����')
+    warnings.push('未配置 LCL 港杂规则，请在 Admin 中维护。')
     return 0
   }
   const base = toNonNegative(rule.base_rmb, 0)

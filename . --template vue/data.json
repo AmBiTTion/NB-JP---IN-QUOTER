@@ -4,6 +4,7 @@
     "fx_rate": 6.9,
     "margin_pct": 0.05,
     "quote_valid_days": 7,
+    "ui_theme": "classic",
     "money_format": {
       "rmb_decimals": 3,
       "usd_decimals": 2
@@ -15,7 +16,7 @@
   "products": [
     {
       "id": "prod_1",
-      "name": "膨润土猫砂",
+      "name": "膨润土猫砂(出口)",
       "name_en": "Bentonite Cat Litter",
       "description_en": "Bentonite Cat Litter\ndiameter: 1-3mm\nRawmateral: 100% Motornite Clay\n99% dust free, clumping",
       "refund_rate": 0.13,
@@ -24,17 +25,6 @@
       "pol_port_id": "port_tianjin",
       "default_packaging_option_id": "pack_1",
       "image_path": "C:\\Users\\huawei\\AppData\\Roaming\\electron-react-app\\product_images\\prod_1_1771914467058.jpg"
-    },
-    {
-      "id": "prod_2",
-      "name": "豆腐猫砂 5A",
-      "name_en": "Tofu Cat Litter 5A",
-      "description_en": "",
-      "refund_rate": 0.13,
-      "purchase_vat_rate": 0,
-      "invoice_tax_point": 0,
-      "pol_port_id": "port_qingdao",
-      "default_packaging_option_id": "pack_4"
     },
     {
       "id": "prod_3",
@@ -48,21 +38,66 @@
       "default_packaging_option_id": "pack_5"
     },
     {
-      "id": "prod_4",
-      "name": "15mm/19mm亚马逊新款防咬不锈钢金色项圈钛钢狗链狗圈颈圈",
-      "name_en": "Stainless Steel Dog Collar",
-      "description_en": "",
-      "refund_rate": 0.13,
-      "purchase_vat_rate": 0.13,
-      "invoice_tax_point": 0,
-      "pol_port_id": "port_1"
-    },
-    {
       "id": "prod_5",
       "name": "沸石猫砂",
       "name_en": "Zeolite Cat Litter",
       "description_en": "",
       "refund_rate": 0.13,
+      "purchase_vat_rate": 0,
+      "invoice_tax_point": 0,
+      "pol_port_id": "port_tianjin"
+    },
+    {
+      "id": "prod_6",
+      "name": "回收纸猫砂",
+      "name_en": "Recycle Paper Cat Litter",
+      "description_en": "",
+      "image_path": "",
+      "refund_rate": 0.13,
+      "purchase_vat_rate": 0,
+      "invoice_tax_point": 0,
+      "pol_port_id": "port_1"
+    },
+    {
+      "id": "prod_7",
+      "name": "水晶猫砂",
+      "name_en": "Silica Cat Litter",
+      "description_en": "",
+      "image_path": "",
+      "refund_rate": 0.13,
+      "purchase_vat_rate": 0,
+      "invoice_tax_point": 0,
+      "pol_port_id": "port_qingdao"
+    },
+    {
+      "id": "prod_8",
+      "name": "膨润土猫砂(内贸品质)",
+      "name_en": "Bentonite Cat Litter",
+      "description_en": "",
+      "image_path": "",
+      "refund_rate": 0.13,
+      "purchase_vat_rate": 0,
+      "invoice_tax_point": 0,
+      "pol_port_id": "port_tianjin"
+    },
+    {
+      "id": "prod_9",
+      "name": "豆腐猫砂 A",
+      "name_en": "TOFU Cat Litter A-Grade",
+      "description_en": "",
+      "image_path": "",
+      "refund_rate": 0,
+      "purchase_vat_rate": 0,
+      "invoice_tax_point": 0,
+      "pol_port_id": "port_tianjin"
+    },
+    {
+      "id": "prod_10",
+      "name": "豆腐猫砂 B",
+      "name_en": "TOFU Cat Litter B-Grade",
+      "description_en": "",
+      "image_path": "",
+      "refund_rate": 0,
       "purchase_vat_rate": 0,
       "invoice_tax_point": 0,
       "pol_port_id": "port_tianjin"
@@ -75,9 +110,9 @@
       "name": "袋装4kg(4袋/箱)",
       "unit_weight_kg": 4,
       "units_per_carton": 4,
-      "carton_price_rmb": 2,
-      "bag_price_rmb": 1.5,
-      "inner_pack_type": "carton",
+      "carton_price_rmb": 3,
+      "bag_price_rmb": 1,
+      "inner_pack_type": "woven_bag",
       "unit_cbm": null,
       "carton_cbm": null,
       "default_selected": true
@@ -159,6 +194,97 @@
       "unit_cbm": null,
       "carton_cbm": null,
       "default_selected": true
+    },
+    {
+      "id": "pack_8",
+      "product_id": "prod_6",
+      "name": "默认包装",
+      "unit_weight_kg": 2.4,
+      "units_per_carton": 4,
+      "carton_price_rmb": 3,
+      "bag_price_rmb": 0.8,
+      "inner_pack_type": "carton",
+      "unit_cbm": null,
+      "carton_cbm": null,
+      "default_selected": true
+    },
+    {
+      "id": "pack_9",
+      "product_id": "prod_7",
+      "name": "水晶猫砂1.6",
+      "unit_weight_kg": 1.6,
+      "units_per_carton": 6,
+      "carton_price_rmb": 3.5,
+      "bag_price_rmb": 0.8,
+      "inner_pack_type": "carton",
+      "unit_cbm": null,
+      "carton_cbm": null,
+      "default_selected": true
+    },
+    {
+      "id": "pack_10",
+      "product_id": "prod_7",
+      "name": "水晶猫砂2.1",
+      "unit_weight_kg": 2.1,
+      "units_per_carton": 4,
+      "carton_price_rmb": 3.5,
+      "bag_price_rmb": 0.8,
+      "inner_pack_type": "carton",
+      "unit_cbm": null,
+      "carton_cbm": null,
+      "default_selected": false
+    },
+    {
+      "id": "pack_11",
+      "product_id": "prod_8",
+      "name": "膨润土猫砂(内贸品质)4kg",
+      "unit_weight_kg": 4,
+      "units_per_carton": 4,
+      "carton_price_rmb": 3,
+      "bag_price_rmb": 0.8,
+      "inner_pack_type": "woven_bag",
+      "unit_cbm": null,
+      "carton_cbm": null,
+      "default_selected": true
+    },
+    {
+      "id": "pack_12",
+      "product_id": "prod_8",
+      "name": "膨润土猫砂(内贸品质)8kg",
+      "unit_weight_kg": 8,
+      "units_per_carton": 2,
+      "carton_price_rmb": 1,
+      "bag_price_rmb": 1,
+      "inner_pack_type": "woven_bag",
+      "unit_cbm": null,
+      "carton_cbm": null,
+      "default_selected": false
+    },
+    {
+      "id": "pack_13",
+      "product_id": "prod_9",
+      "name": "豆腐猫砂 A 2.5kg",
+      "unit_weight_kg": 2.5,
+      "units_per_carton": 6,
+      "carton_price_rmb": 3,
+      "bag_price_rmb": 0.9,
+      "inner_pack_type": "carton",
+      "unit_cbm": null,
+      "carton_cbm": null,
+      "default_selected": true
+    },
+    {
+      "id": "pack_14",
+      "product_id": "prod_10",
+      "name": "豆腐猫砂 B 2.5kg",
+      "unit_weight_kg": 2.5,
+      "units_per_carton": 6,
+      "carton_price_rmb": 3,
+      "bag_price_rmb": 0.9,
+      "inner_pack_type": "carton",
+      "unit_cbm": null,
+      "carton_cbm": null,
+      "default_selected": true
     }
   ],
   "packaging_recommendations": [
@@ -193,17 +319,20 @@
       "unit_weight_kg": 2.5,
       "recommended_units_per_carton": 6,
       "notes": "豆腐砂常规箱规"
+    },
+    {
+      "id": "pr_5",
+      "product_id": "prod_6",
+      "inner_pack_type": "carton",
+      "unit_weight_kg": 2.4,
+      "recommended_units_per_carton": 4,
+      "notes": "体积大"
     }
   ],
   "factories": [
     {
       "id": "factory_1",
-      "name": "天津工厂",
-      "default_port_id": "port_tianjin"
-    },
-    {
-      "id": "factory_2",
-      "name": "山东工厂",
+      "name": "宁城捷特膨润土科技",
       "default_port_id": "port_qingdao"
     },
     {
@@ -213,12 +342,32 @@
     },
     {
       "id": "fct_2",
-      "name": "大连王",
+      "name": "大连 王",
       "default_port_id": "port_tianjin"
     },
     {
       "id": "fct_3",
-      "name": "包头",
+      "name": "包头沸石科技",
+      "default_port_id": "port_tianjin"
+    },
+    {
+      "id": "fct_4",
+      "name": "无锡绿建科技有限公司",
+      "default_port_id": "port_1"
+    },
+    {
+      "id": "fct_5",
+      "name": "山东东晨",
+      "default_port_id": "port_qingdao"
+    },
+    {
+      "id": "fct_6",
+      "name": "山东乾源",
+      "default_port_id": "port_qingdao"
+    },
+    {
+      "id": "fct_7",
+      "name": "河北魔奥科技",
       "default_port_id": "port_tianjin"
     }
   ],
@@ -230,40 +379,10 @@
       "cost_rmb_per_ton": 470
     },
     {
-      "id": "fpc_2",
-      "factory_id": "factory_2",
-      "product_id": "prod_1",
-      "cost_rmb_per_ton": 1980
-    },
-    {
-      "id": "fpc_3",
-      "factory_id": "factory_1",
-      "product_id": "prod_2",
-      "cost_rmb_per_ton": 2600
-    },
-    {
       "id": "fpc_4",
       "factory_id": "factory_2",
       "product_id": "prod_2",
       "cost_rmb_per_ton": 2520
-    },
-    {
-      "id": "fpc_5",
-      "factory_id": "factory_1",
-      "product_id": "prod_3",
-      "cost_rmb_per_ton": 1700
-    },
-    {
-      "id": "fpc_6",
-      "factory_id": "factory_1",
-      "product_id": "prod_4",
-      "cost_rmb_per_ton": 0
-    },
-    {
-      "id": "fpc_7",
-      "factory_id": "factory_2",
-      "product_id": "prod_4",
-      "cost_rmb_per_ton": 0
     },
     {
       "id": "fpc_8",
@@ -272,10 +391,34 @@
       "cost_rmb_per_ton": 5900
     },
     {
-      "id": "fpc_9",
-      "factory_id": "fct_2",
-      "product_id": "prod_5",
-      "cost_rmb_per_ton": 5900
+      "id": "fpc_11",
+      "factory_id": "fct_5",
+      "product_id": "prod_7",
+      "cost_rmb_per_ton": 4600
+    },
+    {
+      "id": "fpc_12",
+      "factory_id": "fct_6",
+      "product_id": "prod_7",
+      "cost_rmb_per_ton": 4750
+    },
+    {
+      "id": "fpc_13",
+      "factory_id": "factory_1",
+      "product_id": "prod_8",
+      "cost_rmb_per_ton": 390
+    },
+    {
+      "id": "fpc_14",
+      "factory_id": "fct_7",
+      "product_id": "prod_9",
+      "cost_rmb_per_ton": 2900
+    },
+    {
+      "id": "fpc_15",
+      "factory_id": "fct_7",
+      "product_id": "prod_10",
+      "cost_rmb_per_ton": 2700
     }
   ],
   "ports": [
@@ -302,6 +445,12 @@
       "name": "大连",
       "code": "DAI",
       "country": "CN"
+    },
+    {
+      "id": "port_3",
+      "name": "上海",
+      "code": "SHA",
+      "country": "CN"
     }
   ],
   "port_charges_rules": [
@@ -325,7 +474,15 @@
       "id": "pcr_lcl_default",
       "port_id": null,
       "mode": "LCL",
-      "container_type": null,
+      "container_type": "20GP",
+      "base_rmb": 1200,
+      "extra_rmb_per_ton": 100
+    },
+    {
+      "id": "pcr_1",
+      "port_id": null,
+      "mode": "FCL",
+      "container_type": "40HQ",
       "base_rmb": 1200,
       "extra_rmb_per_ton": 100
     }
@@ -335,7 +492,7 @@
       "id": "clr_prod1_20gp",
       "product_id": "prod_1",
       "container_type": "20GP",
-      "max_tons": 17
+      "max_tons": 24
     },
     {
       "id": "clr_prod1_40hq",
@@ -368,18 +525,6 @@
       "max_tons": 23
     },
     {
-      "id": "clr_1",
-      "product_id": "prod_4",
-      "container_type": "20GP",
-      "max_tons": 0
-    },
-    {
-      "id": "clr_2",
-      "product_id": "prod_4",
-      "container_type": "40HQ",
-      "max_tons": 0
-    },
-    {
       "id": "clr_3",
       "product_id": "prod_5",
       "container_type": "20GP",
@@ -390,6 +535,66 @@
       "product_id": "prod_5",
       "container_type": "40HQ",
       "max_tons": 21
+    },
+    {
+      "id": "clr_5",
+      "product_id": "prod_6",
+      "container_type": "20GP",
+      "max_tons": 0
+    },
+    {
+      "id": "clr_6",
+      "product_id": "prod_6",
+      "container_type": "40HQ",
+      "max_tons": 0
+    },
+    {
+      "id": "clr_7",
+      "product_id": "prod_7",
+      "container_type": "20GP",
+      "max_tons": 10
+    },
+    {
+      "id": "clr_8",
+      "product_id": "prod_7",
+      "container_type": "40HQ",
+      "max_tons": 24
+    },
+    {
+      "id": "clr_9",
+      "product_id": "prod_8",
+      "container_type": "20GP",
+      "max_tons": 24
+    },
+    {
+      "id": "clr_10",
+      "product_id": "prod_8",
+      "container_type": "40HQ",
+      "max_tons": 25
+    },
+    {
+      "id": "clr_11",
+      "product_id": "prod_9",
+      "container_type": "20GP",
+      "max_tons": 12.5
+    },
+    {
+      "id": "clr_12",
+      "product_id": "prod_9",
+      "container_type": "40HQ",
+      "max_tons": 26
+    },
+    {
+      "id": "clr_13",
+      "product_id": "prod_10",
+      "container_type": "20GP",
+      "max_tons": 12.5
+    },
+    {
+      "id": "clr_14",
+      "product_id": "prod_10",
+      "container_type": "40HQ",
+      "max_tons": 26
     }
   ],
   "land_freight_rules": [
@@ -398,18 +603,18 @@
       "mode": "FCL",
       "factory_id": "factory_1",
       "container_type": "20GP",
-      "min_rmb_per_ton": 1500,
-      "max_rmb_per_ton": 2600,
-      "default_rmb_per_ton": 1800
+      "min_rmb_per_ton": 150,
+      "max_rmb_per_ton": 300,
+      "default_rmb_per_ton": 220
     },
     {
       "id": "lfr_factory1_40hq",
       "mode": "FCL",
       "factory_id": "factory_1",
       "container_type": "40HQ",
-      "min_rmb_per_ton": 1800,
-      "max_rmb_per_ton": 3200,
-      "default_rmb_per_ton": 2200
+      "min_rmb_per_ton": 150,
+      "max_rmb_per_ton": 300,
+      "default_rmb_per_ton": 220
     },
     {
       "id": "lfr_factory2_20gp",
@@ -437,6 +642,33 @@
       "min_rmb_per_ton": 380,
       "max_rmb_per_ton": 550,
       "default_rmb_per_ton": 450
+    },
+    {
+      "id": "lfr_2",
+      "mode": "FCL",
+      "factory_id": "fct_5",
+      "container_type": "20GP",
+      "min_rmb_per_ton": 150,
+      "max_rmb_per_ton": 350,
+      "default_rmb_per_ton": 150
+    },
+    {
+      "id": "lfr_3",
+      "mode": "FCL",
+      "factory_id": "fct_6",
+      "container_type": "20GP",
+      "min_rmb_per_ton": 150,
+      "max_rmb_per_ton": 350,
+      "default_rmb_per_ton": 150
+    },
+    {
+      "id": "lfr_4",
+      "mode": "FCL",
+      "factory_id": "fct_7",
+      "container_type": "20GP",
+      "min_rmb_per_ton": 200,
+      "max_rmb_per_ton": 400,
+      "default_rmb_per_ton": 300
     }
   ],
   "factory_packaging_overrides": [],
@@ -2730,6 +2962,2888 @@
           "warnings": [
             "您输入的吨数小于该产品默认装柜吨数（16.00 吨），系统已自动切换为 LCL 进行计算。",
             "缺少 20GP 的 LCL 港杂规则，已按默认值 0 RMB 计算。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "hist_1771981765912",
+      "timestamp": "2026-02-25T01:09:25.912Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_7",
+          "packaging_option_id": "pack_9",
+          "factory_id": "fct_6",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": "tons",
+          "qty_input_value": 2,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "LCL",
+            "container_type": "20GP",
+            "tons": 2,
+            "bags": 1250,
+            "bags_int": 1250,
+            "cartons_int": 209,
+            "bag_price_source": "default",
+            "carton_price_source": "default",
+            "sell_usd_per_bag": 1.5293974065598783,
+            "net_rmb_per_bag": 10.025200000000002,
+            "cost_usd_per_bag": 1.4529275362318843,
+            "gp_rmb_per_bag": 0.5276421052631601,
+            "gp_rmb_total": 659.5526315789501,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": 1300
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 7.6,
+            "bag_mat_rmb_per_bag": 0.8,
+            "carton_rmb_per_bag": 0.5852,
+            "land_rmb_per_bag": 0,
+            "land_rmb_per_ton_used": 0,
+            "land_total_rmb": 0,
+            "port_rmb_per_bag": 1.04,
+            "domestic_total_rmb_per_bag": 10.025200000000002,
+            "rebate_rmb_per_bag": 0,
+            "net_rmb_per_bag": 10.025200000000002
+          },
+          "warnings": [
+            "您输入的吨数小于该产品默认装柜吨数（10.00 吨），系统已自动切换为 LCL 进行计算。",
+            "缺少 20GP 的 LCL 港杂规则，已按默认值 0 RMB 计算。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "hist_1771981810644",
+      "timestamp": "2026-02-25T01:10:10.644Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_7",
+          "packaging_option_id": "pack_9",
+          "factory_id": "fct_5",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": "tons",
+          "qty_input_value": 2,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "LCL",
+            "container_type": "20GP",
+            "tons": 2,
+            "bags": 1250,
+            "bags_int": 1250,
+            "cartons_int": 209,
+            "bag_price_source": "default",
+            "carton_price_source": "default",
+            "sell_usd_per_bag": 1.492784134248665,
+            "net_rmb_per_bag": 9.7852,
+            "cost_usd_per_bag": 1.4181449275362317,
+            "gp_rmb_per_bag": 0.5150105263157894,
+            "gp_rmb_total": 643.7631578947367,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": 1300
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 7.36,
+            "bag_mat_rmb_per_bag": 0.8,
+            "carton_rmb_per_bag": 0.5852,
+            "land_rmb_per_bag": 0,
+            "land_rmb_per_ton_used": 0,
+            "land_total_rmb": 0,
+            "port_rmb_per_bag": 1.04,
+            "domestic_total_rmb_per_bag": 9.7852,
+            "rebate_rmb_per_bag": 0,
+            "net_rmb_per_bag": 9.7852
+          },
+          "warnings": [
+            "您输入的吨数小于该产品默认装柜吨数（10.00 吨），系统已自动切换为 LCL 进行计算。",
+            "缺少 20GP 的 LCL 港杂规则，已按默认值 0 RMB 计算。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "hist_1771982410721",
+      "timestamp": "2026-02-25T01:20:10.721Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_8",
+          "packaging_option_id": "pack_12",
+          "factory_id": "factory_1",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": "tons",
+          "qty_input_value": 2,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "LCL",
+            "container_type": "20GP",
+            "tons": 2,
+            "bags": 250,
+            "bags_int": 250,
+            "cartons_int": 125,
+            "bag_price_source": "default",
+            "carton_price_source": "default",
+            "sell_usd_per_bag": 1.4362166285278415,
+            "net_rmb_per_bag": 9.4144,
+            "cost_usd_per_bag": 1.3644057971014494,
+            "gp_rmb_per_bag": 0.4954947368421063,
+            "gp_rmb_total": 123.87368421052658,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": 1300
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 3.12,
+            "bag_mat_rmb_per_bag": 1,
+            "carton_rmb_per_bag": 0.5,
+            "land_rmb_per_bag": 0,
+            "land_rmb_per_ton_used": 0,
+            "land_total_rmb": 0,
+            "port_rmb_per_bag": 5.2,
+            "domestic_total_rmb_per_bag": 9.82,
+            "rebate_rmb_per_bag": 0.4056,
+            "net_rmb_per_bag": 9.4144
+          },
+          "warnings": [
+            "您输入的吨数小于该产品默认装柜吨数（17.00 吨），系统已自动切换为 LCL 进行计算。",
+            "缺少 20GP 的 LCL 港杂规则，已按默认值 0 RMB 计算。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "hist_1771982438000",
+      "timestamp": "2026-02-25T01:20:38.000Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_8",
+          "packaging_option_id": "pack_12",
+          "factory_id": "factory_1",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": "tons",
+          "qty_input_value": 4,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "LCL",
+            "container_type": "20GP",
+            "tons": 4,
+            "bags": 500,
+            "bags_int": 500,
+            "cartons_int": 250,
+            "bag_price_source": "default",
+            "carton_price_source": "default",
+            "sell_usd_per_bag": 1.1005949656750573,
+            "net_rmb_per_bag": 7.2144,
+            "cost_usd_per_bag": 1.0455652173913044,
+            "gp_rmb_per_bag": 0.3797052631578959,
+            "gp_rmb_total": 189.85263157894795,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": 1500
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 3.12,
+            "bag_mat_rmb_per_bag": 1,
+            "carton_rmb_per_bag": 0.5,
+            "land_rmb_per_bag": 0,
+            "land_rmb_per_ton_used": 0,
+            "land_total_rmb": 0,
+            "port_rmb_per_bag": 3,
+            "domestic_total_rmb_per_bag": 7.62,
+            "rebate_rmb_per_bag": 0.4056,
+            "net_rmb_per_bag": 7.2144
+          },
+          "warnings": [
+            "您输入的吨数小于该产品默认装柜吨数（17.00 吨），系统已自动切换为 LCL 进行计算。",
+            "缺少 20GP 的 LCL 港杂规则，已按默认值 0 RMB 计算。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "hist_1771982440618",
+      "timestamp": "2026-02-25T01:20:40.618Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_8",
+          "packaging_option_id": "pack_12",
+          "factory_id": "factory_1",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": "tons",
+          "qty_input_value": 4,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "LCL",
+            "container_type": "20GP",
+            "tons": 4,
+            "bags": 500,
+            "bags_int": 500,
+            "cartons_int": 250,
+            "bag_price_source": "default",
+            "carton_price_source": "default",
+            "sell_usd_per_bag": 1.1005949656750573,
+            "net_rmb_per_bag": 7.2144,
+            "cost_usd_per_bag": 1.0455652173913044,
+            "gp_rmb_per_bag": 0.3797052631578959,
+            "gp_rmb_total": 189.85263157894795,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": 1500
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 3.12,
+            "bag_mat_rmb_per_bag": 1,
+            "carton_rmb_per_bag": 0.5,
+            "land_rmb_per_bag": 0,
+            "land_rmb_per_ton_used": 0,
+            "land_total_rmb": 0,
+            "port_rmb_per_bag": 3,
+            "domestic_total_rmb_per_bag": 7.62,
+            "rebate_rmb_per_bag": 0.4056,
+            "net_rmb_per_bag": 7.2144
+          },
+          "warnings": [
+            "您输入的吨数小于该产品默认装柜吨数（17.00 吨），系统已自动切换为 LCL 进行计算。",
+            "缺少 20GP 的 LCL 港杂规则，已按默认值 0 RMB 计算。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "hist_1771982452556",
+      "timestamp": "2026-02-25T01:20:52.556Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_8",
+          "packaging_option_id": "pack_12",
+          "factory_id": "factory_1",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": "tons",
+          "qty_input_value": 17,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "FCL",
+            "container_type": "20GP",
+            "tons": 17,
+            "bags": 2125,
+            "bags_int": 2125,
+            "cartons_int": 1063,
+            "bag_price_source": "default",
+            "carton_price_source": "default",
+            "sell_usd_per_bag": 3.0910288508996278,
+            "net_rmb_per_bag": 20.26169411764706,
+            "cost_usd_per_bag": 2.936477408354646,
+            "gp_rmb_per_bag": 1.0664049535603723,
+            "gp_rmb_total": 2266.110526315791,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": null
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 3.12,
+            "bag_mat_rmb_per_bag": 1,
+            "carton_rmb_per_bag": 0.5002352941176471,
+            "land_rmb_per_bag": 14.4,
+            "land_rmb_per_ton_used": 1800,
+            "land_total_rmb": 30600,
+            "port_rmb_per_bag": 1.6470588235294117,
+            "domestic_total_rmb_per_bag": 20.66729411764706,
+            "rebate_rmb_per_bag": 0.4056,
+            "net_rmb_per_bag": 20.26169411764706
+          },
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "hist_1771982465251",
+      "timestamp": "2026-02-25T01:21:05.251Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_8",
+          "packaging_option_id": "pack_12",
+          "factory_id": "factory_1",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": null,
+          "qty_input_value": null,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "FCL",
+            "container_type": "20GP",
+            "tons": 17,
+            "bags": 2125,
+            "bags_int": 2125,
+            "cartons_int": 1063,
+            "bag_price_source": "default",
+            "carton_price_source": "default",
+            "sell_usd_per_bag": 3.0910288508996278,
+            "net_rmb_per_bag": 20.26169411764706,
+            "cost_usd_per_bag": 2.936477408354646,
+            "gp_rmb_per_bag": 1.0664049535603723,
+            "gp_rmb_total": 2266.110526315791,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": null
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 3.12,
+            "bag_mat_rmb_per_bag": 1,
+            "carton_rmb_per_bag": 0.5002352941176471,
+            "land_rmb_per_bag": 14.4,
+            "land_rmb_per_ton_used": 1800,
+            "land_total_rmb": 30600,
+            "port_rmb_per_bag": 1.6470588235294117,
+            "domestic_total_rmb_per_bag": 20.66729411764706,
+            "rebate_rmb_per_bag": 0.4056,
+            "net_rmb_per_bag": 20.26169411764706
+          },
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "hist_1771982538292",
+      "timestamp": "2026-02-25T01:22:18.292Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_8",
+          "packaging_option_id": "pack_11",
+          "factory_id": "factory_1",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": null,
+          "qty_input_value": null,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "FCL",
+            "container_type": "20GP",
+            "tons": 17,
+            "bags": 4250,
+            "bags_int": 4250,
+            "cartons_int": 1063,
+            "bag_price_source": "default",
+            "carton_price_source": "default",
+            "sell_usd_per_bag": 0.70344505765693,
+            "net_rmb_per_bag": 4.611082352941176,
+            "cost_usd_per_bag": 0.6682728047740835,
+            "gp_rmb_per_bag": 0.2426885448916405,
+            "gp_rmb_total": 1031.426315789472,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": null
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 1.56,
+            "bag_mat_rmb_per_bag": 0.8,
+            "carton_rmb_per_bag": 0.7503529411764706,
+            "land_rmb_per_bag": 0.88,
+            "land_rmb_per_ton_used": 220,
+            "land_total_rmb": 3740,
+            "port_rmb_per_bag": 0.8235294117647058,
+            "domestic_total_rmb_per_bag": 4.813882352941176,
+            "rebate_rmb_per_bag": 0.2028,
+            "net_rmb_per_bag": 4.611082352941176
+          },
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "hist_1771982584628",
+      "timestamp": "2026-02-25T01:23:04.628Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_8",
+          "packaging_option_id": "pack_11",
+          "factory_id": "factory_1",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": null,
+          "qty_input_value": null,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": 150
+        },
+        "result": {
+          "summary": {
+            "mode": "FCL",
+            "container_type": "20GP",
+            "tons": 17,
+            "bags": 4250,
+            "bags_int": 4250,
+            "cartons_int": 1063,
+            "bag_price_source": "custom",
+            "carton_price_source": "custom",
+            "sell_usd_per_bag": 0.6607295732938485,
+            "net_rmb_per_bag": 4.331082352941177,
+            "cost_usd_per_bag": 0.627693094629156,
+            "gp_rmb_per_bag": 0.22795170278637755,
+            "gp_rmb_total": 968.7947368421046,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": null
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 1.56,
+            "bag_mat_rmb_per_bag": 0.8,
+            "carton_rmb_per_bag": 0.7503529411764706,
+            "land_rmb_per_bag": 0.6,
+            "land_rmb_per_ton_used": 150,
+            "land_total_rmb": 2550,
+            "port_rmb_per_bag": 0.8235294117647058,
+            "domestic_total_rmb_per_bag": 4.533882352941177,
+            "rebate_rmb_per_bag": 0.2028,
+            "net_rmb_per_bag": 4.331082352941177
+          },
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "hist_1771982599905",
+      "timestamp": "2026-02-25T01:23:19.905Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_8",
+          "packaging_option_id": "pack_12",
+          "factory_id": "factory_1",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": null,
+          "qty_input_value": null,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": 150
+        },
+        "result": {
+          "summary": {
+            "mode": "FCL",
+            "container_type": "20GP",
+            "tons": 17,
+            "bags": 2125,
+            "bags_int": 2125,
+            "cartons_int": 1063,
+            "bag_price_source": "custom",
+            "carton_price_source": "custom",
+            "sell_usd_per_bag": 1.077298873782923,
+            "net_rmb_per_bag": 7.061694117647059,
+            "cost_usd_per_bag": 1.0234339300937767,
+            "gp_rmb_per_bag": 0.3716681114551097,
+            "gp_rmb_total": 789.7947368421081,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": null
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 3.12,
+            "bag_mat_rmb_per_bag": 1,
+            "carton_rmb_per_bag": 0.5002352941176471,
+            "land_rmb_per_bag": 1.2,
+            "land_rmb_per_ton_used": 150,
+            "land_total_rmb": 2550,
+            "port_rmb_per_bag": 1.6470588235294117,
+            "domestic_total_rmb_per_bag": 7.467294117647059,
+            "rebate_rmb_per_bag": 0.4056,
+            "net_rmb_per_bag": 7.061694117647059
+          },
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "hist_1771982641184",
+      "timestamp": "2026-02-25T01:24:01.184Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_8",
+          "packaging_option_id": "pack_12",
+          "factory_id": "factory_1",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": null,
+          "qty_input_value": null,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": 230
+        },
+        "result": {
+          "summary": {
+            "mode": "FCL",
+            "container_type": "20GP",
+            "tons": 17,
+            "bags": 2125,
+            "bags_int": 2125,
+            "cartons_int": 1063,
+            "bag_price_source": "custom",
+            "carton_price_source": "custom",
+            "sell_usd_per_bag": 1.1749342666128235,
+            "net_rmb_per_bag": 7.701694117647058,
+            "cost_usd_per_bag": 1.1161875532821823,
+            "gp_rmb_per_bag": 0.40535232198142523,
+            "gp_rmb_total": 861.3736842105286,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": null
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 3.12,
+            "bag_mat_rmb_per_bag": 1,
+            "carton_rmb_per_bag": 0.5002352941176471,
+            "land_rmb_per_bag": 1.84,
+            "land_rmb_per_ton_used": 230,
+            "land_total_rmb": 3910,
+            "port_rmb_per_bag": 1.6470588235294117,
+            "domestic_total_rmb_per_bag": 8.107294117647058,
+            "rebate_rmb_per_bag": 0.4056,
+            "net_rmb_per_bag": 7.701694117647058
+          },
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "hist_1771982651895",
+      "timestamp": "2026-02-25T01:24:11.895Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_8",
+          "packaging_option_id": "pack_12",
+          "factory_id": "factory_1",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": null,
+          "qty_input_value": null,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": 250
+        },
+        "result": {
+          "summary": {
+            "mode": "FCL",
+            "container_type": "20GP",
+            "tons": 17,
+            "bags": 2125,
+            "bags_int": 2125,
+            "cartons_int": 1063,
+            "bag_price_source": "custom",
+            "carton_price_source": "custom",
+            "sell_usd_per_bag": 1.1993431148202989,
+            "net_rmb_per_bag": 7.861694117647058,
+            "cost_usd_per_bag": 1.1393759590792838,
+            "gp_rmb_per_bag": 0.41377337461300456,
+            "gp_rmb_total": 879.2684210526347,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": null
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 3.12,
+            "bag_mat_rmb_per_bag": 1,
+            "carton_rmb_per_bag": 0.5002352941176471,
+            "land_rmb_per_bag": 2,
+            "land_rmb_per_ton_used": 250,
+            "land_total_rmb": 4250,
+            "port_rmb_per_bag": 1.6470588235294117,
+            "domestic_total_rmb_per_bag": 8.267294117647058,
+            "rebate_rmb_per_bag": 0.4056,
+            "net_rmb_per_bag": 7.861694117647058
+          },
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "hist_1771982656996",
+      "timestamp": "2026-02-25T01:24:16.996Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_8",
+          "packaging_option_id": "pack_12",
+          "factory_id": "factory_1",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": null,
+          "qty_input_value": null,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": 260
+        },
+        "result": {
+          "summary": {
+            "mode": "FCL",
+            "container_type": "20GP",
+            "tons": 17,
+            "bags": 2125,
+            "bags_int": 2125,
+            "cartons_int": 1063,
+            "bag_price_source": "custom",
+            "carton_price_source": "custom",
+            "sell_usd_per_bag": 1.2115475389240364,
+            "net_rmb_per_bag": 7.941694117647058,
+            "cost_usd_per_bag": 1.1509701619778345,
+            "gp_rmb_per_bag": 0.4179839009287942,
+            "gp_rmb_total": 888.2157894736878,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": null
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 3.12,
+            "bag_mat_rmb_per_bag": 1,
+            "carton_rmb_per_bag": 0.5002352941176471,
+            "land_rmb_per_bag": 2.08,
+            "land_rmb_per_ton_used": 260,
+            "land_total_rmb": 4420,
+            "port_rmb_per_bag": 1.6470588235294117,
+            "domestic_total_rmb_per_bag": 8.347294117647058,
+            "rebate_rmb_per_bag": 0.4056,
+            "net_rmb_per_bag": 7.941694117647058
+          },
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "hist_1771982674640",
+      "timestamp": "2026-02-25T01:24:34.640Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_8",
+          "packaging_option_id": "pack_12",
+          "factory_id": "factory_1",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": null,
+          "qty_input_value": null,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": 260
+        },
+        "result": {
+          "summary": {
+            "mode": "FCL",
+            "container_type": "20GP",
+            "tons": 17,
+            "bags": 2125,
+            "bags_int": 2125,
+            "cartons_int": 1063,
+            "bag_price_source": "custom",
+            "carton_price_source": "custom",
+            "sell_usd_per_bag": 1.1962920087943643,
+            "net_rmb_per_bag": 7.841694117647059,
+            "cost_usd_per_bag": 1.136477408354646,
+            "gp_rmb_per_bag": 0.4127207430340558,
+            "gp_rmb_total": 877.0315789473686,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": null
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 3.12,
+            "bag_mat_rmb_per_bag": 0.9,
+            "carton_rmb_per_bag": 0.5002352941176471,
+            "land_rmb_per_bag": 2.08,
+            "land_rmb_per_ton_used": 260,
+            "land_total_rmb": 4420,
+            "port_rmb_per_bag": 1.6470588235294117,
+            "domestic_total_rmb_per_bag": 8.247294117647058,
+            "rebate_rmb_per_bag": 0.4056,
+            "net_rmb_per_bag": 7.841694117647059
+          },
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "hist_1771983585813",
+      "timestamp": "2026-02-25T01:39:45.813Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_8",
+          "packaging_option_id": "pack_12",
+          "factory_id": "factory_1",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": null,
+          "qty_input_value": null,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": 260
+        },
+        "result": {
+          "summary": {
+            "mode": "FCL",
+            "container_type": "20GP",
+            "tons": 17,
+            "bags": 1417,
+            "bags_int": 1417,
+            "cartons_int": 0,
+            "bag_price_source": "custom",
+            "carton_price_source": "custom",
+            "sell_usd_per_bag": 1.6109710624017932,
+            "net_rmb_per_bag": 10.559915314043755,
+            "cost_usd_per_bag": 1.5304225092817034,
+            "gp_rmb_per_bag": 0.5557850165286187,
+            "gp_rmb_total": 787.5473684210526,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": null
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 4.678899082568807,
+            "bag_mat_rmb_per_bag": 0.9,
+            "carton_rmb_per_bag": 0,
+            "land_rmb_per_bag": 3.1192660550458715,
+            "land_rmb_per_ton_used": 260,
+            "land_total_rmb": 4420,
+            "port_rmb_per_bag": 2.4700070571630204,
+            "domestic_total_rmb_per_bag": 11.1681721947777,
+            "rebate_rmb_per_bag": 0.608256880733945,
+            "net_rmb_per_bag": 10.559915314043755
+          },
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "hist_1771984718439",
+      "timestamp": "2026-02-25T01:58:38.439Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_9",
+          "packaging_option_id": "pack_13",
+          "factory_id": "fct_7",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": "tons",
+          "qty_input_value": 3,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "LCL",
+            "container_type": "20GP",
+            "tons": 3,
+            "bags": 1200,
+            "bags_int": 1200,
+            "cartons_int": 200,
+            "bag_price_source": "default",
+            "carton_price_source": "default",
+            "sell_usd_per_bag": 1.497584541062802,
+            "net_rmb_per_bag": 9.816666666666666,
+            "cost_usd_per_bag": 1.4227053140096617,
+            "gp_rmb_per_bag": 0.5166666666666675,
+            "gp_rmb_total": 620.000000000001,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": 1400
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 7.25,
+            "bag_mat_rmb_per_bag": 0.9,
+            "carton_rmb_per_bag": 0.5,
+            "land_rmb_per_bag": 0,
+            "land_rmb_per_ton_used": 0,
+            "land_total_rmb": 0,
+            "port_rmb_per_bag": 1.1666666666666667,
+            "domestic_total_rmb_per_bag": 9.816666666666666,
+            "rebate_rmb_per_bag": 0,
+            "net_rmb_per_bag": 9.816666666666666
+          },
+          "warnings": [
+            "该产品 20GP 的最大装柜吨数未维护或无效，已按默认值 20 吨计算。",
+            "您输入的吨数小于该产品默认装柜吨数（20.00 吨），系统已自动切换为 LCL 进行计算。",
+            "缺少 20GP 的 LCL 港杂规则，已按默认值 0 RMB 计算。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "hist_1771984773124",
+      "timestamp": "2026-02-25T01:59:33.124Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_10",
+          "packaging_option_id": "pack_14",
+          "factory_id": "fct_7",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": "tons",
+          "qty_input_value": 3,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "LCL",
+            "container_type": "20GP",
+            "tons": 3,
+            "bags": 750,
+            "bags_int": 750,
+            "cartons_int": 188,
+            "bag_price_source": "custom",
+            "carton_price_source": "custom",
+            "sell_usd_per_bag": 2.184388507500636,
+            "net_rmb_per_bag": 14.318666666666669,
+            "cost_usd_per_bag": 2.075169082125604,
+            "gp_rmb_per_bag": 0.7536140350877201,
+            "gp_rmb_total": 565.21052631579,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": 1400
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 10.8,
+            "bag_mat_rmb_per_bag": 0.9,
+            "carton_rmb_per_bag": 0.752,
+            "land_rmb_per_bag": 0,
+            "land_rmb_per_ton_used": 0,
+            "land_total_rmb": 0,
+            "port_rmb_per_bag": 1.8666666666666667,
+            "domestic_total_rmb_per_bag": 14.318666666666669,
+            "rebate_rmb_per_bag": 0,
+            "net_rmb_per_bag": 14.318666666666669
+          },
+          "warnings": [
+            "该产品 20GP 的最大装柜吨数未维护或无效，已按默认值 20 吨计算。",
+            "您输入的吨数小于该产品默认装柜吨数（20.00 吨），系统已自动切换为 LCL 进行计算。",
+            "缺少 20GP 的 LCL 港杂规则，已按默认值 0 RMB 计算。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "hist_1771984784275",
+      "timestamp": "2026-02-25T01:59:44.275Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_10",
+          "packaging_option_id": "pack_14",
+          "factory_id": "fct_7",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": "tons",
+          "qty_input_value": 4,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "LCL",
+            "container_type": "20GP",
+            "tons": 4,
+            "bags": 1000,
+            "bags_int": 1000,
+            "cartons_int": 250,
+            "bag_price_source": "custom",
+            "carton_price_source": "custom",
+            "sell_usd_per_bag": 2.128146453089245,
+            "net_rmb_per_bag": 13.950000000000001,
+            "cost_usd_per_bag": 2.0217391304347827,
+            "gp_rmb_per_bag": 0.7342105263157901,
+            "gp_rmb_total": 734.21052631579,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": 1500
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 10.8,
+            "bag_mat_rmb_per_bag": 0.9,
+            "carton_rmb_per_bag": 0.75,
+            "land_rmb_per_bag": 0,
+            "land_rmb_per_ton_used": 0,
+            "land_total_rmb": 0,
+            "port_rmb_per_bag": 1.5,
+            "domestic_total_rmb_per_bag": 13.950000000000001,
+            "rebate_rmb_per_bag": 0,
+            "net_rmb_per_bag": 13.950000000000001
+          },
+          "warnings": [
+            "该产品 20GP 的最大装柜吨数未维护或无效，已按默认值 20 吨计算。",
+            "您输入的吨数小于该产品默认装柜吨数（20.00 吨），系统已自动切换为 LCL 进行计算。",
+            "缺少 20GP 的 LCL 港杂规则，已按默认值 0 RMB 计算。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "hist_1771984785871",
+      "timestamp": "2026-02-25T01:59:45.871Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_10",
+          "packaging_option_id": "pack_14",
+          "factory_id": "fct_7",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": "tons",
+          "qty_input_value": 4,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "LCL",
+            "container_type": "20GP",
+            "tons": 4,
+            "bags": 1000,
+            "bags_int": 1000,
+            "cartons_int": 250,
+            "bag_price_source": "custom",
+            "carton_price_source": "custom",
+            "sell_usd_per_bag": 2.128146453089245,
+            "net_rmb_per_bag": 13.950000000000001,
+            "cost_usd_per_bag": 2.0217391304347827,
+            "gp_rmb_per_bag": 0.7342105263157901,
+            "gp_rmb_total": 734.21052631579,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": 1500
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 10.8,
+            "bag_mat_rmb_per_bag": 0.9,
+            "carton_rmb_per_bag": 0.75,
+            "land_rmb_per_bag": 0,
+            "land_rmb_per_ton_used": 0,
+            "land_total_rmb": 0,
+            "port_rmb_per_bag": 1.5,
+            "domestic_total_rmb_per_bag": 13.950000000000001,
+            "rebate_rmb_per_bag": 0,
+            "net_rmb_per_bag": 13.950000000000001
+          },
+          "warnings": [
+            "该产品 20GP 的最大装柜吨数未维护或无效，已按默认值 20 吨计算。",
+            "您输入的吨数小于该产品默认装柜吨数（20.00 吨），系统已自动切换为 LCL 进行计算。",
+            "缺少 20GP 的 LCL 港杂规则，已按默认值 0 RMB 计算。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "hist_1771984821783",
+      "timestamp": "2026-02-25T02:00:21.783Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_10",
+          "packaging_option_id": "pack_14",
+          "factory_id": "fct_7",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": "tons",
+          "qty_input_value": 4,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "LCL",
+            "container_type": "20GP",
+            "tons": 4,
+            "bags": 1000,
+            "bags_int": 1000,
+            "cartons_int": 250,
+            "bag_price_source": "custom",
+            "carton_price_source": "custom",
+            "sell_usd_per_bag": 2.128146453089245,
+            "net_rmb_per_bag": 13.950000000000001,
+            "cost_usd_per_bag": 2.0217391304347827,
+            "gp_rmb_per_bag": 0.7342105263157901,
+            "gp_rmb_total": 734.21052631579,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": 1500
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 10.8,
+            "bag_mat_rmb_per_bag": 0.9,
+            "carton_rmb_per_bag": 0.75,
+            "land_rmb_per_bag": 0,
+            "land_rmb_per_ton_used": 0,
+            "land_total_rmb": 0,
+            "port_rmb_per_bag": 1.5,
+            "domestic_total_rmb_per_bag": 13.950000000000001,
+            "rebate_rmb_per_bag": 0,
+            "net_rmb_per_bag": 13.950000000000001
+          },
+          "warnings": [
+            "该产品 20GP 的最大装柜吨数未维护或无效，已按默认值 20 吨计算。",
+            "您输入的吨数小于该产品默认装柜吨数（20.00 吨），系统已自动切换为 LCL 进行计算。",
+            "缺少 20GP 的 LCL 港杂规则，已按默认值 0 RMB 计算。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "hist_1771984836566",
+      "timestamp": "2026-02-25T02:00:36.566Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_8",
+          "packaging_option_id": "pack_11",
+          "factory_id": "factory_1",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": null,
+          "qty_input_value": null,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "FCL",
+            "container_type": "20GP",
+            "tons": 17,
+            "bags": 4250,
+            "bags_int": 4250,
+            "cartons_int": 1063,
+            "bag_price_source": "default",
+            "carton_price_source": "default",
+            "sell_usd_per_bag": 0.70344505765693,
+            "net_rmb_per_bag": 4.611082352941176,
+            "cost_usd_per_bag": 0.6682728047740835,
+            "gp_rmb_per_bag": 0.2426885448916405,
+            "gp_rmb_total": 1031.426315789472,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": null
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 1.56,
+            "bag_mat_rmb_per_bag": 0.8,
+            "carton_rmb_per_bag": 0.7503529411764706,
+            "land_rmb_per_bag": 0.88,
+            "land_rmb_per_ton_used": 220,
+            "land_total_rmb": 3740,
+            "port_rmb_per_bag": 0.8235294117647058,
+            "domestic_total_rmb_per_bag": 4.813882352941176,
+            "rebate_rmb_per_bag": 0.2028,
+            "net_rmb_per_bag": 4.611082352941176
+          },
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "hist_1771984848404",
+      "timestamp": "2026-02-25T02:00:48.404Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_8",
+          "packaging_option_id": "pack_11",
+          "factory_id": "factory_1",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": null,
+          "qty_input_value": null,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": 300
+        },
+        "result": {
+          "summary": {
+            "mode": "FCL",
+            "container_type": "20GP",
+            "tons": 17,
+            "bags": 4250,
+            "bags_int": 4250,
+            "cartons_int": 1063,
+            "bag_price_source": "default",
+            "carton_price_source": "default",
+            "sell_usd_per_bag": 0.7522627540718805,
+            "net_rmb_per_bag": 4.931082352941177,
+            "cost_usd_per_bag": 0.7146496163682864,
+            "gp_rmb_per_bag": 0.25953065015479915,
+            "gp_rmb_total": 1103.0052631578965,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": null
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 1.56,
+            "bag_mat_rmb_per_bag": 0.8,
+            "carton_rmb_per_bag": 0.7503529411764706,
+            "land_rmb_per_bag": 1.2,
+            "land_rmb_per_ton_used": 300,
+            "land_total_rmb": 5100,
+            "port_rmb_per_bag": 0.8235294117647058,
+            "domestic_total_rmb_per_bag": 5.133882352941177,
+            "rebate_rmb_per_bag": 0.2028,
+            "net_rmb_per_bag": 4.931082352941177
+          },
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "hist_1771984852666",
+      "timestamp": "2026-02-25T02:00:52.666Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_8",
+          "packaging_option_id": "pack_11",
+          "factory_id": "factory_1",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": null,
+          "qty_input_value": null,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": 280
+        },
+        "result": {
+          "summary": {
+            "mode": "FCL",
+            "container_type": "20GP",
+            "tons": 17,
+            "bags": 4250,
+            "bags_int": 4250,
+            "cartons_int": 1063,
+            "bag_price_source": "default",
+            "carton_price_source": "default",
+            "sell_usd_per_bag": 0.7400583299681428,
+            "net_rmb_per_bag": 4.851082352941177,
+            "cost_usd_per_bag": 0.7030554134697357,
+            "gp_rmb_per_bag": 0.2553201238390086,
+            "gp_rmb_total": 1085.1105263157865,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": null
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 1.56,
+            "bag_mat_rmb_per_bag": 0.8,
+            "carton_rmb_per_bag": 0.7503529411764706,
+            "land_rmb_per_bag": 1.12,
+            "land_rmb_per_ton_used": 280,
+            "land_total_rmb": 4760,
+            "port_rmb_per_bag": 0.8235294117647058,
+            "domestic_total_rmb_per_bag": 5.0538823529411765,
+            "rebate_rmb_per_bag": 0.2028,
+            "net_rmb_per_bag": 4.851082352941177
+          },
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "hist_1771984857573",
+      "timestamp": "2026-02-25T02:00:57.573Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_8",
+          "packaging_option_id": "pack_11",
+          "factory_id": "factory_1",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": null,
+          "qty_input_value": null,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": 260
+        },
+        "result": {
+          "summary": {
+            "mode": "FCL",
+            "container_type": "20GP",
+            "tons": 17,
+            "bags": 4250,
+            "bags_int": 4250,
+            "cartons_int": 1063,
+            "bag_price_source": "default",
+            "carton_price_source": "default",
+            "sell_usd_per_bag": 0.7278539058644052,
+            "net_rmb_per_bag": 4.7710823529411766,
+            "cost_usd_per_bag": 0.6914612105711849,
+            "gp_rmb_per_bag": 0.2511095975232198,
+            "gp_rmb_total": 1067.2157894736843,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": null
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 1.56,
+            "bag_mat_rmb_per_bag": 0.8,
+            "carton_rmb_per_bag": 0.7503529411764706,
+            "land_rmb_per_bag": 1.04,
+            "land_rmb_per_ton_used": 260,
+            "land_total_rmb": 4420,
+            "port_rmb_per_bag": 0.8235294117647058,
+            "domestic_total_rmb_per_bag": 4.973882352941176,
+            "rebate_rmb_per_bag": 0.2028,
+            "net_rmb_per_bag": 4.7710823529411766
+          },
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "hist_1771984869457",
+      "timestamp": "2026-02-25T02:01:09.457Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_8",
+          "packaging_option_id": "pack_12",
+          "factory_id": "factory_1",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": null,
+          "qty_input_value": null,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": 260
+        },
+        "result": {
+          "summary": {
+            "mode": "FCL",
+            "container_type": "20GP",
+            "tons": 17,
+            "bags": 2125,
+            "bags_int": 2125,
+            "cartons_int": 1063,
+            "bag_price_source": "default",
+            "carton_price_source": "default",
+            "sell_usd_per_bag": 1.2115475389240364,
+            "net_rmb_per_bag": 7.941694117647058,
+            "cost_usd_per_bag": 1.1509701619778345,
+            "gp_rmb_per_bag": 0.4179839009287942,
+            "gp_rmb_total": 888.2157894736878,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": null
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 3.12,
+            "bag_mat_rmb_per_bag": 1,
+            "carton_rmb_per_bag": 0.5002352941176471,
+            "land_rmb_per_bag": 2.08,
+            "land_rmb_per_ton_used": 260,
+            "land_total_rmb": 4420,
+            "port_rmb_per_bag": 1.6470588235294117,
+            "domestic_total_rmb_per_bag": 8.347294117647058,
+            "rebate_rmb_per_bag": 0.4056,
+            "net_rmb_per_bag": 7.941694117647058
+          },
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "hist_1771984903787",
+      "timestamp": "2026-02-25T02:01:43.787Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_8",
+          "packaging_option_id": "pack_12",
+          "factory_id": "factory_1",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": null,
+          "qty_input_value": null,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": 260
+        },
+        "result": {
+          "summary": {
+            "mode": "FCL",
+            "container_type": "20GP",
+            "tons": 17,
+            "bags": 1417,
+            "bags_int": 1417,
+            "cartons_int": 709,
+            "bag_price_source": "custom",
+            "carton_price_source": "default",
+            "sell_usd_per_bag": 1.7025580735613697,
+            "net_rmb_per_bag": 11.160268172194778,
+            "cost_usd_per_bag": 1.6174301698833011,
+            "gp_rmb_per_bag": 0.5873825353786728,
+            "gp_rmb_total": 832.3210526315794,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": null
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 4.678899082568807,
+            "bag_mat_rmb_per_bag": 1,
+            "carton_rmb_per_bag": 0.5003528581510233,
+            "land_rmb_per_bag": 3.1192660550458715,
+            "land_rmb_per_ton_used": 260,
+            "land_total_rmb": 4420,
+            "port_rmb_per_bag": 2.4700070571630204,
+            "domestic_total_rmb_per_bag": 11.768525052928723,
+            "rebate_rmb_per_bag": 0.608256880733945,
+            "net_rmb_per_bag": 11.160268172194778
+          },
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "hist_1771984985133",
+      "timestamp": "2026-02-25T02:03:05.133Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_8",
+          "packaging_option_id": "pack_12",
+          "factory_id": "factory_1",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": null,
+          "qty_input_value": null,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": 240
+        },
+        "result": {
+          "summary": {
+            "mode": "FCL",
+            "container_type": "20GP",
+            "tons": 17,
+            "bags": 1417,
+            "bags_int": 1417,
+            "cartons_int": 709,
+            "bag_price_source": "custom",
+            "carton_price_source": "default",
+            "sell_usd_per_bag": 1.665953414111204,
+            "net_rmb_per_bag": 10.920324629498941,
+            "cost_usd_per_bag": 1.5826557434056436,
+            "gp_rmb_per_bag": 0.5747539278683682,
+            "gp_rmb_total": 814.4263157894777,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": null
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 4.678899082568807,
+            "bag_mat_rmb_per_bag": 1,
+            "carton_rmb_per_bag": 0.5003528581510233,
+            "land_rmb_per_bag": 2.8793225123500354,
+            "land_rmb_per_ton_used": 240,
+            "land_total_rmb": 4080,
+            "port_rmb_per_bag": 2.4700070571630204,
+            "domestic_total_rmb_per_bag": 11.528581510232886,
+            "rebate_rmb_per_bag": 0.608256880733945,
+            "net_rmb_per_bag": 10.920324629498941
+          },
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "hist_1771985010215",
+      "timestamp": "2026-02-25T02:03:30.215Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_8",
+          "packaging_option_id": "pack_12",
+          "factory_id": "factory_1",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": null,
+          "qty_input_value": null,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": 220
+        },
+        "result": {
+          "summary": {
+            "mode": "FCL",
+            "container_type": "20GP",
+            "tons": 17,
+            "bags": 1417,
+            "bags_int": 1417,
+            "cartons_int": 709,
+            "bag_price_source": "custom",
+            "carton_price_source": "default",
+            "sell_usd_per_bag": 1.629348754661038,
+            "net_rmb_per_bag": 10.680381086803104,
+            "cost_usd_per_bag": 1.547881316927986,
+            "gp_rmb_per_bag": 0.5621253203580583,
+            "gp_rmb_total": 796.5315789473686,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": null
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 4.678899082568807,
+            "bag_mat_rmb_per_bag": 1,
+            "carton_rmb_per_bag": 0.5003528581510233,
+            "land_rmb_per_bag": 2.639378969654199,
+            "land_rmb_per_ton_used": 220,
+            "land_total_rmb": 3740,
+            "port_rmb_per_bag": 2.4700070571630204,
+            "domestic_total_rmb_per_bag": 11.28863796753705,
+            "rebate_rmb_per_bag": 0.608256880733945,
+            "net_rmb_per_bag": 10.680381086803104
+          },
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "hist_1771985078593",
+      "timestamp": "2026-02-25T02:04:38.593Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_9",
+          "packaging_option_id": "pack_13",
+          "factory_id": "fct_7",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": "tons",
+          "qty_input_value": 4,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "LCL",
+            "container_type": "20GP",
+            "tons": 4,
+            "bags": 1000,
+            "bags_int": 1000,
+            "cartons_int": 250,
+            "bag_price_source": "custom",
+            "carton_price_source": "custom",
+            "sell_usd_per_bag": 2.0213577421815407,
+            "net_rmb_per_bag": 13.25,
+            "cost_usd_per_bag": 1.9202898550724636,
+            "gp_rmb_per_bag": 0.6973684210526319,
+            "gp_rmb_total": 697.3684210526319,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": 0
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 11.6,
+            "bag_mat_rmb_per_bag": 0.9,
+            "carton_rmb_per_bag": 0.75,
+            "land_rmb_per_bag": 0,
+            "land_rmb_per_ton_used": 0,
+            "land_total_rmb": 0,
+            "port_rmb_per_bag": 0,
+            "domestic_total_rmb_per_bag": 13.25,
+            "rebate_rmb_per_bag": 0,
+            "net_rmb_per_bag": 13.25
+          },
+          "warnings": [
+            "该产品 20GP 的最大装柜吨数未维护或无效，已按默认值 20 吨计算。",
+            "您输入的吨数小于该产品默认装柜吨数（20.00 吨），系统已自动切换为 LCL 进行计算。",
+            "缺少 20GP 的 LCL 港杂规则，已按默认值 0 RMB 计算。",
+            "未配置 LCL 港杂规则，请在 Admin 中维护。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "hist_1771985098015",
+      "timestamp": "2026-02-25T02:04:58.015Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_9",
+          "packaging_option_id": "pack_13",
+          "factory_id": "fct_7",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": "tons",
+          "qty_input_value": 4,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": 290
+        },
+        "result": {
+          "summary": {
+            "mode": "LCL",
+            "container_type": "20GP",
+            "tons": 4,
+            "bags": 1000,
+            "bags_int": 1000,
+            "cartons_int": 250,
+            "bag_price_source": "custom",
+            "carton_price_source": "custom",
+            "sell_usd_per_bag": 2.198321891685736,
+            "net_rmb_per_bag": 14.41,
+            "cost_usd_per_bag": 2.088405797101449,
+            "gp_rmb_per_bag": 0.7584210526315776,
+            "gp_rmb_total": 758.4210526315776,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": 0
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 11.6,
+            "bag_mat_rmb_per_bag": 0.9,
+            "carton_rmb_per_bag": 0.75,
+            "land_rmb_per_bag": 1.16,
+            "land_rmb_per_ton_used": 290,
+            "land_total_rmb": 1160,
+            "port_rmb_per_bag": 0,
+            "domestic_total_rmb_per_bag": 14.41,
+            "rebate_rmb_per_bag": 0,
+            "net_rmb_per_bag": 14.41
+          },
+          "warnings": [
+            "该产品 20GP 的最大装柜吨数未维护或无效，已按默认值 20 吨计算。",
+            "您输入的吨数小于该产品默认装柜吨数（20.00 吨），系统已自动切换为 LCL 进行计算。",
+            "未配置 LCL 港杂规则，请在 Admin 中维护。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "hist_1771985238289",
+      "timestamp": "2026-02-25T02:07:18.289Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_9",
+          "packaging_option_id": "pack_13",
+          "factory_id": "fct_7",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": "tons",
+          "qty_input_value": 2.5,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "LCL",
+            "container_type": "20GP",
+            "tons": 2.5,
+            "bags": 1000,
+            "bags_int": 1000,
+            "cartons_int": 167,
+            "bag_price_source": "default",
+            "carton_price_source": "default",
+            "sell_usd_per_bag": 1.3197559115179252,
+            "net_rmb_per_bag": 8.651,
+            "cost_usd_per_bag": 1.2537681159420289,
+            "gp_rmb_per_bag": 0.45531578947368345,
+            "gp_rmb_total": 455.3157894736835,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": 0
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 7.25,
+            "bag_mat_rmb_per_bag": 0.9,
+            "carton_rmb_per_bag": 0.501,
+            "land_rmb_per_bag": 0,
+            "land_rmb_per_ton_used": 0,
+            "land_total_rmb": 0,
+            "port_rmb_per_bag": 0,
+            "domestic_total_rmb_per_bag": 8.651,
+            "rebate_rmb_per_bag": 0,
+            "net_rmb_per_bag": 8.651
+          },
+          "warnings": [
+            "您输入的吨数小于该产品默认装柜吨数（12.50 吨），系统已自动切换为 LCL 进行计算。",
+            "缺少 20GP 的 LCL 港杂规则，已按默认值 0 RMB 计算。",
+            "未配置 LCL 港杂规则，请在 Admin 中维护。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "hist_1771985433571",
+      "timestamp": "2026-02-25T02:10:33.571Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_9",
+          "packaging_option_id": "pack_13",
+          "factory_id": "fct_7",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": "tons",
+          "qty_input_value": 2.5,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "LCL",
+            "container_type": "20GP",
+            "tons": 2.5,
+            "bags": 1000,
+            "bags_int": 1000,
+            "cartons_int": 167,
+            "bag_price_source": "default",
+            "carton_price_source": "default",
+            "sell_usd_per_bag": 1.3197559115179252,
+            "net_rmb_per_bag": 8.651,
+            "cost_usd_per_bag": 1.2537681159420289,
+            "gp_rmb_per_bag": 0.45531578947368345,
+            "gp_rmb_total": 455.3157894736835,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": 0
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 7.25,
+            "bag_mat_rmb_per_bag": 0.9,
+            "carton_rmb_per_bag": 0.501,
+            "land_rmb_per_bag": 0,
+            "land_rmb_per_ton_used": 0,
+            "land_total_rmb": 0,
+            "port_rmb_per_bag": 0,
+            "domestic_total_rmb_per_bag": 8.651,
+            "rebate_rmb_per_bag": 0,
+            "net_rmb_per_bag": 8.651
+          },
+          "warnings": [
+            "您输入的吨数小于该产品默认装柜吨数（12.50 吨），系统已自动切换为 LCL 进行计算。",
+            "缺少 20GP 的 LCL 港杂规则，已按默认值 0 RMB 计算。",
+            "未配置 LCL 港杂规则，请在 Admin 中维护。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "hist_1771985465105",
+      "timestamp": "2026-02-25T02:11:05.105Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_9",
+          "packaging_option_id": "pack_13",
+          "factory_id": "fct_7",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": "tons",
+          "qty_input_value": 2.5,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "LCL",
+            "container_type": "20GP",
+            "tons": 2.5,
+            "bags": 1000,
+            "bags_int": 1000,
+            "cartons_int": 167,
+            "bag_price_source": "default",
+            "carton_price_source": "default",
+            "sell_usd_per_bag": 1.3197559115179252,
+            "net_rmb_per_bag": 8.651,
+            "cost_usd_per_bag": 1.2537681159420289,
+            "gp_rmb_per_bag": 0.45531578947368345,
+            "gp_rmb_total": 455.3157894736835,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": 0
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 7.25,
+            "bag_mat_rmb_per_bag": 0.9,
+            "carton_rmb_per_bag": 0.501,
+            "land_rmb_per_bag": 0,
+            "land_rmb_per_ton_used": 0,
+            "land_total_rmb": 0,
+            "port_rmb_per_bag": 0,
+            "domestic_total_rmb_per_bag": 8.651,
+            "rebate_rmb_per_bag": 0,
+            "net_rmb_per_bag": 8.651
+          },
+          "warnings": [
+            "您输入的吨数小于该产品默认装柜吨数（12.50 吨），系统已自动切换为 LCL 进行计算。",
+            "缺少 20GP 的 LCL 港杂规则，已按默认值 0 RMB 计算。",
+            "未配置 LCL 港杂规则，请在 Admin 中维护。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "hist_1771985971688",
+      "timestamp": "2026-02-25T02:19:31.688Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_9",
+          "packaging_option_id": "pack_13",
+          "factory_id": "fct_7",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": "tons",
+          "qty_input_value": 2.5,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "LCL",
+            "container_type": "20GP",
+            "tons": 2.5,
+            "bags": 1000,
+            "bags_int": 1000,
+            "cartons_int": 167,
+            "bag_price_source": "default",
+            "carton_price_source": "default",
+            "sell_usd_per_bag": 1.3197559115179252,
+            "net_rmb_per_bag": 8.651,
+            "cost_usd_per_bag": 1.2537681159420289,
+            "gp_rmb_per_bag": 0.45531578947368345,
+            "gp_rmb_total": 455.3157894736835,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": 0
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 7.25,
+            "bag_mat_rmb_per_bag": 0.9,
+            "carton_rmb_per_bag": 0.501,
+            "land_rmb_per_bag": 0,
+            "land_rmb_per_ton_used": 0,
+            "land_total_rmb": 0,
+            "port_rmb_per_bag": 0,
+            "domestic_total_rmb_per_bag": 8.651,
+            "rebate_rmb_per_bag": 0,
+            "net_rmb_per_bag": 8.651
+          },
+          "warnings": [
+            "您输入的吨数小于该产品默认装柜吨数（12.50 吨），系统已自动切换为 LCL 进行计算。",
+            "缺少 20GP 的 LCL 港杂规则，已按默认值 0 RMB 计算。",
+            "未配置 LCL 港杂规则，请在 Admin 中维护。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "hist_1771985973079",
+      "timestamp": "2026-02-25T02:19:33.079Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_9",
+          "packaging_option_id": "pack_13",
+          "factory_id": "fct_7",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": "tons",
+          "qty_input_value": 2.5,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "LCL",
+            "container_type": "20GP",
+            "tons": 2.5,
+            "bags": 1000,
+            "bags_int": 1000,
+            "cartons_int": 167,
+            "bag_price_source": "default",
+            "carton_price_source": "default",
+            "sell_usd_per_bag": 1.3197559115179252,
+            "net_rmb_per_bag": 8.651,
+            "cost_usd_per_bag": 1.2537681159420289,
+            "gp_rmb_per_bag": 0.45531578947368345,
+            "gp_rmb_total": 455.3157894736835,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": 0
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 7.25,
+            "bag_mat_rmb_per_bag": 0.9,
+            "carton_rmb_per_bag": 0.501,
+            "land_rmb_per_bag": 0,
+            "land_rmb_per_ton_used": 0,
+            "land_total_rmb": 0,
+            "port_rmb_per_bag": 0,
+            "domestic_total_rmb_per_bag": 8.651,
+            "rebate_rmb_per_bag": 0,
+            "net_rmb_per_bag": 8.651
+          },
+          "warnings": [
+            "您输入的吨数小于该产品默认装柜吨数（12.50 吨），系统已自动切换为 LCL 进行计算。",
+            "缺少 20GP 的 LCL 港杂规则，已按默认值 0 RMB 计算。",
+            "未配置 LCL 港杂规则，请在 Admin 中维护。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "hist_1771985976254",
+      "timestamp": "2026-02-25T02:19:36.254Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_9",
+          "packaging_option_id": "pack_13",
+          "factory_id": "fct_7",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": "tons",
+          "qty_input_value": 2.5,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "LCL",
+            "container_type": "20GP",
+            "tons": 2.5,
+            "bags": 1000,
+            "bags_int": 1000,
+            "cartons_int": 167,
+            "bag_price_source": "default",
+            "carton_price_source": "default",
+            "sell_usd_per_bag": 1.3197559115179252,
+            "net_rmb_per_bag": 8.651,
+            "cost_usd_per_bag": 1.2537681159420289,
+            "gp_rmb_per_bag": 0.45531578947368345,
+            "gp_rmb_total": 455.3157894736835,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": 0
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 7.25,
+            "bag_mat_rmb_per_bag": 0.9,
+            "carton_rmb_per_bag": 0.501,
+            "land_rmb_per_bag": 0,
+            "land_rmb_per_ton_used": 0,
+            "land_total_rmb": 0,
+            "port_rmb_per_bag": 0,
+            "domestic_total_rmb_per_bag": 8.651,
+            "rebate_rmb_per_bag": 0,
+            "net_rmb_per_bag": 8.651
+          },
+          "warnings": [
+            "您输入的吨数小于该产品默认装柜吨数（12.50 吨），系统已自动切换为 LCL 进行计算。",
+            "缺少 20GP 的 LCL 港杂规则，已按默认值 0 RMB 计算。",
+            "未配置 LCL 港杂规则，请在 Admin 中维护。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "hist_1771985978753",
+      "timestamp": "2026-02-25T02:19:38.753Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_9",
+          "packaging_option_id": "pack_13",
+          "factory_id": "fct_7",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": "tons",
+          "qty_input_value": 2.5,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "LCL",
+            "container_type": "20GP",
+            "tons": 2.5,
+            "bags": 1000,
+            "bags_int": 1000,
+            "cartons_int": 167,
+            "bag_price_source": "default",
+            "carton_price_source": "default",
+            "sell_usd_per_bag": 1.3197559115179252,
+            "net_rmb_per_bag": 8.651,
+            "cost_usd_per_bag": 1.2537681159420289,
+            "gp_rmb_per_bag": 0.45531578947368345,
+            "gp_rmb_total": 455.3157894736835,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": 0
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 7.25,
+            "bag_mat_rmb_per_bag": 0.9,
+            "carton_rmb_per_bag": 0.501,
+            "land_rmb_per_bag": 0,
+            "land_rmb_per_ton_used": 0,
+            "land_total_rmb": 0,
+            "port_rmb_per_bag": 0,
+            "domestic_total_rmb_per_bag": 8.651,
+            "rebate_rmb_per_bag": 0,
+            "net_rmb_per_bag": 8.651
+          },
+          "warnings": [
+            "您输入的吨数小于该产品默认装柜吨数（12.50 吨），系统已自动切换为 LCL 进行计算。",
+            "缺少 20GP 的 LCL 港杂规则，已按默认值 0 RMB 计算。",
+            "未配置 LCL 港杂规则，请在 Admin 中维护。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "hist_1771987246766",
+      "timestamp": "2026-02-25T02:40:46.767Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_7",
+          "packaging_option_id": "pack_9",
+          "factory_id": "fct_5",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": null,
+          "qty_input_value": null,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "FCL",
+            "container_type": "20GP",
+            "tons": 10,
+            "bags": 500,
+            "bags_int": 500,
+            "cartons_int": 84,
+            "bag_price_source": "custom",
+            "carton_price_source": "custom",
+            "sell_usd_per_bag": 16.018306636155607,
+            "net_rmb_per_bag": 105,
+            "cost_usd_per_bag": 15.217391304347826,
+            "gp_rmb_per_bag": 5.526315789473699,
+            "gp_rmb_total": 2763.15789473685,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": null
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 92,
+            "bag_mat_rmb_per_bag": 3,
+            "carton_rmb_per_bag": 0,
+            "land_rmb_per_bag": 3,
+            "land_rmb_per_ton_used": 150,
+            "land_total_rmb": 1500,
+            "port_rmb_per_bag": 7,
+            "domestic_total_rmb_per_bag": 105,
+            "rebate_rmb_per_bag": 0,
+            "net_rmb_per_bag": 105
+          },
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "hist_1771987335961",
+      "timestamp": "2026-02-25T02:42:15.961Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_7",
+          "packaging_option_id": "pack_9",
+          "factory_id": "fct_5",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": "tons",
+          "qty_input_value": 13,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "FCL",
+            "container_type": "20GP",
+            "tons": 10,
+            "bags": 500,
+            "bags_int": 500,
+            "cartons_int": 84,
+            "bag_price_source": "custom",
+            "carton_price_source": "custom",
+            "sell_usd_per_bag": 16.018306636155607,
+            "net_rmb_per_bag": 105,
+            "cost_usd_per_bag": 15.217391304347826,
+            "gp_rmb_per_bag": 5.526315789473699,
+            "gp_rmb_total": 2763.15789473685,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": null
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 92,
+            "bag_mat_rmb_per_bag": 3,
+            "carton_rmb_per_bag": 0,
+            "land_rmb_per_bag": 3,
+            "land_rmb_per_ton_used": 150,
+            "land_total_rmb": 1500,
+            "port_rmb_per_bag": 7,
+            "domestic_total_rmb_per_bag": 105,
+            "rebate_rmb_per_bag": 0,
+            "net_rmb_per_bag": 105
+          },
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "hist_1771987337194",
+      "timestamp": "2026-02-25T02:42:17.194Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_7",
+          "packaging_option_id": "pack_9",
+          "factory_id": "fct_5",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": "tons",
+          "qty_input_value": 13,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "FCL",
+            "container_type": "20GP",
+            "tons": 10,
+            "bags": 500,
+            "bags_int": 500,
+            "cartons_int": 84,
+            "bag_price_source": "custom",
+            "carton_price_source": "custom",
+            "sell_usd_per_bag": 16.018306636155607,
+            "net_rmb_per_bag": 105,
+            "cost_usd_per_bag": 15.217391304347826,
+            "gp_rmb_per_bag": 5.526315789473699,
+            "gp_rmb_total": 2763.15789473685,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": null
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 92,
+            "bag_mat_rmb_per_bag": 3,
+            "carton_rmb_per_bag": 0,
+            "land_rmb_per_bag": 3,
+            "land_rmb_per_ton_used": 150,
+            "land_total_rmb": 1500,
+            "port_rmb_per_bag": 7,
+            "domestic_total_rmb_per_bag": 105,
+            "rebate_rmb_per_bag": 0,
+            "net_rmb_per_bag": 105
+          },
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "hist_1771987340473",
+      "timestamp": "2026-02-25T02:42:20.473Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_7",
+          "packaging_option_id": "pack_9",
+          "factory_id": "fct_5",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": "tons",
+          "qty_input_value": 13,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "FCL",
+            "container_type": "20GP",
+            "tons": 10,
+            "bags": 500,
+            "bags_int": 500,
+            "cartons_int": 84,
+            "bag_price_source": "custom",
+            "carton_price_source": "custom",
+            "sell_usd_per_bag": 16.018306636155607,
+            "net_rmb_per_bag": 105,
+            "cost_usd_per_bag": 15.217391304347826,
+            "gp_rmb_per_bag": 5.526315789473699,
+            "gp_rmb_total": 2763.15789473685,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": null
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 92,
+            "bag_mat_rmb_per_bag": 3,
+            "carton_rmb_per_bag": 0,
+            "land_rmb_per_bag": 3,
+            "land_rmb_per_ton_used": 150,
+            "land_total_rmb": 1500,
+            "port_rmb_per_bag": 7,
+            "domestic_total_rmb_per_bag": 105,
+            "rebate_rmb_per_bag": 0,
+            "net_rmb_per_bag": 105
+          },
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "hist_1771987340897",
+      "timestamp": "2026-02-25T02:42:20.897Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_7",
+          "packaging_option_id": "pack_9",
+          "factory_id": "fct_5",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": "tons",
+          "qty_input_value": 13,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "FCL",
+            "container_type": "20GP",
+            "tons": 10,
+            "bags": 500,
+            "bags_int": 500,
+            "cartons_int": 84,
+            "bag_price_source": "custom",
+            "carton_price_source": "custom",
+            "sell_usd_per_bag": 16.018306636155607,
+            "net_rmb_per_bag": 105,
+            "cost_usd_per_bag": 15.217391304347826,
+            "gp_rmb_per_bag": 5.526315789473699,
+            "gp_rmb_total": 2763.15789473685,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": null
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 92,
+            "bag_mat_rmb_per_bag": 3,
+            "carton_rmb_per_bag": 0,
+            "land_rmb_per_bag": 3,
+            "land_rmb_per_ton_used": 150,
+            "land_total_rmb": 1500,
+            "port_rmb_per_bag": 7,
+            "domestic_total_rmb_per_bag": 105,
+            "rebate_rmb_per_bag": 0,
+            "net_rmb_per_bag": 105
+          },
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "hist_1771987341046",
+      "timestamp": "2026-02-25T02:42:21.046Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_7",
+          "packaging_option_id": "pack_9",
+          "factory_id": "fct_5",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": "tons",
+          "qty_input_value": 13,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "FCL",
+            "container_type": "20GP",
+            "tons": 10,
+            "bags": 500,
+            "bags_int": 500,
+            "cartons_int": 84,
+            "bag_price_source": "custom",
+            "carton_price_source": "custom",
+            "sell_usd_per_bag": 16.018306636155607,
+            "net_rmb_per_bag": 105,
+            "cost_usd_per_bag": 15.217391304347826,
+            "gp_rmb_per_bag": 5.526315789473699,
+            "gp_rmb_total": 2763.15789473685,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": null
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 92,
+            "bag_mat_rmb_per_bag": 3,
+            "carton_rmb_per_bag": 0,
+            "land_rmb_per_bag": 3,
+            "land_rmb_per_ton_used": 150,
+            "land_total_rmb": 1500,
+            "port_rmb_per_bag": 7,
+            "domestic_total_rmb_per_bag": 105,
+            "rebate_rmb_per_bag": 0,
+            "net_rmb_per_bag": 105
+          },
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "hist_1771987341188",
+      "timestamp": "2026-02-25T02:42:21.188Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_7",
+          "packaging_option_id": "pack_9",
+          "factory_id": "fct_5",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": "tons",
+          "qty_input_value": 13,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "FCL",
+            "container_type": "20GP",
+            "tons": 10,
+            "bags": 500,
+            "bags_int": 500,
+            "cartons_int": 84,
+            "bag_price_source": "custom",
+            "carton_price_source": "custom",
+            "sell_usd_per_bag": 16.018306636155607,
+            "net_rmb_per_bag": 105,
+            "cost_usd_per_bag": 15.217391304347826,
+            "gp_rmb_per_bag": 5.526315789473699,
+            "gp_rmb_total": 2763.15789473685,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": null
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 92,
+            "bag_mat_rmb_per_bag": 3,
+            "carton_rmb_per_bag": 0,
+            "land_rmb_per_bag": 3,
+            "land_rmb_per_ton_used": 150,
+            "land_total_rmb": 1500,
+            "port_rmb_per_bag": 7,
+            "domestic_total_rmb_per_bag": 105,
+            "rebate_rmb_per_bag": 0,
+            "net_rmb_per_bag": 105
+          },
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "hist_1771987524612",
+      "timestamp": "2026-02-25T02:45:24.612Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_7",
+          "packaging_option_id": "pack_9",
+          "factory_id": "fct_5",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": null,
+          "qty_input_value": null,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "FCL",
+            "container_type": "20GP",
+            "tons": 10,
+            "bags": 500,
+            "bags_int": 500,
+            "cartons_int": 84,
+            "bag_price_source": "custom",
+            "carton_price_source": "custom",
+            "sell_usd_per_bag": 16.018306636155607,
+            "net_rmb_per_bag": 105,
+            "cost_usd_per_bag": 15.217391304347826,
+            "gp_rmb_per_bag": 5.526315789473699,
+            "gp_rmb_total": 2763.15789473685,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": null
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 92,
+            "bag_mat_rmb_per_bag": 3,
+            "carton_rmb_per_bag": 0,
+            "land_rmb_per_bag": 3,
+            "land_rmb_per_ton_used": 150,
+            "land_total_rmb": 1500,
+            "port_rmb_per_bag": 7,
+            "domestic_total_rmb_per_bag": 105,
+            "rebate_rmb_per_bag": 0,
+            "net_rmb_per_bag": 105
+          },
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "hist_1771990553889",
+      "timestamp": "2026-02-25T03:35:53.889Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_7",
+          "packaging_option_id": "pack_9",
+          "factory_id": "fct_5",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": null,
+          "qty_input_value": null,
+          "fx_rate": 6.8,
+          "margin_pct": 0.07,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "FCL",
+            "container_type": "20GP",
+            "tons": 10,
+            "bags": 500,
+            "bags_int": 500,
+            "cartons_int": 84,
+            "bag_price_source": "custom",
+            "carton_price_source": "custom",
+            "sell_usd_per_bag": 16.603415559772298,
+            "net_rmb_per_bag": 105,
+            "cost_usd_per_bag": 15.441176470588236,
+            "gp_rmb_per_bag": 7.903225806451616,
+            "gp_rmb_total": 3951.6129032258077,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": null
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 92,
+            "bag_mat_rmb_per_bag": 3,
+            "carton_rmb_per_bag": 0,
+            "land_rmb_per_bag": 3,
+            "land_rmb_per_ton_used": 150,
+            "land_total_rmb": 1500,
+            "port_rmb_per_bag": 7,
+            "domestic_total_rmb_per_bag": 105,
+            "rebate_rmb_per_bag": 0,
+            "net_rmb_per_bag": 105
+          },
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "hist_1771990988860",
+      "timestamp": "2026-02-25T03:43:08.860Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_7",
+          "packaging_option_id": "pack_9",
+          "factory_id": "fct_5",
+          "mode": "LCL",
+          "container_type": "40HQ",
+          "qty_input_type": "tons",
+          "qty_input_value": 13,
+          "fx_rate": 6.8,
+          "margin_pct": 0.07,
+          "land_fee_override_rmb_per_ton": 150
+        },
+        "result": {
+          "summary": {
+            "mode": "LCL",
+            "container_type": "40HQ",
+            "tons": 13,
+            "bags": 650,
+            "bags_int": 650,
+            "cartons_int": 109,
+            "bag_price_source": "custom",
+            "carton_price_source": "custom",
+            "sell_usd_per_bag": 15.496521189120811,
+            "net_rmb_per_bag": 98,
+            "cost_usd_per_bag": 14.411764705882353,
+            "gp_rmb_per_bag": 7.376344086021518,
+            "gp_rmb_total": 4794.623655913987,
+            "fcl_port_total_rmb": 4200,
+            "lcl_port_total_rmb": 0
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 92,
+            "bag_mat_rmb_per_bag": 3,
+            "carton_rmb_per_bag": 0,
+            "land_rmb_per_bag": 3,
+            "land_rmb_per_ton_used": 150,
+            "land_total_rmb": 1950,
+            "port_rmb_per_bag": 0,
+            "domestic_total_rmb_per_bag": 98,
+            "rebate_rmb_per_bag": 0,
+            "net_rmb_per_bag": 98
+          },
+          "warnings": [
+            "未配置 LCL 港杂规则，请在 Admin 中维护。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "hist_1771991120631",
+      "timestamp": "2026-02-25T03:45:20.631Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_7",
+          "packaging_option_id": "pack_9",
+          "factory_id": "fct_5",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": "tons",
+          "qty_input_value": 13,
+          "fx_rate": 6.8,
+          "margin_pct": 0.7,
+          "land_fee_override_rmb_per_ton": 150
+        },
+        "result": {
+          "summary": {
+            "mode": "FCL",
+            "container_type": "20GP",
+            "tons": 10,
+            "bags": 500,
+            "bags_int": 500,
+            "cartons_int": 84,
+            "bag_price_source": "custom",
+            "carton_price_source": "custom",
+            "sell_usd_per_bag": 51.47058823529411,
+            "net_rmb_per_bag": 105,
+            "cost_usd_per_bag": 15.441176470588236,
+            "gp_rmb_per_bag": 244.99999999999994,
+            "gp_rmb_total": 122499.99999999997,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": null
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 92,
+            "bag_mat_rmb_per_bag": 3,
+            "carton_rmb_per_bag": 0,
+            "land_rmb_per_bag": 3,
+            "land_rmb_per_ton_used": 150,
+            "land_total_rmb": 1500,
+            "port_rmb_per_bag": 7,
+            "domestic_total_rmb_per_bag": 105,
+            "rebate_rmb_per_bag": 0,
+            "net_rmb_per_bag": 105
+          },
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "hist_1771991133649",
+      "timestamp": "2026-02-25T03:45:33.649Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_7",
+          "packaging_option_id": "pack_9",
+          "factory_id": "fct_5",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": "tons",
+          "qty_input_value": 13,
+          "fx_rate": 6.8,
+          "margin_pct": 0.07,
+          "land_fee_override_rmb_per_ton": 150
+        },
+        "result": {
+          "summary": {
+            "mode": "FCL",
+            "container_type": "20GP",
+            "tons": 10,
+            "bags": 500,
+            "bags_int": 500,
+            "cartons_int": 84,
+            "bag_price_source": "custom",
+            "carton_price_source": "custom",
+            "sell_usd_per_bag": 16.603415559772298,
+            "net_rmb_per_bag": 105,
+            "cost_usd_per_bag": 15.441176470588236,
+            "gp_rmb_per_bag": 7.903225806451616,
+            "gp_rmb_total": 3951.6129032258077,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": null
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 92,
+            "bag_mat_rmb_per_bag": 3,
+            "carton_rmb_per_bag": 0,
+            "land_rmb_per_bag": 3,
+            "land_rmb_per_ton_used": 150,
+            "land_total_rmb": 1500,
+            "port_rmb_per_bag": 7,
+            "domestic_total_rmb_per_bag": 105,
+            "rebate_rmb_per_bag": 0,
+            "net_rmb_per_bag": 105
+          },
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "hist_1771999406073",
+      "timestamp": "2026-02-25T06:03:26.073Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_1",
+          "packaging_option_id": "pack_1",
+          "factory_id": "factory_1",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": null,
+          "qty_input_value": null,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "FCL",
+            "container_type": "20GP",
+            "tons": 24,
+            "bags": 6000,
+            "bags_int": 6000,
+            "cartons_int": 1500,
+            "bag_price_source": "default",
+            "carton_price_source": "default",
+            "sell_usd_per_bag": 0.7397304856343757,
+            "net_rmb_per_bag": 4.848933333333333,
+            "cost_usd_per_bag": 0.7027439613526569,
+            "gp_rmb_per_bag": 0.2552070175438592,
+            "gp_rmb_total": 1531.2421052631553,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": null
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 1.88,
+            "bag_mat_rmb_per_bag": 1,
+            "carton_rmb_per_bag": 0.75,
+            "land_rmb_per_bag": 0.88,
+            "land_rmb_per_ton_used": 220,
+            "land_total_rmb": 5280,
+            "port_rmb_per_bag": 0.5833333333333334,
+            "domestic_total_rmb_per_bag": 5.093333333333333,
+            "rebate_rmb_per_bag": 0.2444,
+            "net_rmb_per_bag": 4.848933333333333
+          },
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "hist_1772000719978",
+      "timestamp": "2026-02-25T06:25:19.978Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_1",
+          "packaging_option_id": "pack_1",
+          "factory_id": "factory_1",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": null,
+          "qty_input_value": null,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "FCL",
+            "container_type": "20GP",
+            "tons": 24,
+            "bags": 6000,
+            "bags_int": 6000,
+            "cartons_int": 1500,
+            "bag_price_source": "default",
+            "carton_price_source": "default",
+            "sell_usd_per_bag": 0.7397304856343757,
+            "net_rmb_per_bag": 4.848933333333333,
+            "cost_usd_per_bag": 0.7027439613526569,
+            "gp_rmb_per_bag": 0.2552070175438592,
+            "gp_rmb_total": 1531.2421052631553,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": null
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 1.88,
+            "bag_mat_rmb_per_bag": 1,
+            "carton_rmb_per_bag": 0.75,
+            "land_rmb_per_bag": 0.88,
+            "land_rmb_per_ton_used": 220,
+            "land_total_rmb": 5280,
+            "port_rmb_per_bag": 0.5833333333333334,
+            "domestic_total_rmb_per_bag": 5.093333333333333,
+            "rebate_rmb_per_bag": 0.2444,
+            "net_rmb_per_bag": 4.848933333333333
+          },
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "hist_1772000836488",
+      "timestamp": "2026-02-25T06:27:16.488Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_1",
+          "packaging_option_id": "pack_1",
+          "factory_id": "factory_1",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": null,
+          "qty_input_value": null,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "FCL",
+            "container_type": "20GP",
+            "tons": 24,
+            "bags": 6000,
+            "bags_int": 6000,
+            "cartons_int": 1500,
+            "bag_price_source": "default",
+            "carton_price_source": "default",
+            "sell_usd_per_bag": 0.7397304856343757,
+            "net_rmb_per_bag": 4.848933333333333,
+            "cost_usd_per_bag": 0.7027439613526569,
+            "gp_rmb_per_bag": 0.2552070175438592,
+            "gp_rmb_total": 1531.2421052631553,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": null
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 1.88,
+            "bag_mat_rmb_per_bag": 1,
+            "carton_rmb_per_bag": 0.75,
+            "land_rmb_per_bag": 0.88,
+            "land_rmb_per_ton_used": 220,
+            "land_total_rmb": 5280,
+            "port_rmb_per_bag": 0.5833333333333334,
+            "domestic_total_rmb_per_bag": 5.093333333333333,
+            "rebate_rmb_per_bag": 0.2444,
+            "net_rmb_per_bag": 4.848933333333333
+          },
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "hist_1772002993714",
+      "timestamp": "2026-02-25T07:03:13.714Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_1",
+          "packaging_option_id": "pack_1",
+          "factory_id": "factory_1",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": null,
+          "qty_input_value": null,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "FCL",
+            "container_type": "20GP",
+            "tons": 24,
+            "bags": 4800,
+            "bags_int": 4800,
+            "cartons_int": 1200,
+            "bag_price_source": "custom",
+            "carton_price_source": "custom",
+            "sell_usd_per_bag": 0.7625730994152047,
+            "net_rmb_per_bag": 4.998666666666667,
+            "cost_usd_per_bag": 0.7244444444444444,
+            "gp_rmb_per_bag": 0.2630877192982455,
+            "gp_rmb_total": 1262.8210526315784,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": null
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 2.35,
+            "bag_mat_rmb_per_bag": 1,
+            "carton_rmb_per_bag": 0.125,
+            "land_rmb_per_bag": 1.1,
+            "land_rmb_per_ton_used": 220,
+            "land_total_rmb": 5280,
+            "port_rmb_per_bag": 0.7291666666666666,
+            "domestic_total_rmb_per_bag": 5.304166666666667,
+            "rebate_rmb_per_bag": 0.30550000000000005,
+            "net_rmb_per_bag": 4.998666666666667
+          },
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "hist_1772003008762",
+      "timestamp": "2026-02-25T07:03:28.762Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_1",
+          "packaging_option_id": "pack_1",
+          "factory_id": "factory_1",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": null,
+          "qty_input_value": null,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "FCL",
+            "container_type": "20GP",
+            "tons": 24,
+            "bags": 4800,
+            "bags_int": 4800,
+            "cartons_int": 1200,
+            "bag_price_source": "custom",
+            "carton_price_source": "custom",
+            "sell_usd_per_bag": 0.8197813374014747,
+            "net_rmb_per_bag": 5.373666666666667,
+            "cost_usd_per_bag": 0.778792270531401,
+            "gp_rmb_per_bag": 0.2828245614035092,
+            "gp_rmb_total": 1357.5578947368442,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": null
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 2.35,
+            "bag_mat_rmb_per_bag": 1,
+            "carton_rmb_per_bag": 0.5,
+            "land_rmb_per_bag": 1.1,
+            "land_rmb_per_ton_used": 220,
+            "land_total_rmb": 5280,
+            "port_rmb_per_bag": 0.7291666666666666,
+            "domestic_total_rmb_per_bag": 5.679166666666667,
+            "rebate_rmb_per_bag": 0.30550000000000005,
+            "net_rmb_per_bag": 5.373666666666667
+          },
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "hist_1772003027060",
+      "timestamp": "2026-02-25T07:03:47.060Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_1",
+          "packaging_option_id": "pack_1",
+          "factory_id": "factory_1",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": "tons",
+          "qty_input_value": 5,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "LCL",
+            "container_type": "20GP",
+            "tons": 5,
+            "bags": 1000,
+            "bags_int": 1000,
+            "cartons_int": 250,
+            "bag_price_source": "custom",
+            "carton_price_source": "custom",
+            "sell_usd_per_bag": 0.5407322654462242,
+            "net_rmb_per_bag": 3.5445,
+            "cost_usd_per_bag": 0.513695652173913,
+            "gp_rmb_per_bag": 0.1865526315789472,
+            "gp_rmb_total": 186.5526315789472,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": 0
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 2.35,
+            "bag_mat_rmb_per_bag": 1,
+            "carton_rmb_per_bag": 0.5,
+            "land_rmb_per_bag": 0,
+            "land_rmb_per_ton_used": 0,
+            "land_total_rmb": 0,
+            "port_rmb_per_bag": 0,
+            "domestic_total_rmb_per_bag": 3.85,
+            "rebate_rmb_per_bag": 0.30550000000000005,
+            "net_rmb_per_bag": 3.5445
+          },
+          "warnings": [
+            "您输入的吨数小于该产品默认装柜吨数（24.00 吨），系统已自动切换为 LCL 进行计算。",
+            "缺少 20GP 的 LCL 港杂规则，已按默认值 0 RMB 计算。",
+            "未配置 LCL 港杂规则，请在 Admin 中维护。"
+          ]
+        }
+      }
+    },
+    {
+      "id": "hist_1772003043768",
+      "timestamp": "2026-02-25T07:04:03.768Z",
+      "payload": {
+        "input": {
+          "product_id": "prod_1",
+          "packaging_option_id": "pack_1",
+          "factory_id": "factory_1",
+          "mode": "FCL",
+          "container_type": "20GP",
+          "qty_input_type": "tons",
+          "qty_input_value": 5,
+          "fx_rate": 6.9,
+          "margin_pct": 0.05,
+          "land_fee_override_rmb_per_ton": null
+        },
+        "result": {
+          "summary": {
+            "mode": "LCL",
+            "container_type": "20GP",
+            "tons": 5,
+            "bags": 1000,
+            "bags_int": 1000,
+            "cartons_int": 250,
+            "bag_price_source": "custom",
+            "carton_price_source": "custom",
+            "sell_usd_per_bag": 0.6170099160945841,
+            "net_rmb_per_bag": 4.044499999999999,
+            "cost_usd_per_bag": 0.5861594202898549,
+            "gp_rmb_per_bag": 0.21286842105263126,
+            "gp_rmb_total": 212.86842105263128,
+            "fcl_port_total_rmb": 3500,
+            "lcl_port_total_rmb": 0
+          },
+          "breakdown": {
+            "raw_rmb_per_bag": 2.35,
+            "bag_mat_rmb_per_bag": 1.5,
+            "carton_rmb_per_bag": 0.5,
+            "land_rmb_per_bag": 0,
+            "land_rmb_per_ton_used": 0,
+            "land_total_rmb": 0,
+            "port_rmb_per_bag": 0,
+            "domestic_total_rmb_per_bag": 4.35,
+            "rebate_rmb_per_bag": 0.30550000000000005,
+            "net_rmb_per_bag": 4.044499999999999
+          },
+          "warnings": [
+            "您输入的吨数小于该产品默认装柜吨数（24.00 吨），系统已自动切换为 LCL 进行计算。",
+            "缺少 20GP 的 LCL 港杂规则，已按默认值 0 RMB 计算。",
+            "未配置 LCL 港杂规则，请在 Admin 中维护。"
           ]
         }
       }
