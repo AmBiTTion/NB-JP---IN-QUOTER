@@ -1,36 +1,44 @@
-# Product Quotation System v2.3.8 Preview
+# FOB Quotation System v2.5.8
 
-## 概述
-这是一个用于产品报价计算的Electron桌面应用程序。系统支持多种产品的报价计算，包括标准和定制包装模式。
+A desktop quotation tool for export business, built with Electron + React + TypeScript.
 
-## 主要功能
-- 产品搜索和选择
-- 动态报价计算
-- PDF导出功能
-- 产品管理（管理员界面）
-- 支持多种货币和汇率
+## Features
+- FOB quotation workflow (input -> calculation -> result)
+- Product / packaging / factory data maintenance
+- External quotation Excel export
+- Local persistence with `LowDB` (`data.json`)
 
-## 系统要求
-- Windows 10或更高版本
-- 无需额外安装，直接运行可执行文件
+## Tech Stack
+- Electron
+- React + TypeScript + Vite
+- LowDB
 
-## 安装和运行
-1. 下载 `release/1.0.0/win-unpacked/` 目录中的所有文件
-2. 运行 `YourAppName.exe` 启动应用程序
+## Getting Started
+```bash
+npm install
+npm run dev
+```
 
-## 界面说明
-- **Quoter**: 主要报价界面，支持产品选择和参数输入
-- **Admin**: 产品管理界面，用于添加、编辑和删除产品
+## Project Structure
+- `src/`: Renderer process (React UI)
+- `src/components/`: UI modules (Admin, page-level components)
+- `src/utils/`: Calculation helpers, labels, shared UI logic
+- `src/types/`: TypeScript domain models and shared types
+- `src/ui/`: Theme/provider layer (Mantine and UI theme wrappers)
+- `electron/`: Electron main/preload process code
+- `electron/exporters/`: Export implementations (Excel quotation export)
+- `resources/`: Static resources (templates, icons, logo)
+- `public/`: Frontend static assets
+- `scripts/`: Utility scripts (backup and project maintenance scripts)
+- `_backups/`: Generated backup snapshots
+- `data.json`: Main local data source (products/settings/rules)
+- `dist-electron/`: Built Electron output
+- `run.bat`: Windows quick start script
+- `run_hidden.vbs`: Hidden launch script (no visible PowerShell window)
 
-## 技术栈
-- Electron + React + TypeScript
-- 简化版UI（移除了复杂组件库）
-- LowDB数据持久化
-- jsPDF PDF导出
+## Version
+- `v2.5.8` (current)
 
-## 已知问题
-- UI使用内联样式（为简化界面故意为之）
-- 仅支持Windows平台
-
-## 版本历史
-- v2.3.8: Current release
+## Signatures
+- Codex // GPT-5 Engineering Edition
+- ONDLE - created in Phoebetai (2026)

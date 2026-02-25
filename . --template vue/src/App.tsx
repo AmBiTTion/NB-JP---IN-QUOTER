@@ -18,7 +18,7 @@ import type {
   QtyInputType,
 } from '@/types/domain'
 
-const APP_VERSION = '2.3.8'
+const APP_VERSION = '2.5.8'
 
 function parseNumber(value: string): number | null {
   const trimmed = value.trim()
@@ -328,7 +328,7 @@ function Quoter() {
     () =>
       packagingOptions.map((item) => {
         const cartonText =
-          item.units_per_carton && item.units_per_carton > 0 ? `姣忕${item.units_per_carton}琚?` : '不装箱'
+          item.units_per_carton && item.units_per_carton > 0 ? `每箱${item.units_per_carton}袋` : '不装箱'
         return {
           value: item.id,
           label: `${item.name} | ${item.unit_weight_kg}kg | ${cartonText} | ${INNER_PACK_LABELS[item.inner_pack_type]}`,
@@ -697,8 +697,8 @@ function Quoter() {
             <h2 style={{ margin: 0, fontSize: 18 }}>输入区</h2>
           </div>
 
-          <div style={{ marginTop: 14 }}>
-            <label style={labelStyle}>产品选择</label>
+          <div style={{ marginTop: 8 }}>
+            <label style={labelStyle}>产品</label>
             <Select
               className="ui-select"
               value={selectedProductId || null}
@@ -713,20 +713,47 @@ function Quoter() {
             <Card
               style={{
                 marginTop: 12,
-                padding: 10,
+                padding: 12,
                 border: '1px solid #1f2937',
                 borderRadius: 10,
                 backgroundColor: '#0b1220',
               }}
             >
-              <div>POL：{polPortName}</div>
-              <div>退税率：{(selectedProduct.refund_rate * 100).toFixed(2)}%</div>
-              <div>采购 VAT：{(selectedProduct.purchase_vat_rate * 100).toFixed(2)}%</div>
-              <div>税点：{(selectedProduct.invoice_tax_point * 100).toFixed(2)}%</div>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+                  gap: 10,
+                  alignItems: 'center',
+                }}
+              >
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 12, color: '#94a3b8' }}>POL</div>
+                  <div style={{ fontSize: 16, color: '#f8fafc', fontWeight: 700 }}>{polPortName}</div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 12, color: '#94a3b8' }}>退税率</div>
+                  <div style={{ fontSize: 16, color: '#f8fafc', fontWeight: 700 }}>
+                    {(selectedProduct.refund_rate * 100).toFixed(2)}%
+                  </div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 12, color: '#94a3b8' }}>采购 VAT</div>
+                  <div style={{ fontSize: 16, color: '#f8fafc', fontWeight: 700 }}>
+                    {(selectedProduct.purchase_vat_rate * 100).toFixed(2)}%
+                  </div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 12, color: '#94a3b8' }}>税点</div>
+                  <div style={{ fontSize: 16, color: '#f8fafc', fontWeight: 700 }}>
+                    {(selectedProduct.invoice_tax_point * 100).toFixed(2)}%
+                  </div>
+                </div>
+              </div>
             </Card>
           )}
 
-          <div style={{ marginTop: 14 }}>
+          <div style={{ marginTop: 14, display: 'none' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <label style={labelStyle}>包装方案</label>
               <button
@@ -754,7 +781,7 @@ function Quoter() {
             />
           </div>
 
-          <div style={{ marginTop: 14 }}>
+          <div style={{ marginTop: 14, display: 'none' }}>
             <label style={labelStyle}>工厂</label>
             <Select
               className="ui-select"
@@ -772,38 +799,194 @@ function Quoter() {
             )}
           </div>
 
-          <div style={{ marginTop: 14 }}>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
-              <div>
-                <label style={labelStyle}>运输模式</label>
+          <div style={{ marginTop: 8 }}>
+            <label style={labelStyle}>工厂</label>
+            <Select
+              className="ui-select"
+              value={selectedFactoryId || null}
+              onChange={(value) => setSelectedFactoryId(value ?? '')}
+              data={factorySelectData}
+              placeholder="请选择工厂"
+              radius="lg"
+            />
+            {selectedFactoryId && (selectedFactoryCost === undefined || selectedFactoryCost === null || selectedFactoryCost <= 0) && (
+              <div style={{ color: '#f87171', marginTop: 6 }}>请维护工厂吨成本。</div>
+            )}
+            {selectedFactoryId && selectedFactoryCost !== undefined && selectedFactoryCost !== null && selectedFactoryCost > 0 && (
+              <div style={{ color: '#93c5fd', marginTop: 6 }}>吨成本：¥{selectedFactoryCost}</div>
+            )}
+          </div>
+
+          <div style={{ marginTop: 8 }}>
+            <label style={labelStyle}>包装方案</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ flex: 1 }}>
                 <Select
                   className="ui-select"
-                  value={mode}
-                  onChange={(value) => setMode((value as Mode | null) ?? 'FCL')}
-                  data={[
-                    { value: 'FCL', label: 'FCL' },
-                    { value: 'LCL', label: 'LCL' },
-                  ]}
+                  value={selectedPackagingId || null}
+                  onChange={(value) => setSelectedPackagingId(value ?? '')}
+                  data={packagingSelectData}
+                  placeholder="请选择包装方案"
                   radius="lg"
-                  w={140}
                 />
               </div>
-              <div>
-                <label style={labelStyle}>柜型</label>
-                <Select
-                  className="ui-select"
-                  value={containerType}
-                  onChange={(value) => setContainerType((value as ContainerType | null) ?? '20GP')}
-                  data={[
-                    { value: '20GP', label: '20GP' },
-                    { value: '40HQ', label: '40HQ' },
-                  ]}
-                  radius="lg"
-                  w={160}
-                />
-              </div>
+              <button
+                className="btn-outline-neon"
+                onClick={() => setShowCustomPackaging((prev) => !prev)}
+                disabled={!selectedPackagingId}
+                style={{
+                  padding: '6px 10px',
+                  borderRadius: 8,
+                  border: '1px solid #334155',
+                  backgroundColor: selectedPackagingId ? '#0f172a' : '#111827',
+                  color: selectedPackagingId ? '#e5e7eb' : '#6b7280',
+                  fontSize: 12,
+                  lineHeight: 1.2,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                自定义
+              </button>
             </div>
           </div>
+
+          {selectedPackaging && showCustomPackaging && (
+            <div
+              className="glass-card"
+              style={{
+                marginTop: 10,
+                padding: 10,
+                border: '1px solid #1f2937',
+                borderRadius: 10,
+                backgroundColor: '#0b1220',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <strong style={{ fontSize: 13 }}>自定义包装（临时派生）</strong>
+                <button
+                  className="btn-outline-neon"
+                  onClick={() => setShowCustomPackaging(false)}
+                  style={{
+                    padding: '4px 8px',
+                    borderRadius: 6,
+                    border: '1px solid #334155',
+                    backgroundColor: '#0f172a',
+                    color: '#e5e7eb',
+                    fontSize: 12,
+                  }}
+                >
+                  收起
+                </button>
+              </div>
+
+              <div
+                style={{
+                  marginTop: 10,
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                  gap: 10,
+                }}
+              >
+                <div>
+                  <label style={{ fontSize: 12, color: '#9ca3af' }}>{labelFor('unit_weight_kg')}</label>
+                  <input
+                    type="number"
+                    value={customUnitWeightKg}
+                    onChange={(e) => {
+                      setCustomUnitWeightKg(e.target.value)
+                      setUnitsPerCartonTouched(false)
+                    }}
+                    style={inputSmall}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: 12, color: '#9ca3af' }}>{labelFor('units_per_carton')}</label>
+                  <input
+                    type="number"
+                    value={customUnitsPerCarton}
+                    onChange={(e) => {
+                      setCustomUnitsPerCarton(e.target.value)
+                      setUnitsPerCartonTouched(true)
+                    }}
+                    placeholder="0 ???=???"
+                    style={inputSmall}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: 12, color: '#9ca3af' }}>{labelFor('bag_price_rmb')}</label>
+                  <input
+                    type="number"
+                    value={customBagPrice}
+                    onChange={(e) => setCustomBagPrice(e.target.value)}
+                    style={inputSmall}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: 12, color: '#9ca3af' }}>{labelFor('carton_price_rmb')}</label>
+                  <input
+                    type="number"
+                    value={customCartonPrice}
+                    onChange={(e) => setCustomCartonPrice(e.target.value)}
+                    style={inputSmall}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: 12, color: '#9ca3af' }}>{labelFor('inner_pack_type')}</label>
+                  <Select
+                    className="ui-select"
+                    value={customInnerPackType}
+                    onChange={(value) => setCustomInnerPackType((value as InnerPackType | null) ?? 'carton')}
+                    data={Object.entries(INNER_PACK_LABELS).map(([value, label]) => ({
+                      value,
+                      label,
+                    }))}
+                    radius="lg"
+                    w={180}
+                  />
+                </div>
+              </div>
+
+              {recommendedUnitsPerCarton !== null && (
+                <div style={{ marginTop: 8, color: '#93c5fd' }}>
+                  推荐箱规：{recommendedUnitsPerCarton} 袋/箱
+                </div>
+              )}
+
+              <div style={{ marginTop: 12, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                <button
+                  className="btn-primary"
+                  onClick={handleSaveDerivedPackaging}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: 8,
+                    border: 'none',
+                    backgroundColor: '#22c55e',
+                    color: '#0f172a',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  保存为新包装方案
+                </button>
+                <button
+                  className="btn-outline-neon"
+                  onClick={() => setShowCustomPackaging(false)}
+                  style={{
+                    padding: '6px 10px',
+                    borderRadius: 8,
+                    border: '1px solid #334155',
+                    backgroundColor: '#0f172a',
+                    color: '#e5e7eb',
+                  }}
+                >
+                  取消
+                </button>
+                <span style={{ color: '#9ca3af' }}>仅本次报价生效，不会自动写回。</span>
+              </div>
+            </div>
+          )}
+
+          <div style={{ marginTop: 10, fontSize: 12, color: '#94a3b8', fontWeight: 600 }}>数量</div>
 
           {mode === 'FCL' && (
             <div style={{ marginTop: 14 }}>
@@ -836,6 +1019,109 @@ function Quoter() {
 
           {mode === 'LCL' && (
             <div style={{ marginTop: 14 }}>
+              <label style={labelStyle}>LCL 数量输入</label>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 8 }}>
+                <label style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                  <input
+                    type="radio"
+                    checked={lclInputType === 'tons'}
+                    onChange={() => setLclInputType('tons')}
+                  />
+                  吨数
+                </label>
+                <label style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                  <input
+                    type="radio"
+                    checked={lclInputType === 'bags'}
+                    onChange={() => setLclInputType('bags')}
+                  />
+                  袋数
+                </label>
+              </div>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                <NumberInput
+                  className="ui-input"
+                  value={toMantineNumber(lclInputValue)}
+                  onChange={(value) => setLclInputValue(String(value ?? ''))}
+                  hideControls
+                  radius="lg"
+                  w={140}
+                />
+                <div style={{ color: '#9ca3af' }}>
+                  {lclInputType === 'tons'
+                    ? `约 ${lclBagsValue !== null ? lclBagsValue.toFixed(2) : '-'} 袋`
+                    : `约 ${lclTonsValue !== null ? lclTonsValue.toFixed(4) : '-'} 吨`}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div style={{ marginTop: 8 }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
+              <div>
+                <label style={labelStyle}>运输模式</label>
+                <Select
+                  className="ui-select"
+                  value={mode}
+                  onChange={(value) => setMode((value as Mode | null) ?? 'FCL')}
+                  data={[
+                    { value: 'FCL', label: 'FCL' },
+                    { value: 'LCL', label: 'LCL' },
+                  ]}
+                  radius="lg"
+                  w={140}
+                />
+              </div>
+              <div>
+                <label style={labelStyle}>柜型</label>
+                <Select
+                  className="ui-select"
+                  value={containerType}
+                  onChange={(value) => setContainerType((value as ContainerType | null) ?? '20GP')}
+                  data={[
+                    { value: '20GP', label: '20GP' },
+                    { value: '40HQ', label: '40HQ' },
+                  ]}
+                  radius="lg"
+                  w={160}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div style={{ marginTop: 10, fontSize: 12, color: '#94a3b8', fontWeight: 600, display: 'none' }}>数量</div>
+
+          {mode === 'FCL' && (
+            <div style={{ marginTop: 14, display: 'none' }}>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
+                <div>
+                  <label style={labelStyle}>袋数</label>
+                  <NumberInput
+                    className="ui-input"
+                    value={toMantineNumber(fclBagsHint)}
+                    onChange={(value) => handleFclBagsChange(String(value ?? ''))}
+                    hideControls
+                    radius="lg"
+                    w={140}
+                  />
+                </div>
+                <div>
+                  <label style={labelStyle}>吨数（可选，仅用于自动切换判定）</label>
+                  <NumberInput
+                    className="ui-input"
+                    value={toMantineNumber(fclTonsHint)}
+                    onChange={(value) => handleFclTonsChange(String(value ?? ''))}
+                    hideControls
+                    radius="lg"
+                    w={140}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {mode === 'LCL' && (
+            <div style={{ marginTop: 14, display: 'none' }}>
               <label style={labelStyle}>LCL 数量输入</label>
               <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 8 }}>
                 <label style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
@@ -920,12 +1206,14 @@ function Quoter() {
             </div>
           </div>
 
-          {selectedPackaging && showCustomPackaging && (
+          {false && selectedPackaging && showCustomPackaging && (
             <div
               className="glass-card"
               style={{
                 marginTop: 14,
-                padding: 12,
+                marginBottom: 10,
+                maxWidth: 560,
+                padding: 10,
                 border: '1px solid #1f2937',
                 borderRadius: 10,
                 backgroundColor: '#0b1220',
@@ -948,7 +1236,7 @@ function Quoter() {
                 </button>
               </div>
 
-              <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                 <div>
                   <label style={{ fontSize: 12, color: '#9ca3af' }}>{labelFor('unit_weight_kg')}</label>
                   <input
@@ -1035,7 +1323,7 @@ function Quoter() {
             </div>
           )}
 
-          <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             <Button
               className="btn-primary"
               onClick={handleCalculate}

@@ -164,12 +164,15 @@ function resolveFclPortTotalRmb(
 function resolveLclPortTotalRmb(
   data: AppData,
   portId: string,
+  containerType: ContainerType,
   tons: number,
   warnings: string[],
 ): number {
-  const rule = findPortRule(data.port_charges_rules, 'LCL', null, portId)
+  const rule =
+    findPortRule(data.port_charges_rules, 'LCL', containerType, portId) ??
+    findPortRule(data.port_charges_rules, 'LCL', null, portId)
   if (!rule) {
-    warnings.push('未配置 LCL 港杂规则，请在 Admin 中维护。')
+    warnings.push('??? LCL ??????? Admin ????')
     return 0
   }
   const base = toNonNegative(rule.base_rmb, 0)
@@ -178,6 +181,7 @@ function resolveLclPortTotalRmb(
   const extraFee = Math.ceil(extraTons) * extraPerTon
   return base + extraFee
 }
+
 
 function resolveLandFreightPerTon(
   rules: LandFreightRule[],
@@ -204,12 +208,13 @@ function resolveLandFreightPerTon(
     )
 
   if (!rule) {
-    warnings.push(`缺少 ${containerType} 的 ${mode} 港杂规则，已按默认值 0 RMB 计算。`)
+    warnings.push(`?? ${containerType} ? ${mode} ????????????? 0 RMB/????`)
     return 0
   }
 
   return rule.default_rmb_per_ton
 }
+
 
 function toNonNegative(value: number, fallback: number): number {
   return Number.isFinite(value) && value >= 0 ? value : fallback
@@ -360,7 +365,9 @@ export function calculateQuote(input: CalculateQuoteInput): CalculateQuoteResult
     warnings,
   )
   const lclPortTotalRmb =
-    mode === 'LCL' ? resolveLclPortTotalRmb(data, product.pol_port_id, tons, warnings) : null
+    mode === 'LCL'
+      ? resolveLclPortTotalRmb(data, product.pol_port_id, input.container_type, tons, warnings)
+      : null
   const portTotalRmb = mode === 'FCL' ? fclPortTotalRmb : lclPortTotalRmb ?? 0
   const portRmbPerBag = portTotalRmb / bagsInt
 
