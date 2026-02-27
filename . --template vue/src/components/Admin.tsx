@@ -81,8 +81,14 @@ const LABELS: Record<string, string> = {
 const INNER_PACK_LABELS: Record<InnerPackType, string> = { none: '不装箱', carton: '纸箱', woven_bag: '编织袋', small_box: '小盒', big_box: '大盒' }
 
 const inputBaseStyle: React.CSSProperties = {
-  width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #334155', backgroundColor: '#0f172a', color: '#fff',
+  width: '100%',
+  padding: '8px 10px',
+  borderRadius: 12,
+  border: '1px solid var(--border-1)',
+  backgroundColor: 'var(--surface-2)',
+  color: '#fff',
 }
+const fieldLabelStyle: React.CSSProperties = { color: 'var(--text-dim)', fontSize: 12, marginBottom: 6 }
 
 const labelFor = (k: string, fb?: string) => LABELS[k] ?? fb ?? k
 const createEmptyTables = (): TableState => ({
@@ -102,15 +108,15 @@ function EditableTable<T extends { id: string }>(props: {
   const { columns, rows, onChange, onDelete, renderActions } = props
   return (
     <div style={{ overflowX: 'auto' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 900 }}>
-        <thead><tr style={{ textAlign: 'left', color: '#cbd5f5' }}>{columns.map((c) => <th key={String(c.key)} style={{ padding: '8px 6px', width: c.width }}>{c.label}</th>)}<th style={{ padding: '8px 6px' }}>操作</th></tr></thead>
-        <tbody>{rows.map((row) => <tr key={row.id} style={{ borderTop: '1px solid #1f2937' }}>{columns.map((c) => {
+      <table className="admin-table">
+        <thead><tr style={{ textAlign: 'left' }}>{columns.map((c) => <th key={String(c.key)} style={{ width: c.width }}>{c.label}</th>)}<th>操作</th></tr></thead>
+        <tbody>{rows.map((row) => <tr key={row.id}>{columns.map((c) => {
           const raw = row[c.key] as unknown
-          if (c.type === 'checkbox') return <td key={String(c.key)} style={{ padding: '8px 6px' }}><input type="checkbox" checked={Boolean(raw)} disabled={c.readOnly} onChange={(e) => onChange(row.id, c.key, e.target.checked)} /></td>
-          if (c.type === 'select') return <td key={String(c.key)} style={{ padding: '8px 6px' }}><MantineSelect className="ui-select" value={((raw ?? '') as string) || ''} disabled={c.readOnly} onChange={(value) => onChange(row.id, c.key, value ?? '')} data={c.options ?? []} searchable={false} allowDeselect={false} styles={{ input: { ...inputBaseStyle, padding: '6px 8px' }, dropdown: { backgroundColor: '#0b1220' } }} /></td>
-          if (c.type === 'number') return <td key={String(c.key)} style={{ padding: '8px 6px' }}><input type="number" step={c.step ?? '0.01'} value={formatNumberInput(raw)} readOnly={c.readOnly} onChange={(e) => onChange(row.id, c.key, parseNumberInput(e.target.value, Boolean(c.nullable)))} style={{ ...inputBaseStyle, backgroundColor: c.readOnly ? '#111827' : '#0f172a' }} /></td>
-          return <td key={String(c.key)} style={{ padding: '8px 6px' }}><input type="text" value={(raw ?? '') as string} readOnly={c.readOnly} onChange={(e) => onChange(row.id, c.key, e.target.value)} style={{ ...inputBaseStyle, backgroundColor: c.readOnly ? '#111827' : '#0f172a' }} /></td>
-        })}<td style={{ padding: '8px 6px' }}>{renderActions && <span style={{ marginRight: 8 }}>{renderActions(row)}</span>}<button onClick={() => onDelete(row.id)} style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid #7f1d1d', backgroundColor: '#2a1111', color: '#fecaca', cursor: 'pointer' }}>删除</button></td></tr>)}</tbody>
+          if (c.type === 'checkbox') return <td key={String(c.key)}><input type="checkbox" checked={Boolean(raw)} disabled={c.readOnly} onChange={(e) => onChange(row.id, c.key, e.target.checked)} /></td>
+          if (c.type === 'select') return <td key={String(c.key)}><MantineSelect className="ui-select" value={((raw ?? '') as string) || ''} disabled={c.readOnly} onChange={(value) => onChange(row.id, c.key, value ?? '')} data={c.options ?? []} searchable={false} allowDeselect={false} styles={{ input: inputBaseStyle, dropdown: { backgroundColor: 'var(--surface-2)' } }} /></td>
+          if (c.type === 'number') return <td key={String(c.key)}><input type="number" step={c.step ?? '0.01'} value={formatNumberInput(raw)} readOnly={c.readOnly} onChange={(e) => onChange(row.id, c.key, parseNumberInput(e.target.value, Boolean(c.nullable)))} style={{ ...inputBaseStyle, backgroundColor: c.readOnly ? '#111827' : 'var(--surface-2)' }} /></td>
+          return <td key={String(c.key)}><input type="text" value={(raw ?? '') as string} readOnly={c.readOnly} onChange={(e) => onChange(row.id, c.key, e.target.value)} style={{ ...inputBaseStyle, backgroundColor: c.readOnly ? '#111827' : 'var(--surface-2)' }} /></td>
+        })}<td>{renderActions && <span style={{ marginRight: 8 }}>{renderActions(row)}</span>}<button className="btn-danger-soft" onClick={() => onDelete(row.id)}>删除</button></td></tr>)}</tbody>
       </table>
     </div>
   )
@@ -148,7 +154,13 @@ export default function Admin() {
     return '空闲'
   }, [autoSaveState, dirtyTables, dirtySettings])
 
-  const autoSaveColor = autoSaveState === 'error' ? '#f87171' : autoSaveState === 'saving' ? '#fbbf24' : autoSaveState === 'saved' ? '#4ade80' : '#9ca3af'
+  const autoSaveToneClass = autoSaveState === 'error'
+    ? 'status-error'
+    : autoSaveState === 'saving'
+      ? 'status-warning'
+      : autoSaveState === 'saved'
+        ? 'status-success'
+        : 'status-info'
 
   const loadData = useCallback(async () => {
     setError(''); setStatus('加载中...')
@@ -453,11 +465,12 @@ export default function Admin() {
       <h1 style={{ marginTop: 0 }}>数据维护</h1>
       <div style={{ marginBottom: 12, display: 'flex', gap: 8, alignItems: 'center' }}>
         <button className="btn-outline-neon" onClick={() => void loadData()} style={{ padding: '8px 12px', cursor: 'pointer' }}>刷新</button>
-        <span style={{ color: '#93c5fd' }}>{status}</span><span style={{ color: autoSaveColor }}>{autoSaveLabel}</span>
+        <span className="status-pill status-info">{status || '就绪'}</span>
+        <span className={`status-pill ${autoSaveToneClass}`}>{autoSaveLabel}</span>
       </div>
-      {error && <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, border: '1px solid #7f1d1d', backgroundColor: '#2a1111', color: '#fecaca' }}>{error}</div>}
+      {error && <div className="status-box status-error" style={{ marginBottom: 12 }}>{error}</div>}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>{TABS.map((tab) => <button className={`tab-btn ${activeTab === tab.key ? 'active' : ''}`} key={tab.key} onClick={() => setActiveTab(tab.key)} style={{ padding: '8px 12px', cursor: 'pointer' }}>{tab.label}</button>)}</div>      {activeTab === 'settings' && (
-        <div style={sectionStyle}>
+        <div className="panel" style={sectionStyle}>
           <h2 style={{ marginTop: 0 }}>设置</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12 }}>
             <div><label>{labelFor('fx_rate')}</label><input type="number" step="0.01" value={settingsFxRate} onChange={(e) => { setSettingsFxRate(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
@@ -465,8 +478,8 @@ export default function Admin() {
             <div><label>{labelFor('quote_valid_days')}</label><input type="number" step="1" value={settingsQuoteValidDays} onChange={(e) => { setSettingsQuoteValidDays(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
             <div><label>{labelFor('money_format_rmb_decimals')}</label><input type="number" step="1" value={settingsRmbDecimals} onChange={(e) => { setSettingsRmbDecimals(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
             <div><label>{labelFor('money_format_usd_decimals')}</label><input type="number" step="1" value={settingsUsdDecimals} onChange={(e) => { setSettingsUsdDecimals(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
-            <div><label>{labelFor('pricing_formula_mode')}</label><MantineSelect className="ui-select" mt={6} value={settingsPricingFormulaMode} onChange={(value) => { setSettingsPricingFormulaMode(value ?? 'divide'); setDirtySettings(true); setAutoSaveState('idle') }} data={[{ value: 'divide', label: 'cost/(1-margin)' }]} searchable={false} allowDeselect={false} styles={{ input: { ...inputBaseStyle, padding: 8 }, dropdown: { backgroundColor: '#0b1220' } }} /></div>
-            <div><label>{labelFor('rounding_policy')}</label><MantineSelect className="ui-select" mt={6} value={settingsRoundingPolicy} onChange={(value) => { setSettingsRoundingPolicy(value ?? 'ceil'); setDirtySettings(true); setAutoSaveState('idle') }} data={[{ value: 'ceil', label: '向上取整' }]} searchable={false} allowDeselect={false} styles={{ input: { ...inputBaseStyle, padding: 8 }, dropdown: { backgroundColor: '#0b1220' } }} /></div>
+            <div><label>{labelFor('pricing_formula_mode')}</label><MantineSelect className="ui-select" mt={6} value={settingsPricingFormulaMode} onChange={(value) => { setSettingsPricingFormulaMode(value ?? 'divide'); setDirtySettings(true); setAutoSaveState('idle') }} data={[{ value: 'divide', label: 'cost/(1-margin)' }]} searchable={false} allowDeselect={false} styles={{ input: inputBaseStyle, dropdown: { backgroundColor: 'var(--surface-2)' } }} /></div>
+            <div><label>{labelFor('rounding_policy')}</label><MantineSelect className="ui-select" mt={6} value={settingsRoundingPolicy} onChange={(value) => { setSettingsRoundingPolicy(value ?? 'ceil'); setDirtySettings(true); setAutoSaveState('idle') }} data={[{ value: 'ceil', label: '向上取整' }]} searchable={false} allowDeselect={false} styles={{ input: inputBaseStyle, dropdown: { backgroundColor: 'var(--surface-2)' } }} /></div>
             <div>
               <label>{labelFor('ui_theme')}</label>
               <MantineSelect
@@ -489,14 +502,14 @@ export default function Admin() {
                 主题切换会立即应用到全局界面，并在保存后持久化。
               </Text>
             </div>
-            <div style={{ gridColumn: '1 / span 2' }}><label>{labelFor('terms_template')}</label><textarea className="no-scroll" value={settingsTermsTemplate} onChange={(e) => { setSettingsTermsTemplate(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} rows={3} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
+            <div style={{ gridColumn: '1 / span 2' }}><label>{labelFor('terms_template')}</label><textarea className="no-scroll" value={settingsTermsTemplate} onChange={(e) => { setSettingsTermsTemplate(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} rows={3} style={{ ...inputBaseStyle, marginTop: 6, minHeight: 88 }} /></div>
             <div style={{ display: 'flex', alignItems: 'end' }}><button className="btn-primary" onClick={() => void saveSettings()} style={{ height: 38 }}>保存</button></div>
           </div>
         </div>
       )}
 
       {activeTab !== 'settings' && (
-        <div style={sectionStyle}>
+        <div className="panel" style={sectionStyle}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2 style={{ marginTop: 0 }}>{TABS.find((t) => t.key === activeTab)?.label ?? activeTab}</h2>
             <div style={{ display: 'flex', gap: 8 }}>
@@ -505,67 +518,68 @@ export default function Admin() {
             </div>
           </div>
 
-          {activeTab === 'products' && <div>{tables.products.map((row) => <div key={row.id} style={{ border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: 16, marginBottom: 20, background: 'rgba(255,255,255,0.02)' }}>
+          {activeTab === 'products' && <div>{tables.products.map((row) => <div key={row.id} className="subpanel" style={{ padding: 16, marginBottom: 20 }}>
             <div style={{ marginBottom: 12, color: '#e2e8f0', fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span>Product: {row.id}</span>
-              <button onClick={() => deleteRow('products', row.id)} style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid #7f1d1d', backgroundColor: '#2a1111', color: '#fecaca', cursor: 'pointer' }}>删除</button>
+              <button className="btn-danger-soft" onClick={() => deleteRow('products', row.id)} style={{ cursor: 'pointer' }}>删除</button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr 1.2fr 0.8fr 0.8fr 0.8fr 1fr', gap: 8, marginBottom: 12 }}>
               <div>
-                <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>ID</div>
+                <div style={fieldLabelStyle}>ID</div>
                 <input type="text" value={row.id} readOnly style={{ ...inputBaseStyle, backgroundColor: '#111827' }} />
               </div>
               <div>
-                <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>名称</div>
+                <div style={fieldLabelStyle}>名称</div>
                 <input type="text" value={row.name ?? ''} onChange={(e) => updateRow('products', row.id, 'name', e.target.value)} style={inputBaseStyle} />
               </div>
               <div>
-                <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>Name (EN)</div>
+                <div style={fieldLabelStyle}>Name (EN)</div>
                 <input type="text" value={row.name_en ?? ''} onChange={(e) => updateRow('products', row.id, 'name_en', e.target.value)} style={inputBaseStyle} />
               </div>
               <div>
-                <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>出口退税率</div>
+                <div style={fieldLabelStyle}>出口退税率</div>
                 <input type="number" value={formatNumberInput(row.refund_rate)} onChange={(e) => updateRow('products', row.id, 'refund_rate', parseNumberInput(e.target.value, false))} style={inputBaseStyle} />
               </div>
               <div>
-                <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>采购增值税率</div>
+                <div style={fieldLabelStyle}>采购增值税率</div>
                 <input type="number" value={formatNumberInput(row.purchase_vat_rate)} onChange={(e) => updateRow('products', row.id, 'purchase_vat_rate', parseNumberInput(e.target.value, false))} style={inputBaseStyle} />
               </div>
               <div>
-                <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>开票加点</div>
+                <div style={fieldLabelStyle}>开票加点</div>
                 <input type="number" value={formatNumberInput(row.invoice_tax_point)} onChange={(e) => updateRow('products', row.id, 'invoice_tax_point', parseNumberInput(e.target.value, false))} style={inputBaseStyle} />
               </div>
               <div>
-                <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>起运港</div>
-                <MantineSelect className="ui-select" value={row.pol_port_id ?? ''} onChange={(value) => updateRow('products', row.id, 'pol_port_id', value ?? '')} data={portOptions} searchable={false} allowDeselect={false} styles={{ input: inputBaseStyle, dropdown: { backgroundColor: '#0b1220' } }} />
+                <div style={fieldLabelStyle}>起运港</div>
+                <MantineSelect className="ui-select" value={row.pol_port_id ?? ''} onChange={(value) => updateRow('products', row.id, 'pol_port_id', value ?? '')} data={portOptions} searchable={false} allowDeselect={false} styles={{ input: inputBaseStyle, dropdown: { backgroundColor: 'var(--surface-2)' } }} />
               </div>
             </div>
             <div style={{ display: 'flex', gap: 12, alignItems: 'stretch' }}>
               <div style={{ flex: 1 }}>
-                <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>Description (EN)</div>
+                <div style={fieldLabelStyle}>Description (EN)</div>
                 <textarea
                   className="no-scroll"
                   value={row.description_en ?? ''}
                   onChange={(e) => updateRow('products', row.id, 'description_en', e.target.value)}
-                  style={{ ...inputBaseStyle, minHeight: 80, padding: '8px 10px' }}
+                  style={{ ...inputBaseStyle, minHeight: 80 }}
                 />
               </div>
               <div
                 style={{ width: 360, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 10 }}
               >
                 <div>
-                  <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>Image Path</div>
+                  <div style={fieldLabelStyle}>Image Path</div>
                   <input
                     type="text"
                     value={row.image_path ?? ''}
                     readOnly
-                    style={{ ...inputBaseStyle, padding: '8px 10px', backgroundColor: '#111827' }}
+                    style={{ ...inputBaseStyle, backgroundColor: '#111827' }}
                   />
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                   <button
+                    className="btn-info-soft"
                     onClick={() => void handleUploadProductImage(row.id)}
-                    style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #1d4ed8', backgroundColor: '#172554', color: '#bfdbfe', cursor: 'pointer' }}
+                    style={{ cursor: 'pointer' }}
                   >
                     上传图片
                   </button>
@@ -579,13 +593,8 @@ export default function Admin() {
               {tables.packaging_options.map((pack) => (
                 <div
                   key={pack.id}
-                  style={{
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    borderRadius: 12,
-                    padding: 16,
-                    marginBottom: 20,
-                    background: 'rgba(255,255,255,0.02)',
-                  }}
+                  className="subpanel"
+                  style={{ padding: 16, marginBottom: 20 }}
                 >
                   <div
                     style={{
@@ -597,15 +606,9 @@ export default function Admin() {
                   >
                     <div style={{ color: '#e2e8f0', fontWeight: 700 }}>Packaging: {pack.id}</div>
                     <button
+                      className="btn-danger-soft"
                       onClick={() => deleteRow('packaging_options', pack.id)}
-                      style={{
-                        padding: '6px 10px',
-                        borderRadius: 6,
-                        border: '1px solid #7f1d1d',
-                        backgroundColor: '#2a1111',
-                        color: '#fecaca',
-                        cursor: 'pointer',
-                      }}
+                      style={{ cursor: 'pointer' }}
                     >
                       删除
                     </button>
@@ -620,7 +623,7 @@ export default function Admin() {
                     }}
                   >
                     <div>
-                      <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>ID</div>
+                      <div style={fieldLabelStyle}>ID</div>
                       <input
                         type="text"
                         value={pack.id}
@@ -629,7 +632,7 @@ export default function Admin() {
                       />
                     </div>
                     <div>
-                      <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>产品</div>
+                      <div style={fieldLabelStyle}>产品</div>
                       <MantineSelect
                         className="ui-select"
                         value={pack.product_id}
@@ -639,11 +642,11 @@ export default function Admin() {
                         data={productOptions}
                         searchable={false}
                         allowDeselect={false}
-                        styles={{ input: inputBaseStyle, dropdown: { backgroundColor: '#0b1220' } }}
+                        styles={{ input: inputBaseStyle, dropdown: { backgroundColor: 'var(--surface-2)' } }}
                       />
                     </div>
                     <div>
-                      <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>名称</div>
+                      <div style={fieldLabelStyle}>名称</div>
                       <input
                         type="text"
                         value={pack.name}
@@ -661,7 +664,7 @@ export default function Admin() {
                     }}
                   >
                     <div>
-                      <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>每袋重量(kg)</div>
+                      <div style={fieldLabelStyle}>每袋重量(kg)</div>
                       <input
                         type="number"
                         step="0.01"
@@ -678,7 +681,7 @@ export default function Admin() {
                       />
                     </div>
                     <div>
-                      <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>每箱袋数</div>
+                      <div style={fieldLabelStyle}>每箱袋数</div>
                       <input
                         type="number"
                         step="1"
@@ -695,7 +698,7 @@ export default function Admin() {
                       />
                     </div>
                     <div>
-                      <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>
+                      <div style={fieldLabelStyle}>
                         每箱纸箱成本(RMB)
                       </div>
                       <input
@@ -713,7 +716,7 @@ export default function Admin() {
                       />
                     </div>
                     <div>
-                      <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>
+                      <div style={fieldLabelStyle}>
                         每袋包装成本(RMB)
                       </div>
                       <input
@@ -731,7 +734,7 @@ export default function Admin() {
                       />
                     </div>
                     <div>
-                      <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>内包装类型</div>
+                      <div style={fieldLabelStyle}>内包装类型</div>
                       <MantineSelect
                         className="ui-select"
                         value={pack.inner_pack_type}
@@ -741,11 +744,11 @@ export default function Admin() {
                         data={innerPackOptions}
                         searchable={false}
                         allowDeselect={false}
-                        styles={{ input: inputBaseStyle, dropdown: { backgroundColor: '#0b1220' } }}
+                        styles={{ input: inputBaseStyle, dropdown: { backgroundColor: 'var(--surface-2)' } }}
                       />
                     </div>
                     <div>
-                      <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>默认</div>
+                      <div style={fieldLabelStyle}>默认</div>
                       <input
                         type="checkbox"
                         checked={Boolean(pack.default_selected)}
@@ -765,7 +768,7 @@ export default function Admin() {
           {activeTab === 'ports' && <EditableTable columns={columnsByTable.ports} rows={tables.ports} onChange={(id, k, v) => updateRow('ports', id, String(k), v)} onDelete={(id) => deleteRow('ports', id)} />}
           {activeTab === 'port_charges_rules' && <EditableTable columns={columnsByTable.port_charges_rules} rows={tables.port_charges_rules} onChange={(id, k, v) => updateRow('port_charges_rules', id, String(k), v)} onDelete={(id) => deleteRow('port_charges_rules', id)} />}
           {activeTab === 'container_load_rules' && <EditableTable columns={columnsByTable.container_load_rules} rows={tables.container_load_rules} onChange={(id, k, v) => updateRow('container_load_rules', id, String(k), v)} onDelete={(id) => deleteRow('container_load_rules', id)} />}
-          {activeTab === 'land_freight_rules' && <><div style={{ marginBottom: 8, color: '#9ca3af' }}>国内段费用按 RMB/吨 维护，可在报价页临时覆盖本次每吨运费。</div><EditableTable columns={columnsByTable.land_freight_rules} rows={tables.land_freight_rules} onChange={(id, k, v) => updateRow('land_freight_rules', id, String(k), v)} onDelete={(id) => deleteRow('land_freight_rules', id)} /></>}
+          {activeTab === 'land_freight_rules' && <><div className="status-box status-info" style={{ marginBottom: 8 }}>国内段费用按 RMB/吨 维护，可在报价页临时覆盖本次每吨运费。</div><EditableTable columns={columnsByTable.land_freight_rules} rows={tables.land_freight_rules} onChange={(id, k, v) => updateRow('land_freight_rules', id, String(k), v)} onDelete={(id) => deleteRow('land_freight_rules', id)} /></>}
           {activeTab === 'factory_packaging_overrides' && <EditableTable columns={columnsByTable.factory_packaging_overrides} rows={tables.factory_packaging_overrides} onChange={(id, k, v) => updateRow('factory_packaging_overrides', id, String(k), v)} onDelete={(id) => deleteRow('factory_packaging_overrides', id)} />}
         </div>
       )}
@@ -797,7 +800,7 @@ export default function Admin() {
                   if (column.type === 'select') {
                     return (
                       <div key={String(column.key)}>
-                        <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>{column.label}</div>
+                        <div style={fieldLabelStyle}>{column.label}</div>
                         <MantineSelect
                           className="ui-select"
                           value={((raw ?? '') as string) || ''}
@@ -805,7 +808,7 @@ export default function Admin() {
                           data={column.options ?? []}
                           searchable={false}
                           allowDeselect={false}
-                          styles={{ input: inputBaseStyle, dropdown: { backgroundColor: '#0b1220' } }}
+                          styles={{ input: inputBaseStyle, dropdown: { backgroundColor: 'var(--surface-2)' } }}
                         />
                       </div>
                     )
@@ -813,7 +816,7 @@ export default function Admin() {
                   if (column.type === 'number') {
                     return (
                       <div key={String(column.key)}>
-                        <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>{column.label}</div>
+                        <div style={fieldLabelStyle}>{column.label}</div>
                         <input
                           type="number"
                           step={column.step ?? '0.01'}
@@ -831,7 +834,7 @@ export default function Admin() {
                   }
                   return (
                     <div key={String(column.key)}>
-                      <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>{column.label}</div>
+                      <div style={fieldLabelStyle}>{column.label}</div>
                       <input
                         type="text"
                         value={(raw ?? '') as string}
@@ -850,7 +853,7 @@ export default function Admin() {
         </div>
       )}
 
-      {!data && <div style={{ marginTop: 12, color: '#9ca3af' }}>暂无数据</div>}
+      {!data && <div style={{ marginTop: 12, color: 'var(--text-dim)' }}>暂无数据</div>}
     </div>
   )
 }
