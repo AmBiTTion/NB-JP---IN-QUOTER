@@ -560,6 +560,29 @@ function Quoter() {
     )
   }
 
+  const kpiCards = [
+    {
+      title: '销售单价',
+      value: quoteResult ? formatUsd(quoteResult.summary.sell_usd_per_bag) : formatUsd(0),
+      unit: 'USD/袋',
+    },
+    {
+      title: '成本折算',
+      value: quoteResult ? formatUsd(quoteResult.summary.cost_usd_per_bag) : formatUsd(0),
+      unit: 'USD/袋',
+    },
+    {
+      title: '毛利/袋',
+      value: quoteResult ? formatRmb(quoteResult.summary.gp_rmb_per_bag) : formatRmb(0),
+      unit: 'RMB/袋',
+    },
+    {
+      title: '毛利合计',
+      value: quoteResult ? formatRmb(quoteResult.summary.gp_rmb_total, 2) : formatRmb(0, 2),
+      unit: 'RMB',
+    },
+  ]
+
   return (
     <div className="quote-page" style={{ padding: 24 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
@@ -671,10 +694,13 @@ function Quoter() {
         <div className="panel glass-card">
           <h2 style={{ marginTop: 0, fontSize: 18 }}>结果区</h2>
           <div className="kpi-row" style={{ marginTop: 8 }}>
-            <div className="kpi-card"><div className="kpi-title">销售单价</div><div className="kpi-value">{quoteResult ? formatUsd(quoteResult.summary.sell_usd_per_bag) : formatUsd(0)}</div><div className="kpi-unit">USD/袋</div></div>
-            <div className="kpi-card"><div className="kpi-title">成本折算</div><div className="kpi-value">{quoteResult ? formatUsd(quoteResult.summary.cost_usd_per_bag) : formatUsd(0)}</div><div className="kpi-unit">USD/袋</div></div>
-            <div className="kpi-card"><div className="kpi-title">毛利/袋</div><div className="kpi-value">{quoteResult ? formatRmb(quoteResult.summary.gp_rmb_per_bag) : formatRmb(0)}</div><div className="kpi-unit">RMB/袋</div></div>
-            <div className="kpi-card"><div className="kpi-title">毛利合计</div><div className="kpi-value">{quoteResult ? formatRmb(quoteResult.summary.gp_rmb_total, 2) : formatRmb(0, 2)}</div><div className="kpi-unit">RMB</div></div>
+            {kpiCards.map((card) => (
+              <div key={card.title} className="kpi-card">
+                <div className="kpi-title">{card.title}</div>
+                <div className="kpi-value">{card.value}</div>
+                <div className="kpi-unit">{card.unit}</div>
+              </div>
+            ))}
           </div>
 
           <div className="subpanel glass-card" style={{ padding: 12, marginTop: 12 }}>

@@ -185,6 +185,12 @@ html,body{
   border-radius: var(--radius) !important;
   box-shadow: var(--shadow2) !important;
   backdrop-filter: blur(12px);
+  transition: transform .24s ease, box-shadow .24s ease;
+}
+
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px rgba(0,0,0,.38) !important;
 }
 
 .kpi-title{
@@ -198,6 +204,7 @@ html,body{
   font-weight: 750;
   letter-spacing: .2px;
   line-height: 1.12;
+  transition: all .2s ease;
 }
 
 .kpi-unit{
