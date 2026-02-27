@@ -18,6 +18,7 @@ import type {
 } from '@/types/domain'
 import { nextIdFromRows } from '@/utils/id'
 import { useUiTheme } from '@/ui/ThemeProvider'
+import { ta, tf } from '@/i18n/admin'
 
 type TabKey = EditableTableKey | 'settings'
 type ColumnType = 'text' | 'number' | 'select' | 'checkbox'
@@ -47,17 +48,17 @@ type Column<T> = {
 }
 
 const TABS: Array<{ key: TabKey; label: string }> = [
-  { key: 'products', label: '产品' },
-  { key: 'packaging_options', label: '包装方案' },
-  { key: 'packaging_recommendations', label: '推荐箱规' },
-  { key: 'factories', label: '工厂' },
-  { key: 'factory_product_costs', label: '工厂吨成本' },
-  { key: 'ports', label: '港口' },
-  { key: 'port_charges_rules', label: '港杂规则' },
-  { key: 'container_load_rules', label: '装柜吨数' },
-  { key: 'land_freight_rules', label: '国内段费用' },
-  { key: 'factory_packaging_overrides', label: '工厂包装价覆盖' },
-  { key: 'settings', label: '设置' },
+  { key: 'products', label: ta('tabs.products') },
+  { key: 'packaging_options', label: ta('tabs.packaging_options') },
+  { key: 'packaging_recommendations', label: ta('tabs.packaging_recommendations') },
+  { key: 'factories', label: ta('tabs.factories') },
+  { key: 'factory_product_costs', label: ta('tabs.factory_product_costs') },
+  { key: 'ports', label: ta('tabs.ports') },
+  { key: 'port_charges_rules', label: ta('tabs.port_charges_rules') },
+  { key: 'container_load_rules', label: ta('tabs.container_load_rules') },
+  { key: 'land_freight_rules', label: ta('tabs.land_freight_rules') },
+  { key: 'factory_packaging_overrides', label: ta('tabs.factory_packaging_overrides') },
+  { key: 'settings', label: ta('tabs.settings') },
 ]
 
 const ID_PREFIX: Record<EditableTableKey, string> = {
@@ -67,18 +68,18 @@ const ID_PREFIX: Record<EditableTableKey, string> = {
 }
 
 const LABELS: Record<string, string> = {
-  id: 'ID', name: '名称', product_id: '产品', factory_id: '工厂', packaging_option_id: '包装方案',
-  refund_rate: '退税率', purchase_vat_rate: '增值税', invoice_tax_point: '开票点', pol_port_id: '起运港',
-  unit_weight_kg: '每袋重量(kg)', units_per_carton: '每箱袋数', carton_price_rmb: '每箱纸箱成本(RMB)', bag_price_rmb: '每袋包装成本(RMB)',
-  inner_pack_type: '内包装类型', cost_rmb_per_ton: '工厂吨成本(RMB/吨)', max_tons: '最大装柜吨数',
-  port_id: '港口', mode: '运输模式', container_type: '柜型', base_rmb: '基础费用(RMB)', extra_rmb_per_ton: '超吨费用(RMB/吨)',
-  min_rmb_per_ton: '最低每吨运费(RMB/吨)', max_rmb_per_ton: '最高每吨运费(RMB/吨)', default_rmb_per_ton: '默认每吨运费(RMB/吨)',
-  fx_rate: '汇率', margin_pct: '毛利率', quote_valid_days: '报价有效期(天)', pricing_formula_mode: '定价公式模式',
-  rounding_policy: '取整规则', terms_template: '条款模板', ui_theme: '界面主题', money_format_rmb_decimals: 'RMB 小数位', money_format_usd_decimals: 'USD 小数位',
-  recommended_units_per_carton: '推荐每箱袋数', notes: '备注', carton_price_rmb_override: '纸箱价覆盖(RMB/箱)', bag_price_rmb_override: '袋材价覆盖(RMB/袋)',
+  id: ta('fields.id'), name: ta('fields.name'), product_id: ta('fields.product_id'), factory_id: ta('fields.factory_id'), packaging_option_id: ta('fields.packaging_option_id'),
+  refund_rate: ta('fields.refund_rate'), purchase_vat_rate: ta('fields.purchase_vat_rate'), invoice_tax_point: ta('fields.invoice_tax_point'), pol_port_id: ta('fields.pol_port_id'),
+  unit_weight_kg: ta('fields.unit_weight_kg'), units_per_carton: ta('fields.units_per_carton'), carton_price_rmb: ta('fields.carton_price_rmb'), bag_price_rmb: ta('fields.bag_price_rmb'),
+  inner_pack_type: ta('fields.inner_pack_type'), cost_rmb_per_ton: ta('fields.cost_rmb_per_ton'), max_tons: ta('fields.max_tons'),
+  port_id: ta('fields.port_id'), mode: ta('fields.mode'), container_type: ta('fields.container_type'), base_rmb: ta('fields.base_rmb'), extra_rmb_per_ton: ta('fields.extra_rmb_per_ton'),
+  min_rmb_per_ton: ta('fields.min_rmb_per_ton'), max_rmb_per_ton: ta('fields.max_rmb_per_ton'), default_rmb_per_ton: ta('fields.default_rmb_per_ton'),
+  fx_rate: ta('fields.fx_rate'), margin_pct: ta('fields.margin_pct'), quote_valid_days: ta('fields.quote_valid_days'), pricing_formula_mode: ta('fields.pricing_formula_mode'),
+  rounding_policy: ta('fields.rounding_policy'), terms_template: ta('fields.terms_template'), ui_theme: ta('fields.ui_theme'), money_format_rmb_decimals: ta('fields.money_format_rmb_decimals'), money_format_usd_decimals: ta('fields.money_format_usd_decimals'),
+  recommended_units_per_carton: ta('fields.recommended_units_per_carton'), notes: ta('fields.notes'), carton_price_rmb_override: ta('fields.carton_price_rmb_override'), bag_price_rmb_override: ta('fields.bag_price_rmb_override'),
 }
 
-const INNER_PACK_LABELS: Record<InnerPackType, string> = { none: '不装箱', carton: '纸箱', woven_bag: '编织袋', small_box: '小盒', big_box: '大盒' }
+const INNER_PACK_LABELS: Record<InnerPackType, string> = { none: ta('innerPack.none'), carton: ta('innerPack.carton'), woven_bag: ta('innerPack.woven_bag'), small_box: ta('innerPack.small_box'), big_box: ta('innerPack.big_box') }
 
 const inputBaseStyle: React.CSSProperties = {
   width: '100%',
@@ -109,14 +110,14 @@ function EditableTable<T extends { id: string }>(props: {
   return (
     <div style={{ overflowX: 'auto' }}>
       <table className="admin-table">
-        <thead><tr style={{ textAlign: 'left' }}>{columns.map((c) => <th key={String(c.key)} style={{ width: c.width }}>{c.label}</th>)}<th>操作</th></tr></thead>
+        <thead><tr style={{ textAlign: 'left' }}>{columns.map((c) => <th key={String(c.key)} style={{ width: c.width }}>{c.label}</th>)}<th>{ta('common.action')}</th></tr></thead>
         <tbody>{rows.map((row) => <tr key={row.id}>{columns.map((c) => {
           const raw = row[c.key] as unknown
           if (c.type === 'checkbox') return <td key={String(c.key)}><input type="checkbox" checked={Boolean(raw)} disabled={c.readOnly} onChange={(e) => onChange(row.id, c.key, e.target.checked)} /></td>
           if (c.type === 'select') return <td key={String(c.key)}><MantineSelect className="ui-select" value={((raw ?? '') as string) || ''} disabled={c.readOnly} onChange={(value) => onChange(row.id, c.key, value ?? '')} data={c.options ?? []} searchable={false} allowDeselect={false} styles={{ input: inputBaseStyle, dropdown: { backgroundColor: 'var(--surface-2)' } }} /></td>
           if (c.type === 'number') return <td key={String(c.key)}><input type="number" step={c.step ?? '0.01'} value={formatNumberInput(raw)} readOnly={c.readOnly} onChange={(e) => onChange(row.id, c.key, parseNumberInput(e.target.value, Boolean(c.nullable)))} style={{ ...inputBaseStyle, backgroundColor: c.readOnly ? '#111827' : 'var(--surface-2)' }} /></td>
           return <td key={String(c.key)}><input type="text" value={(raw ?? '') as string} readOnly={c.readOnly} onChange={(e) => onChange(row.id, c.key, e.target.value)} style={{ ...inputBaseStyle, backgroundColor: c.readOnly ? '#111827' : 'var(--surface-2)' }} /></td>
-        })}<td>{renderActions && <span style={{ marginRight: 8 }}>{renderActions(row)}</span>}<button className="btn-danger-soft" onClick={() => onDelete(row.id)}>删除</button></td></tr>)}</tbody>
+        })}<td>{renderActions && <span style={{ marginRight: 8 }}>{renderActions(row)}</span>}<button className="btn-danger-soft" onClick={() => onDelete(row.id)}>{ta('common.delete')}</button></td></tr>)}</tbody>
       </table>
     </div>
   )
@@ -147,11 +148,11 @@ export default function Admin() {
   const suppressAutoSaveRef = useRef(false)
 
   const autoSaveLabel = useMemo(() => {
-    if (autoSaveState === 'saving') return '自动保存中'
-    if (autoSaveState === 'error') return '自动保存失败'
-    if (autoSaveState === 'saved') return '自动保存已保存'
-    if (dirtyTables.length > 0 || dirtySettings) return '自动保存待保存'
-    return '空闲'
+    if (autoSaveState === 'saving') return ta('status.autoSaving')
+    if (autoSaveState === 'error') return ta('status.autoSaveError')
+    if (autoSaveState === 'saved') return ta('status.autoSaved')
+    if (dirtyTables.length > 0 || dirtySettings) return ta('status.autoSavePending')
+    return ta('status.idle')
   }, [autoSaveState, dirtyTables, dirtySettings])
 
   const autoSaveToneClass = autoSaveState === 'error'
@@ -163,7 +164,7 @@ export default function Admin() {
         : 'status-info'
 
   const loadData = useCallback(async () => {
-    setError(''); setStatus('加载中...')
+    setError(''); setStatus(ta('statusText.loadingData'))
     try {
       // @ts-ignore
       const appData = (await window.ipcRenderer.invoke('get-app-data')) as AppData
@@ -177,9 +178,9 @@ export default function Admin() {
       setSettingsFxRate(String(appData.settings.fx_rate ?? 6.9)); setSettingsMarginPct(String(appData.settings.margin_pct ?? 0.05)); setSettingsQuoteValidDays(String(appData.settings.quote_valid_days ?? 7))
       setSettingsRmbDecimals(String(appData.settings.money_format?.rmb_decimals ?? 4)); setSettingsUsdDecimals(String(appData.settings.money_format?.usd_decimals ?? 4))
       setSettingsPricingFormulaMode(appData.settings.pricing_formula_mode ?? 'divide'); setSettingsRoundingPolicy(appData.settings.rounding_policy ?? 'ceil'); const rawUiTheme = String(appData.settings.ui_theme ?? 'classic'); const loadedUiTheme = ((rawUiTheme === 'creative' ? 'neon' : rawUiTheme) as 'classic' | 'neon' | 'minimal' | undefined) ?? 'classic'; setSettingsUiTheme(loadedUiTheme); setUiThemeKey(loadedUiTheme); setSettingsTermsTemplate(appData.settings.terms_template ?? '')
-      suppressAutoSaveRef.current = true; setDirtyTables([]); setDirtySettings(false); setAutoSaveState('idle'); setStatus('数据已加载')
+      suppressAutoSaveRef.current = true; setDirtyTables([]); setDirtySettings(false); setAutoSaveState('idle'); setStatus(ta('common.dataLoaded'))
     } catch (e) {
-      console.error(e); setError('加载失败，请检查控制台'); setStatus('')
+      console.error(e); setError(ta('statusText.loadFailed')); setStatus('')
     }
   }, [])
   useEffect(() => { void loadData() }, [loadData])
@@ -214,11 +215,11 @@ export default function Admin() {
     try {
       // @ts-ignore
       const result = (await window.ipcRenderer.invoke('select-product-image', { productId })) as { success: boolean; canceled?: boolean; filePath?: string; message?: string }
-      if (!result.success) { if (!result.canceled) setError(result.message ?? '图片上传失败'); return }
-      if (!result.filePath) { setError('未获取到图片路径'); return }
+      if (!result.success) { if (!result.canceled) setError(result.message ?? ta('statusText.uploadFailed')); return }
+      if (!result.filePath) { setError(ta('statusText.imagePathMissing')); return }
       updateRow('products', productId, 'image_path', result.filePath)
-      setStatus('数据已加载'); setError('')
-    } catch (e) { setError(`图片上传失败: ${String(e)}`) }
+      setStatus(ta('common.dataLoaded')); setError('')
+    } catch (e) { setError(`${ta('statusText.uploadFailed')}: ${String(e)}`) }
   }, [updateRow])
 
   const buildNewRow = useCallback((table: EditableTableKey) => {
@@ -263,44 +264,47 @@ export default function Admin() {
   }, [])
   const validateTable = useCallback((table: EditableTableKey): string[] => {
     const errors: string[] = []
-    const rowPrefix = (key: EditableTableKey, i: number) => `${TABS.find((t) => t.key === key)?.label ?? key} 第${i + 1}行`
+    const rowPrefix = (key: EditableTableKey, i: number) => tf('validation.rowPrefix', { table: TABS.find((t) => t.key === key)?.label ?? key, index: i + 1 })
+    const req = ta('validation.required')
+    const num = ta('validation.mustBeNumber')
+    const idLabel = ta('fields.id')
     if (table === 'products') {
       tables.products.forEach((r, i) => {
         const row = rowPrefix('products', i)
-        if (isBlank(r.id)) errors.push(`${row}: ${labelFor('id')}不能为空`)
-        if (isBlank(r.name)) errors.push(`${row}: ${labelFor('name')}不能为空`)
-        if (!isFiniteNumber(r.refund_rate)) errors.push(`${row}: ${labelFor('refund_rate')}必须是数字`)
-        if (!isFiniteNumber(r.purchase_vat_rate)) errors.push(`${row}: ${labelFor('purchase_vat_rate')}必须是数字`)
-        if (!isFiniteNumber(r.invoice_tax_point)) errors.push(`${row}: ${labelFor('invoice_tax_point')}必须是数字`)
-        if (isBlank(r.pol_port_id)) errors.push(`${row}: ${labelFor('pol_port_id')}不能为空`)
+        if (isBlank(r.id)) errors.push(`${row}: ${labelFor('id')}${req}`)
+        if (isBlank(r.name)) errors.push(`${row}: ${labelFor('name')}${req}`)
+        if (!isFiniteNumber(r.refund_rate)) errors.push(`${row}: ${labelFor('refund_rate')}${num}`)
+        if (!isFiniteNumber(r.purchase_vat_rate)) errors.push(`${row}: ${labelFor('purchase_vat_rate')}${num}`)
+        if (!isFiniteNumber(r.invoice_tax_point)) errors.push(`${row}: ${labelFor('invoice_tax_point')}${num}`)
+        if (isBlank(r.pol_port_id)) errors.push(`${row}: ${labelFor('pol_port_id')}${req}`)
       }); return errors
     }
     if (table === 'packaging_options') {
       const count = new Map<string, number>()
       tables.packaging_options.forEach((r, i) => {
         const row = rowPrefix('packaging_options', i)
-        if (isBlank(r.id)) errors.push(`${row}: ID不能为空`)
-        if (isBlank(r.product_id)) errors.push(`${row}: 产品不能为空`)
-        if (isBlank(r.name)) errors.push(`${row}: 名称不能为空`)
-        if (!isFiniteNumber(r.unit_weight_kg)) errors.push(`${row}: 每袋重量必须是数字`)
-        if (!isFiniteNumber(r.carton_price_rmb)) errors.push(`${row}: 纸箱成本必须是数字`)
-        if (!isFiniteNumber(r.bag_price_rmb)) errors.push(`${row}: 包装成本必须是数字`)
-        if (isBlank(r.inner_pack_type)) errors.push(`${row}: 内包装类型不能为空`)
+        if (isBlank(r.id)) errors.push(`${row}: ${idLabel}${req}`)
+        if (isBlank(r.product_id)) errors.push(`${row}: ${ta('fields.product_id')}${req}`)
+        if (isBlank(r.name)) errors.push(`${row}: ${ta('fields.name')}${req}`)
+        if (!isFiniteNumber(r.unit_weight_kg)) errors.push(`${row}: ${ta('fields.unit_weight_kg')}${num}`)
+        if (!isFiniteNumber(r.carton_price_rmb)) errors.push(`${row}: ${ta('fields.carton_price_rmb')}${num}`)
+        if (!isFiniteNumber(r.bag_price_rmb)) errors.push(`${row}: ${ta('fields.bag_price_rmb')}${num}`)
+        if (isBlank(r.inner_pack_type)) errors.push(`${row}: ${ta('fields.inner_pack_type')}${req}`)
         if (r.default_selected) count.set(r.product_id, (count.get(r.product_id) ?? 0) + 1)
       })
-      count.forEach((n, productId) => { if (n > 1) errors.push(`包装方案: 产品 ${tables.products.find((x) => x.id === productId)?.name ?? productId} 的默认方案超过 1 个`) })
+      count.forEach((n, productId) => { if (n > 1) errors.push(tf('validation.defaultPackTooMany', { product: tables.products.find((x) => x.id === productId)?.name ?? productId })) })
       return errors
     }
     if (table === 'factory_product_costs') {
       const dup = new Set<string>()
       tables.factory_product_costs.forEach((r, i) => {
         const row = rowPrefix('factory_product_costs', i)
-        if (isBlank(r.id)) errors.push(`${row}: ID不能为空`)
-        if (isBlank(r.factory_id)) errors.push(`${row}: 工厂不能为空`)
-        if (isBlank(r.product_id)) errors.push(`${row}: 产品不能为空`)
-        if (!isFiniteNumber(r.cost_rmb_per_ton)) errors.push(`${row}: 工厂吨成本必须是数字`)
+        if (isBlank(r.id)) errors.push(`${row}: ${idLabel}${req}`)
+        if (isBlank(r.factory_id)) errors.push(`${row}: ${ta('fields.factory_id')}${req}`)
+        if (isBlank(r.product_id)) errors.push(`${row}: ${ta('fields.product_id')}${req}`)
+        if (!isFiniteNumber(r.cost_rmb_per_ton)) errors.push(`${row}: ${ta('fields.cost_rmb_per_ton')}${num}`)
         const key = `${r.factory_id}__${r.product_id}`
-        if (dup.has(key)) errors.push(`${row}: 工厂 + 产品组合重复`)
+        if (dup.has(key)) errors.push(`${row}: ${ta('validation.duplicateFactoryProduct')}`)
         dup.add(key)
       }); return errors
     }
@@ -309,18 +313,18 @@ export default function Admin() {
     }
     if (table === 'packaging_recommendations') {
       runBasic(tables.packaging_recommendations, table, [
-        (r, row) => { if (isBlank(r.id)) errors.push(`${row}: ID不能为空`) },
-        (r, row) => { if (isBlank(r.product_id)) errors.push(`${row}: 产品不能为空`) },
-        (r, row) => { if (!isFiniteNumber(r.unit_weight_kg)) errors.push(`${row}: 每袋重量必须是数字`) },
-        (r, row) => { if (!isFiniteNumber(r.recommended_units_per_carton)) errors.push(`${row}: 推荐每箱袋数必须是数字`) },
+        (r, row) => { if (isBlank(r.id)) errors.push(`${row}: ${idLabel}${req}`) },
+        (r, row) => { if (isBlank(r.product_id)) errors.push(`${row}: ${ta('fields.product_id')}${req}`) },
+        (r, row) => { if (!isFiniteNumber(r.unit_weight_kg)) errors.push(`${row}: ${ta('fields.unit_weight_kg')}${num}`) },
+        (r, row) => { if (!isFiniteNumber(r.recommended_units_per_carton)) errors.push(`${row}: ${ta('fields.recommended_units_per_carton')}${num}`) },
       ])
     }
-    if (table === 'factories') runBasic(tables.factories, table, [(r, row) => { if (isBlank(r.id)) errors.push(`${row}: ID不能为空`); if (isBlank(r.name)) errors.push(`${row}: 名称不能为空`) }])
-    if (table === 'ports') runBasic(tables.ports, table, [(r, row) => { if (isBlank(r.id)) errors.push(`${row}: ID不能为空`); if (isBlank(r.name)) errors.push(`${row}: 名称不能为空`); if (isBlank(r.code)) errors.push(`${row}: 港口代码不能为空`) }])
-    if (table === 'port_charges_rules') runBasic(tables.port_charges_rules, table, [(r, row) => { if (isBlank(r.id)) errors.push(`${row}: ID不能为空`); if (isBlank(r.mode)) errors.push(`${row}: 运输模式不能为空`); if (!isFiniteNumber(r.base_rmb)) errors.push(`${row}: 基础费用必须是数字`); if (!isFiniteNumber(r.extra_rmb_per_ton)) errors.push(`${row}: 超吨费用必须是数字`) }])
-    if (table === 'container_load_rules') runBasic(tables.container_load_rules, table, [(r, row) => { if (isBlank(r.id)) errors.push(`${row}: ID不能为空`); if (isBlank(r.product_id)) errors.push(`${row}: 产品不能为空`); if (isBlank(r.container_type)) errors.push(`${row}: 柜型不能为空`); if (!isFiniteNumber(r.max_tons)) errors.push(`${row}: 最大装柜吨数必须是数字`) }])
-    if (table === 'land_freight_rules') runBasic(tables.land_freight_rules, table, [(r, row) => { if (isBlank(r.id)) errors.push(`${row}: ID不能为空`); if (isBlank(r.mode)) errors.push(`${row}: 运输模式不能为空`); if (isBlank(r.container_type)) errors.push(`${row}: 柜型不能为空`); if (!isFiniteNumber(r.min_rmb_per_ton)) errors.push(`${row}: 最低每吨运费必须是数字`); if (!isFiniteNumber(r.max_rmb_per_ton)) errors.push(`${row}: 最高每吨运费必须是数字`); if (!isFiniteNumber(r.default_rmb_per_ton)) errors.push(`${row}: 默认每吨运费必须是数字`) }])
-    if (table === 'factory_packaging_overrides') runBasic(tables.factory_packaging_overrides, table, [(r, row) => { if (isBlank(r.id)) errors.push(`${row}: ID不能为空`); if (isBlank(r.factory_id)) errors.push(`${row}: 工厂不能为空`); if (isBlank(r.packaging_option_id)) errors.push(`${row}: 包装方案不能为空`); if (r.carton_price_rmb_override !== null && r.carton_price_rmb_override !== undefined && !isFiniteNumber(r.carton_price_rmb_override)) errors.push(`${row}: 纸箱价覆盖必须是数字`); if (r.bag_price_rmb_override !== null && r.bag_price_rmb_override !== undefined && !isFiniteNumber(r.bag_price_rmb_override)) errors.push(`${row}: 袋材价覆盖必须是数字`) }])
+    if (table === 'factories') runBasic(tables.factories, table, [(r, row) => { if (isBlank(r.id)) errors.push(`${row}: ${idLabel}${req}`); if (isBlank(r.name)) errors.push(`${row}: ${ta('fields.name')}${req}`) }])
+    if (table === 'ports') runBasic(tables.ports, table, [(r, row) => { if (isBlank(r.id)) errors.push(`${row}: ${idLabel}${req}`); if (isBlank(r.name)) errors.push(`${row}: ${ta('fields.name')}${req}`); if (isBlank(r.code)) errors.push(`${row}: ${ta('fields.code')}${req}`) }])
+    if (table === 'port_charges_rules') runBasic(tables.port_charges_rules, table, [(r, row) => { if (isBlank(r.id)) errors.push(`${row}: ${idLabel}${req}`); if (isBlank(r.mode)) errors.push(`${row}: ${ta('fields.mode')}${req}`); if (!isFiniteNumber(r.base_rmb)) errors.push(`${row}: ${ta('fields.base_rmb')}${num}`); if (!isFiniteNumber(r.extra_rmb_per_ton)) errors.push(`${row}: ${ta('fields.extra_rmb_per_ton')}${num}`) }])
+    if (table === 'container_load_rules') runBasic(tables.container_load_rules, table, [(r, row) => { if (isBlank(r.id)) errors.push(`${row}: ${idLabel}${req}`); if (isBlank(r.product_id)) errors.push(`${row}: ${ta('fields.product_id')}${req}`); if (isBlank(r.container_type)) errors.push(`${row}: ${ta('fields.container_type')}${req}`); if (!isFiniteNumber(r.max_tons)) errors.push(`${row}: ${ta('fields.max_tons')}${num}`) }])
+    if (table === 'land_freight_rules') runBasic(tables.land_freight_rules, table, [(r, row) => { if (isBlank(r.id)) errors.push(`${row}: ${idLabel}${req}`); if (isBlank(r.mode)) errors.push(`${row}: ${ta('fields.mode')}${req}`); if (isBlank(r.container_type)) errors.push(`${row}: ${ta('fields.container_type')}${req}`); if (!isFiniteNumber(r.min_rmb_per_ton)) errors.push(`${row}: ${ta('fields.min_rmb_per_ton')}${num}`); if (!isFiniteNumber(r.max_rmb_per_ton)) errors.push(`${row}: ${ta('fields.max_rmb_per_ton')}${num}`); if (!isFiniteNumber(r.default_rmb_per_ton)) errors.push(`${row}: ${ta('fields.default_rmb_per_ton')}${num}`) }])
+    if (table === 'factory_packaging_overrides') runBasic(tables.factory_packaging_overrides, table, [(r, row) => { if (isBlank(r.id)) errors.push(`${row}: ${idLabel}${req}`); if (isBlank(r.factory_id)) errors.push(`${row}: ${ta('fields.factory_id')}${req}`); if (isBlank(r.packaging_option_id)) errors.push(`${row}: ${ta('fields.packaging_option_id')}${req}`); if (r.carton_price_rmb_override !== null && r.carton_price_rmb_override !== undefined && !isFiniteNumber(r.carton_price_rmb_override)) errors.push(`${row}: ${ta('fields.carton_price_rmb_override')}${num}`); if (r.bag_price_rmb_override !== null && r.bag_price_rmb_override !== undefined && !isFiniteNumber(r.bag_price_rmb_override)) errors.push(`${row}: ${ta('fields.bag_price_rmb_override')}${num}`) }])
     return errors
   }, [tables])
 
@@ -332,7 +336,7 @@ export default function Admin() {
     const touched = new Set<EditableTableKey>()
     newProducts.forEach((p) => {
       if (!nextPackaging.some((x) => x.product_id === p.id)) {
-        nextPackaging.push({ id: nextIdFromRows(ID_PREFIX.packaging_options, nextPackaging), product_id: p.id, name: `${p.name} 默认包装（需维护）`, unit_weight_kg: 1, units_per_carton: null, carton_price_rmb: 0, bag_price_rmb: 0, inner_pack_type: 'none', unit_cbm: null, carton_cbm: null, default_selected: true })
+        nextPackaging.push({ id: nextIdFromRows(ID_PREFIX.packaging_options, nextPackaging), product_id: p.id, name: tf('statusText.newProductDefaultPack', { name: p.name }), unit_weight_kg: 1, units_per_carton: null, carton_price_rmb: 0, bag_price_rmb: 0, inner_pack_type: 'none', unit_cbm: null, carton_cbm: null, default_selected: true })
         touched.add('packaging_options')
       }
       current.factories.forEach((f) => {
@@ -360,14 +364,14 @@ export default function Admin() {
       const r = applyProductDefaults(tables); tablesToSave = r.tables; extra = r.touched
       if (extra.length) { suppressAutoSaveRef.current = true; setTables(tablesToSave) }
     }
-    if (source === 'auto') setAutoSaveState('saving'); else setStatus(`正在保存 ${table}...`)
+    if (source === 'auto') setAutoSaveState('saving'); else setStatus(tf('statusText.savingTable', { table }))
     for (const target of [table, ...extra]) {
       // @ts-ignore
       const result = (await window.ipcRenderer.invoke('replace-table', { table: target, records: tablesToSave[target] as unknown as Array<Record<string, unknown>> })) as { success: boolean; message?: string }
-      if (!result.success) { setError(result.message ?? `${target} 保存失败`); setStatus(''); setAutoSaveState('error'); return }
+      if (!result.success) { setError(result.message ?? tf('statusText.saveTableFailed', { table: target })); setStatus(''); setAutoSaveState('error'); return }
     }
     setDirtyTables((p) => p.filter((x) => ![table, ...extra].includes(x)))
-    if (source === 'auto') setAutoSaveState('saved'); else setStatus(`${table} 已保存`)
+    if (source === 'auto') setAutoSaveState('saved'); else setStatus(tf('statusText.tableSaved', { table }))
     if (!reload) {
       setData((prev) => {
         if (!prev) return prev
@@ -383,18 +387,18 @@ export default function Admin() {
   const saveSettings = useCallback(async (options: { reload?: boolean; source?: 'manual' | 'auto' } = {}) => {
     const { reload = true, source = 'manual' } = options
     const fx = Number(settingsFxRate), margin = Number(settingsMarginPct), quoteDays = Number(settingsQuoteValidDays), rmb = Number(settingsRmbDecimals), usd = Number(settingsUsdDecimals)
-    if (!Number.isFinite(fx) || fx <= 0) { setError('汇率 fx_rate 必须 > 0'); setAutoSaveState('error'); return }
-    if (!Number.isFinite(margin) || margin < 0 || margin >= 1) { setError('毛利率 margin_pct 必须在 [0, 1) 范围内'); setAutoSaveState('error'); return }
-    if (!Number.isFinite(quoteDays) || quoteDays <= 0) { setError('报价有效期天数必须 > 0'); setAutoSaveState('error'); return }
-    if (!Number.isFinite(rmb) || rmb < 0) { setError('RMB 小数位数必须为非负整数'); setAutoSaveState('error'); return }
-    if (!Number.isFinite(usd) || usd < 0) { setError('USD 小数位数必须为非负整数'); setAutoSaveState('error'); return }
-    if (source === 'auto') setAutoSaveState('saving'); else setStatus('正在保存设置...')
+    if (!Number.isFinite(fx) || fx <= 0) { setError(ta('validation.fxPositive')); setAutoSaveState('error'); return }
+    if (!Number.isFinite(margin) || margin < 0 || margin >= 1) { setError(ta('validation.marginRange')); setAutoSaveState('error'); return }
+    if (!Number.isFinite(quoteDays) || quoteDays <= 0) { setError(ta('validation.quoteDaysPositive')); setAutoSaveState('error'); return }
+    if (!Number.isFinite(rmb) || rmb < 0) { setError(ta('validation.rmbDecimals')); setAutoSaveState('error'); return }
+    if (!Number.isFinite(usd) || usd < 0) { setError(ta('validation.usdDecimals')); setAutoSaveState('error'); return }
+    if (source === 'auto') setAutoSaveState('saving'); else setStatus(ta('statusText.savingSettings'))
     // @ts-ignore
     const result = (await window.ipcRenderer.invoke('update-settings', { fx_rate: fx, margin_pct: margin, quote_valid_days: quoteDays, ui_theme: settingsUiTheme, money_format: { rmb_decimals: rmb, usd_decimals: usd }, pricing_formula_mode: settingsPricingFormulaMode, rounding_policy: settingsRoundingPolicy, terms_template: settingsTermsTemplate })) as { success: boolean; message?: string }
-    if (!result.success) { setError(result.message ?? '保存失败'); setStatus(''); setAutoSaveState('error'); return }
+    if (!result.success) { setError(result.message ?? ta('statusText.saveFailed')); setStatus(''); setAutoSaveState('error'); return }
     setDirtySettings(false)
     window.dispatchEvent(new CustomEvent('ui-theme-change', { detail: { uiTheme: settingsUiTheme } }))
-    if (source === 'auto') setAutoSaveState('saved'); else setStatus('设置已保存')
+    if (source === 'auto') setAutoSaveState('saved'); else setStatus(ta('statusText.settingsSaved'))
     if (!reload) {
       setData((prev) => prev ? ({ ...prev, settings: { ...prev.settings, fx_rate: fx, margin_pct: margin, quote_valid_days: quoteDays, ui_theme: settingsUiTheme, money_format: { rmb_decimals: rmb, usd_decimals: usd }, pricing_formula_mode: settingsPricingFormulaMode, rounding_policy: settingsRoundingPolicy, terms_template: settingsTermsTemplate } }) : prev)
     }
@@ -415,11 +419,11 @@ export default function Admin() {
   const selectWithEmpty = useCallback((options: Array<{ value: string; label: string }>, emptyLabel: string) => [{ value: '', label: emptyLabel }, ...options], [])
 
   const columnsByTable = useMemo(() => {
-    const productSelect = selectWithEmpty(productOptions, '请选择产品')
-    const factorySelect = selectWithEmpty(factoryOptions, '请选择工厂')
-    const packagingSelect = selectWithEmpty(packagingOptions, '请选择包装方案')
-    const portSelect = selectWithEmpty(portOptions, '请选择港口')
-    const innerPackSelect = selectWithEmpty(innerPackOptions, '请选择内包装')
+    const productSelect = selectWithEmpty(productOptions, ta('select.product'))
+    const factorySelect = selectWithEmpty(factoryOptions, ta('select.factory'))
+    const packagingSelect = selectWithEmpty(packagingOptions, ta('select.packaging'))
+    const portSelect = selectWithEmpty(portOptions, ta('select.port'))
+    const innerPackSelect = selectWithEmpty(innerPackOptions, ta('select.innerPack'))
     return {
       products: [
         { key: 'id', label: labelFor('id'), type: 'text', readOnly: true, width: 140 },
@@ -433,19 +437,19 @@ export default function Admin() {
         { key: 'id', label: labelFor('id'), type: 'text', readOnly: true, width: 140 }, { key: 'product_id', label: labelFor('product_id'), type: 'select', options: productSelect },
         { key: 'name', label: labelFor('name'), type: 'text', width: 220 }, { key: 'unit_weight_kg', label: labelFor('unit_weight_kg'), type: 'number', step: '0.01' },
         { key: 'units_per_carton', label: labelFor('units_per_carton'), type: 'number', nullable: true, step: '1' }, { key: 'carton_price_rmb', label: labelFor('carton_price_rmb'), type: 'number' },
-        { key: 'bag_price_rmb', label: labelFor('bag_price_rmb'), type: 'number' }, { key: 'inner_pack_type', label: labelFor('inner_pack_type'), type: 'select', options: innerPackOptions }, { key: 'default_selected', label: '默认', type: 'checkbox' },
+        { key: 'bag_price_rmb', label: labelFor('bag_price_rmb'), type: 'number' }, { key: 'inner_pack_type', label: labelFor('inner_pack_type'), type: 'select', options: innerPackOptions }, { key: 'default_selected', label: ta('common.defaultMark'), type: 'checkbox' },
       ] as Array<Column<PackagingOption>>,
       packaging_recommendations: [
-        { key: 'id', label: 'ID', type: 'text', readOnly: true, width: 140 }, { key: 'product_id', label: '产品', type: 'select', options: productSelect }, { key: 'inner_pack_type', label: '内包装类型', type: 'select', options: innerPackSelect },
-        { key: 'unit_weight_kg', label: '每袋重量(kg)', type: 'number', step: '0.01' }, { key: 'recommended_units_per_carton', label: '推荐每箱袋数', type: 'number', step: '1' }, { key: 'notes', label: '备注', type: 'text', width: 220 },
+        { key: 'id', label: ta('fields.id'), type: 'text', readOnly: true, width: 140 }, { key: 'product_id', label: ta('fields.product_id'), type: 'select', options: productSelect }, { key: 'inner_pack_type', label: ta('fields.inner_pack_type'), type: 'select', options: innerPackSelect },
+        { key: 'unit_weight_kg', label: ta('fields.unit_weight_kg'), type: 'number', step: '0.01' }, { key: 'recommended_units_per_carton', label: ta('fields.recommended_units_per_carton'), type: 'number', step: '1' }, { key: 'notes', label: ta('fields.notes'), type: 'text', width: 220 },
       ] as Array<Column<PackagingRecommendation>>,
-      factories: [{ key: 'id', label: 'ID', type: 'text', readOnly: true, width: 140 }, { key: 'name', label: '名称', type: 'text', width: 220 }, { key: 'default_port_id', label: '默认港口', type: 'select', options: portSelect }] as Array<Column<Factory>>,
-      factory_product_costs: [{ key: 'id', label: 'ID', type: 'text', readOnly: true, width: 140 }, { key: 'factory_id', label: '工厂', type: 'select', options: factorySelect }, { key: 'product_id', label: '产品', type: 'select', options: productSelect }, { key: 'cost_rmb_per_ton', label: '工厂吨成本(RMB/吨)', type: 'number' }] as Array<Column<FactoryProductCost>>,
-      ports: [{ key: 'id', label: 'ID', type: 'text', readOnly: true, width: 140 }, { key: 'name', label: '名称', type: 'text', width: 200 }, { key: 'code', label: '港口代码', type: 'text', width: 120 }, { key: 'country', label: '国家/地区', type: 'text', width: 160 }] as Array<Column<Port>>,
-      port_charges_rules: [{ key: 'id', label: 'ID', type: 'text', readOnly: true, width: 140 }, { key: 'port_id', label: '港口', type: 'select', options: portSelect }, { key: 'mode', label: '运输模式', type: 'select', options: [{ value: 'FCL', label: 'FCL' }, { value: 'LCL', label: 'LCL' }] }, { key: 'container_type', label: '柜型', type: 'select', options: [{ value: '', label: '空' }, { value: '20GP', label: '20GP' }, { value: '40HQ', label: '40HQ' }] }, { key: 'base_rmb', label: '基础费用(RMB)', type: 'number' }, { key: 'extra_rmb_per_ton', label: '超吨费用(RMB/吨)', type: 'number' }] as Array<Column<PortChargesRule>>,
-      container_load_rules: [{ key: 'id', label: 'ID', type: 'text', readOnly: true, width: 140 }, { key: 'product_id', label: '产品', type: 'select', options: productSelect }, { key: 'container_type', label: '柜型', type: 'select', options: [{ value: '20GP', label: '20GP' }, { value: '40HQ', label: '40HQ' }] }, { key: 'max_tons', label: '最大装柜吨数', type: 'number' }] as Array<Column<ContainerLoadRule>>,
-      land_freight_rules: [{ key: 'id', label: 'ID', type: 'text', readOnly: true, width: 140 }, { key: 'mode', label: '运输模式', type: 'select', options: [{ value: 'FCL', label: 'FCL' }, { value: 'LCL', label: 'LCL' }] }, { key: 'factory_id', label: '工厂', type: 'select', options: factorySelect }, { key: 'container_type', label: '柜型', type: 'select', options: [{ value: '20GP', label: '20GP' }, { value: '40HQ', label: '40HQ' }] }, { key: 'min_rmb_per_ton', label: '最低每吨运费(RMB/吨)', type: 'number' }, { key: 'max_rmb_per_ton', label: '最高每吨运费(RMB/吨)', type: 'number' }, { key: 'default_rmb_per_ton', label: '默认每吨运费(RMB/吨)', type: 'number' }] as Array<Column<LandFreightRule>>,
-      factory_packaging_overrides: [{ key: 'id', label: 'ID', type: 'text', readOnly: true, width: 140 }, { key: 'factory_id', label: '工厂', type: 'select', options: factorySelect }, { key: 'packaging_option_id', label: '包装方案', type: 'select', options: packagingSelect }, { key: 'carton_price_rmb_override', label: '纸箱价覆盖(RMB/箱)', type: 'number', nullable: true }, { key: 'bag_price_rmb_override', label: '袋材价覆盖(RMB/袋)', type: 'number', nullable: true }] as Array<Column<FactoryPackagingOverride>>,
+      factories: [{ key: 'id', label: ta('fields.id'), type: 'text', readOnly: true, width: 140 }, { key: 'name', label: ta('fields.name'), type: 'text', width: 220 }, { key: 'default_port_id', label: ta('fields.default_port_id'), type: 'select', options: portSelect }] as Array<Column<Factory>>,
+      factory_product_costs: [{ key: 'id', label: ta('fields.id'), type: 'text', readOnly: true, width: 140 }, { key: 'factory_id', label: ta('fields.factory_id'), type: 'select', options: factorySelect }, { key: 'product_id', label: ta('fields.product_id'), type: 'select', options: productSelect }, { key: 'cost_rmb_per_ton', label: ta('fields.cost_rmb_per_ton'), type: 'number' }] as Array<Column<FactoryProductCost>>,
+      ports: [{ key: 'id', label: ta('fields.id'), type: 'text', readOnly: true, width: 140 }, { key: 'name', label: ta('fields.name'), type: 'text', width: 200 }, { key: 'code', label: ta('fields.code'), type: 'text', width: 120 }, { key: 'country', label: ta('fields.country'), type: 'text', width: 160 }] as Array<Column<Port>>,
+      port_charges_rules: [{ key: 'id', label: ta('fields.id'), type: 'text', readOnly: true, width: 140 }, { key: 'port_id', label: ta('fields.port_id'), type: 'select', options: portSelect }, { key: 'mode', label: ta('fields.mode'), type: 'select', options: [{ value: 'FCL', label: 'FCL' }, { value: 'LCL', label: 'LCL' }] }, { key: 'container_type', label: ta('fields.container_type'), type: 'select', options: [{ value: '', label: 'N/A' }, { value: '20GP', label: '20GP' }, { value: '40HQ', label: '40HQ' }] }, { key: 'base_rmb', label: ta('fields.base_rmb'), type: 'number' }, { key: 'extra_rmb_per_ton', label: ta('fields.extra_rmb_per_ton'), type: 'number' }] as Array<Column<PortChargesRule>>,
+      container_load_rules: [{ key: 'id', label: ta('fields.id'), type: 'text', readOnly: true, width: 140 }, { key: 'product_id', label: ta('fields.product_id'), type: 'select', options: productSelect }, { key: 'container_type', label: ta('fields.container_type'), type: 'select', options: [{ value: '20GP', label: '20GP' }, { value: '40HQ', label: '40HQ' }] }, { key: 'max_tons', label: ta('fields.max_tons'), type: 'number' }] as Array<Column<ContainerLoadRule>>,
+      land_freight_rules: [{ key: 'id', label: ta('fields.id'), type: 'text', readOnly: true, width: 140 }, { key: 'mode', label: ta('fields.mode'), type: 'select', options: [{ value: 'FCL', label: 'FCL' }, { value: 'LCL', label: 'LCL' }] }, { key: 'factory_id', label: ta('fields.factory_id'), type: 'select', options: factorySelect }, { key: 'container_type', label: ta('fields.container_type'), type: 'select', options: [{ value: '20GP', label: '20GP' }, { value: '40HQ', label: '40HQ' }] }, { key: 'min_rmb_per_ton', label: ta('fields.min_rmb_per_ton'), type: 'number' }, { key: 'max_rmb_per_ton', label: ta('fields.max_rmb_per_ton'), type: 'number' }, { key: 'default_rmb_per_ton', label: ta('fields.default_rmb_per_ton'), type: 'number' }] as Array<Column<LandFreightRule>>,
+      factory_packaging_overrides: [{ key: 'id', label: ta('fields.id'), type: 'text', readOnly: true, width: 140 }, { key: 'factory_id', label: ta('fields.factory_id'), type: 'select', options: factorySelect }, { key: 'packaging_option_id', label: ta('fields.packaging_option_id'), type: 'select', options: packagingSelect }, { key: 'carton_price_rmb_override', label: ta('fields.carton_price_rmb_override'), type: 'number', nullable: true }, { key: 'bag_price_rmb_override', label: ta('fields.bag_price_rmb_override'), type: 'number', nullable: true }] as Array<Column<FactoryPackagingOverride>>,
     }
   }, [factoryOptions, innerPackOptions, packagingOptions, portOptions, productOptions, selectWithEmpty])
 
@@ -462,16 +466,16 @@ export default function Admin() {
 
   return (
     <div className="admin-page" style={{ minHeight: '100vh', backgroundColor: 'transparent', color: '#e5e7eb', padding: 20 }}>
-      <h1 style={{ marginTop: 0 }}>数据维护</h1>
+      <h1 style={{ marginTop: 0 }}>{ta('common.dataManage')}</h1>
       <div style={{ marginBottom: 12, display: 'flex', gap: 8, alignItems: 'center' }}>
-        <button className="btn-outline-neon" onClick={() => void loadData()} style={{ padding: '8px 12px', cursor: 'pointer' }}>刷新</button>
-        <span className="status-pill status-info">{status || '就绪'}</span>
+        <button className="btn-outline-neon" onClick={() => void loadData()} style={{ padding: '8px 12px', cursor: 'pointer' }}>{ta('common.refresh')}</button>
+        <span className="status-pill status-info">{status || ta('common.ready')}</span>
         <span className={`status-pill ${autoSaveToneClass}`}>{autoSaveLabel}</span>
       </div>
       {error && <div className="status-box status-error" style={{ marginBottom: 12 }}>{error}</div>}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>{TABS.map((tab) => <button className={`tab-btn ${activeTab === tab.key ? 'active' : ''}`} key={tab.key} onClick={() => setActiveTab(tab.key)} style={{ padding: '8px 12px', cursor: 'pointer' }}>{tab.label}</button>)}</div>      {activeTab === 'settings' && (
         <div className="panel" style={sectionStyle}>
-          <h2 style={{ marginTop: 0 }}>设置</h2>
+          <h2 style={{ marginTop: 0 }}>{ta('common.settings')}</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12 }}>
             <div><label>{labelFor('fx_rate')}</label><input type="number" step="0.01" value={settingsFxRate} onChange={(e) => { setSettingsFxRate(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
             <div><label>{labelFor('margin_pct')}</label><input type="number" step="0.01" value={settingsMarginPct} onChange={(e) => { setSettingsMarginPct(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
@@ -479,16 +483,16 @@ export default function Admin() {
             <div><label>{labelFor('money_format_rmb_decimals')}</label><input type="number" step="1" value={settingsRmbDecimals} onChange={(e) => { setSettingsRmbDecimals(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
             <div><label>{labelFor('money_format_usd_decimals')}</label><input type="number" step="1" value={settingsUsdDecimals} onChange={(e) => { setSettingsUsdDecimals(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
             <div><label>{labelFor('pricing_formula_mode')}</label><MantineSelect className="ui-select" mt={6} value={settingsPricingFormulaMode} onChange={(value) => { setSettingsPricingFormulaMode(value ?? 'divide'); setDirtySettings(true); setAutoSaveState('idle') }} data={[{ value: 'divide', label: 'cost/(1-margin)' }]} searchable={false} allowDeselect={false} styles={{ input: inputBaseStyle, dropdown: { backgroundColor: 'var(--surface-2)' } }} /></div>
-            <div><label>{labelFor('rounding_policy')}</label><MantineSelect className="ui-select" mt={6} value={settingsRoundingPolicy} onChange={(value) => { setSettingsRoundingPolicy(value ?? 'ceil'); setDirtySettings(true); setAutoSaveState('idle') }} data={[{ value: 'ceil', label: '向上取整' }]} searchable={false} allowDeselect={false} styles={{ input: inputBaseStyle, dropdown: { backgroundColor: 'var(--surface-2)' } }} /></div>
+            <div><label>{labelFor('rounding_policy')}</label><MantineSelect className="ui-select" mt={6} value={settingsRoundingPolicy} onChange={(value) => { setSettingsRoundingPolicy(value ?? 'ceil'); setDirtySettings(true); setAutoSaveState('idle') }} data={[{ value: 'ceil', label: ta('fields.rounding_policy') }]} searchable={false} allowDeselect={false} styles={{ input: inputBaseStyle, dropdown: { backgroundColor: 'var(--surface-2)' } }} /></div>
             <div>
               <label>{labelFor('ui_theme')}</label>
               <MantineSelect
                 mt={6}
                 value={settingsUiTheme}
                 data={[
-                  { value: 'classic', label: 'Classic Admin (稳重)' },
-                  { value: 'neon', label: 'Neon Creative (渐变霓虹)' },
-                  { value: 'minimal', label: 'Minimal Clean (极简浅色)' },
+                  { value: 'classic', label: ta('theme.classic') },
+                  { value: 'neon', label: ta('theme.neon') },
+                  { value: 'minimal', label: ta('theme.minimal') },
                 ]}
                 onChange={(value) => {
                   const nextTheme = (value ?? 'classic') as 'classic' | 'neon' | 'minimal'
@@ -498,12 +502,10 @@ export default function Admin() {
                   setAutoSaveState('idle')
                 }}
               />
-              <Text size="xs" c="dimmed" mt={6}>
-                主题切换会立即应用到全局界面，并在保存后持久化。
-              </Text>
+              <Text size="xs" c="dimmed" mt={6}>{ta('hint.theme')}</Text>
             </div>
             <div style={{ gridColumn: '1 / span 2' }}><label>{labelFor('terms_template')}</label><textarea className="no-scroll" value={settingsTermsTemplate} onChange={(e) => { setSettingsTermsTemplate(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} rows={3} style={{ ...inputBaseStyle, marginTop: 6, minHeight: 88 }} /></div>
-            <div style={{ display: 'flex', alignItems: 'end' }}><button className="btn-primary" onClick={() => void saveSettings()} style={{ height: 38 }}>保存</button></div>
+            <div style={{ display: 'flex', alignItems: 'end' }}><button className="btn-primary" onClick={() => void saveSettings()} style={{ height: 38 }}>{ta('common.save')}</button></div>
           </div>
         </div>
       )}
@@ -513,15 +515,15 @@ export default function Admin() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2 style={{ marginTop: 0 }}>{TABS.find((t) => t.key === activeTab)?.label ?? activeTab}</h2>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button className="btn-outline-neon" onClick={() => openAddModal(activeTab)} style={{ cursor: 'pointer' }}>新增</button>
-              <button className="btn-primary" onClick={() => void saveTable(activeTab)} style={{ cursor: 'pointer', fontWeight: 700 }}>保存</button>
+              <button className="btn-outline-neon" onClick={() => openAddModal(activeTab)} style={{ cursor: 'pointer' }}>{ta('common.add')}</button>
+              <button className="btn-primary" onClick={() => void saveTable(activeTab)} style={{ cursor: 'pointer', fontWeight: 700 }}>{ta('common.save')}</button>
             </div>
           </div>
 
           {activeTab === 'products' && <div>{tables.products.map((row) => <div key={row.id} className="subpanel" style={{ padding: 16, marginBottom: 20 }}>
             <div style={{ marginBottom: 12, color: '#e2e8f0', fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span>Product: {row.id}</span>
-              <button className="btn-danger-soft" onClick={() => deleteRow('products', row.id)} style={{ cursor: 'pointer' }}>删除</button>
+              <button className="btn-danger-soft" onClick={() => deleteRow('products', row.id)} style={{ cursor: 'pointer' }}>{ta('common.delete')}</button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr 1.2fr 0.8fr 0.8fr 0.8fr 1fr', gap: 8, marginBottom: 12 }}>
               <div>
@@ -529,7 +531,7 @@ export default function Admin() {
                 <input type="text" value={row.id} readOnly style={{ ...inputBaseStyle, backgroundColor: '#111827' }} />
               </div>
               <div>
-                <div style={fieldLabelStyle}>名称</div>
+                <div style={fieldLabelStyle}>{ta('fields.name')}</div>
                 <input type="text" value={row.name ?? ''} onChange={(e) => updateRow('products', row.id, 'name', e.target.value)} style={inputBaseStyle} />
               </div>
               <div>
@@ -537,19 +539,19 @@ export default function Admin() {
                 <input type="text" value={row.name_en ?? ''} onChange={(e) => updateRow('products', row.id, 'name_en', e.target.value)} style={inputBaseStyle} />
               </div>
               <div>
-                <div style={fieldLabelStyle}>出口退税率</div>
+                <div style={fieldLabelStyle}>{ta('fields.refund_rate')}</div>
                 <input type="number" value={formatNumberInput(row.refund_rate)} onChange={(e) => updateRow('products', row.id, 'refund_rate', parseNumberInput(e.target.value, false))} style={inputBaseStyle} />
               </div>
               <div>
-                <div style={fieldLabelStyle}>采购增值税率</div>
+                <div style={fieldLabelStyle}>{ta('fields.purchase_vat_rate')}</div>
                 <input type="number" value={formatNumberInput(row.purchase_vat_rate)} onChange={(e) => updateRow('products', row.id, 'purchase_vat_rate', parseNumberInput(e.target.value, false))} style={inputBaseStyle} />
               </div>
               <div>
-                <div style={fieldLabelStyle}>开票加点</div>
+                <div style={fieldLabelStyle}>{ta('fields.invoice_tax_point')}</div>
                 <input type="number" value={formatNumberInput(row.invoice_tax_point)} onChange={(e) => updateRow('products', row.id, 'invoice_tax_point', parseNumberInput(e.target.value, false))} style={inputBaseStyle} />
               </div>
               <div>
-                <div style={fieldLabelStyle}>起运港</div>
+                <div style={fieldLabelStyle}>{ta('fields.pol_port_id')}</div>
                 <MantineSelect className="ui-select" value={row.pol_port_id ?? ''} onChange={(value) => updateRow('products', row.id, 'pol_port_id', value ?? '')} data={portOptions} searchable={false} allowDeselect={false} styles={{ input: inputBaseStyle, dropdown: { backgroundColor: 'var(--surface-2)' } }} />
               </div>
             </div>
@@ -581,7 +583,7 @@ export default function Admin() {
                     onClick={() => void handleUploadProductImage(row.id)}
                     style={{ cursor: 'pointer' }}
                   >
-                    上传图片
+                    {ta('common.uploadImage')}
                   </button>
                 </div>
               </div>
@@ -610,7 +612,7 @@ export default function Admin() {
                       onClick={() => deleteRow('packaging_options', pack.id)}
                       style={{ cursor: 'pointer' }}
                     >
-                      删除
+                      {ta('common.delete')}
                     </button>
                   </div>
 
@@ -632,7 +634,7 @@ export default function Admin() {
                       />
                     </div>
                     <div>
-                      <div style={fieldLabelStyle}>产品</div>
+                      <div style={fieldLabelStyle}>{ta('fields.product_id')}</div>
                       <MantineSelect
                         className="ui-select"
                         value={pack.product_id}
@@ -646,7 +648,7 @@ export default function Admin() {
                       />
                     </div>
                     <div>
-                      <div style={fieldLabelStyle}>名称</div>
+                      <div style={fieldLabelStyle}>{ta('fields.name')}</div>
                       <input
                         type="text"
                         value={pack.name}
@@ -664,7 +666,7 @@ export default function Admin() {
                     }}
                   >
                     <div>
-                      <div style={fieldLabelStyle}>每袋重量(kg)</div>
+                      <div style={fieldLabelStyle}>{ta('fields.unit_weight_kg')}</div>
                       <input
                         type="number"
                         step="0.01"
@@ -681,7 +683,7 @@ export default function Admin() {
                       />
                     </div>
                     <div>
-                      <div style={fieldLabelStyle}>每箱袋数</div>
+                      <div style={fieldLabelStyle}>{ta('fields.units_per_carton')}</div>
                       <input
                         type="number"
                         step="1"
@@ -699,7 +701,7 @@ export default function Admin() {
                     </div>
                     <div>
                       <div style={fieldLabelStyle}>
-                        每箱纸箱成本(RMB)
+                        {ta('fields.carton_price_rmb')}
                       </div>
                       <input
                         type="number"
@@ -717,7 +719,7 @@ export default function Admin() {
                     </div>
                     <div>
                       <div style={fieldLabelStyle}>
-                        每袋包装成本(RMB)
+                        {ta('fields.bag_price_rmb')}
                       </div>
                       <input
                         type="number"
@@ -734,7 +736,7 @@ export default function Admin() {
                       />
                     </div>
                     <div>
-                      <div style={fieldLabelStyle}>内包装类型</div>
+                      <div style={fieldLabelStyle}>{ta('fields.inner_pack_type')}</div>
                       <MantineSelect
                         className="ui-select"
                         value={pack.inner_pack_type}
@@ -748,7 +750,7 @@ export default function Admin() {
                       />
                     </div>
                     <div>
-                      <div style={fieldLabelStyle}>默认</div>
+                      <div style={fieldLabelStyle}>{ta('common.defaultMark')}</div>
                       <input
                         type="checkbox"
                         checked={Boolean(pack.default_selected)}
@@ -768,7 +770,7 @@ export default function Admin() {
           {activeTab === 'ports' && <EditableTable columns={columnsByTable.ports} rows={tables.ports} onChange={(id, k, v) => updateRow('ports', id, String(k), v)} onDelete={(id) => deleteRow('ports', id)} />}
           {activeTab === 'port_charges_rules' && <EditableTable columns={columnsByTable.port_charges_rules} rows={tables.port_charges_rules} onChange={(id, k, v) => updateRow('port_charges_rules', id, String(k), v)} onDelete={(id) => deleteRow('port_charges_rules', id)} />}
           {activeTab === 'container_load_rules' && <EditableTable columns={columnsByTable.container_load_rules} rows={tables.container_load_rules} onChange={(id, k, v) => updateRow('container_load_rules', id, String(k), v)} onDelete={(id) => deleteRow('container_load_rules', id)} />}
-          {activeTab === 'land_freight_rules' && <><div className="status-box status-info" style={{ marginBottom: 8 }}>国内段费用按 RMB/吨 维护，可在报价页临时覆盖本次每吨运费。</div><EditableTable columns={columnsByTable.land_freight_rules} rows={tables.land_freight_rules} onChange={(id, k, v) => updateRow('land_freight_rules', id, String(k), v)} onDelete={(id) => deleteRow('land_freight_rules', id)} /></>}
+          {activeTab === 'land_freight_rules' && <><div className="status-box status-info" style={{ marginBottom: 8 }}>{ta('hint.landFreight')}</div><EditableTable columns={columnsByTable.land_freight_rules} rows={tables.land_freight_rules} onChange={(id, k, v) => updateRow('land_freight_rules', id, String(k), v)} onDelete={(id) => deleteRow('land_freight_rules', id)} /></>}
           {activeTab === 'factory_packaging_overrides' && <EditableTable columns={columnsByTable.factory_packaging_overrides} rows={tables.factory_packaging_overrides} onChange={(id, k, v) => updateRow('factory_packaging_overrides', id, String(k), v)} onDelete={(id) => deleteRow('factory_packaging_overrides', id)} />}
         </div>
       )}
@@ -777,8 +779,8 @@ export default function Admin() {
         <div className="modal-backdrop">
           <div className="modal-card glass-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <h3 style={{ margin: 0 }}>新增 {TABS.find((t) => t.key === addDraftTable)?.label ?? addDraftTable}</h3>
-              <button className="btn-outline-neon" onClick={cancelAddRow}>关闭</button>
+              <h3 style={{ margin: 0 }}>{ta('common.add')} {TABS.find((t) => t.key === addDraftTable)?.label ?? addDraftTable}</h3>
+              <button className="btn-outline-neon" onClick={cancelAddRow}>{ta('common.close')}</button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 }}>
               {draftColumns
@@ -846,14 +848,14 @@ export default function Admin() {
                 })}
             </div>
             <div style={{ marginTop: 14, display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-              <button className="btn-outline-neon" onClick={cancelAddRow}>取消</button>
-              <button className="btn-primary" onClick={confirmAddRow}>保存</button>
+              <button className="btn-outline-neon" onClick={cancelAddRow}>{ta('common.cancel')}</button>
+              <button className="btn-primary" onClick={confirmAddRow}>{ta('common.save')}</button>
             </div>
           </div>
         </div>
       )}
 
-      {!data && <div style={{ marginTop: 12, color: 'var(--text-dim)' }}>暂无数据</div>}
+      {!data && <div style={{ marginTop: 12, color: 'var(--text-dim)' }}>{ta('common.noData')}</div>}
     </div>
   )
 }
