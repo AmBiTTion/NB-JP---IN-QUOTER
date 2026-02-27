@@ -18,7 +18,7 @@ import type {
   QtyInputType,
 } from '@/types/domain'
 
-const APP_VERSION = '2.6.5'
+const APP_VERSION = '2.6.8'
 
 function parseNumber(value: string): number | null {
   const trimmed = value.trim()
@@ -43,6 +43,37 @@ function sourceLabel(source: 'default' | 'override' | 'custom'): string {
   if (source === 'override') return t('quote.result.sourceOverride')
   if (source === 'custom') return t('quote.result.sourceCustom')
   return t('quote.result.sourceDefault')
+}
+
+function AnimatedMetric(props: { value: number; format: (value: number) => string }) {
+  const { value, format } = props
+  const [displayValue, setDisplayValue] = useState(value)
+
+  useEffect(() => {
+    const start = displayValue
+    const target = value
+    if (!Number.isFinite(start) || !Number.isFinite(target)) {
+      setDisplayValue(Number.isFinite(target) ? target : 0)
+      return
+    }
+    if (Math.abs(target - start) < 1e-8) return
+
+    const duration = 460
+    const begin = performance.now()
+    let frame = 0
+
+    const tick = (now: number) => {
+      const p = Math.min(1, (now - begin) / duration)
+      const eased = 1 - (1 - p) * (1 - p) * (1 - p)
+      setDisplayValue(start + (target - start) * eased)
+      if (p < 1) frame = requestAnimationFrame(tick)
+    }
+
+    frame = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frame)
+  }, [value])
+
+  return <>{format(displayValue)}</>
 }
 
 function Quoter() {
@@ -561,26 +592,30 @@ function Quoter() {
     )
   }
 
-  const kpiCards = [
+  const kpiCards: Array<{ title: string; value: number; unit: string; format: (value: number) => string }> = [
     {
       title: t('quote.result.kpiSell'),
-      value: quoteResult ? formatUsd(quoteResult.summary.sell_usd_per_bag) : formatUsd(0),
+      value: quoteResult ? quoteResult.summary.sell_usd_per_bag : 0,
       unit: t('quote.unit.usdPerBag'),
+      format: (value) => formatUsd(value),
     },
     {
       title: t('quote.result.kpiCostUsd'),
-      value: quoteResult ? formatUsd(quoteResult.summary.cost_usd_per_bag) : formatUsd(0),
+      value: quoteResult ? quoteResult.summary.cost_usd_per_bag : 0,
       unit: t('quote.unit.usdPerBag'),
+      format: (value) => formatUsd(value),
     },
     {
       title: t('quote.result.kpiGpPerBag'),
-      value: quoteResult ? formatRmb(quoteResult.summary.gp_rmb_per_bag) : formatRmb(0),
+      value: quoteResult ? quoteResult.summary.gp_rmb_per_bag : 0,
       unit: t('quote.unit.rmbPerBag'),
+      format: (value) => formatRmb(value),
     },
     {
       title: t('quote.result.kpiGpTotal'),
-      value: quoteResult ? formatRmb(quoteResult.summary.gp_rmb_total, 2) : formatRmb(0, 2),
+      value: quoteResult ? quoteResult.summary.gp_rmb_total : 0,
       unit: 'RMB',
+      format: (value) => formatRmb(value, 2),
     },
   ]
 
@@ -702,7 +737,7 @@ function Quoter() {
             {kpiCards.map((card) => (
               <div key={card.title} className="kpi-card">
                 <div className="kpi-title">{card.title}</div>
-                <div className="kpi-value">{card.value}</div>
+                <div className="kpi-value"><AnimatedMetric value={card.value} format={card.format} /></div>
                 <div className="kpi-unit">{card.unit}</div>
               </div>
             ))}
@@ -780,9 +815,11 @@ export default function App() {
     button.style.setProperty('--ripple-x', `${x}px`)
     button.style.setProperty('--ripple-y', `${y}px`)
     button.classList.remove('tab-ripple-active')
+    button.classList.remove('tab-click-blue')
     // Force reflow to restart animation for rapid repeated clicks.
     void button.offsetWidth
     button.classList.add('tab-ripple-active')
+    button.classList.add('tab-click-blue')
   }
 
   return (
@@ -791,7 +828,10 @@ export default function App() {
         <button
           className={`tab-btn tab-btn-split ${activeTab === 'quote' ? 'active' : ''}`}
           onMouseDown={triggerTabRipple}
-          onAnimationEnd={(e) => e.currentTarget.classList.remove('tab-ripple-active')}
+          onAnimationEnd={(e) => {
+            e.currentTarget.classList.remove('tab-ripple-active')
+            e.currentTarget.classList.remove('tab-click-blue')
+          }}
           onClick={() => setActiveTab('quote')}
           style={{ flex: 1, padding: '12px 14px', border: 'none', cursor: 'pointer' }}
         >
@@ -800,7 +840,10 @@ export default function App() {
         <button
           className={`tab-btn tab-btn-split ${activeTab === 'admin' ? 'active' : ''}`}
           onMouseDown={triggerTabRipple}
-          onAnimationEnd={(e) => e.currentTarget.classList.remove('tab-ripple-active')}
+          onAnimationEnd={(e) => {
+            e.currentTarget.classList.remove('tab-ripple-active')
+            e.currentTarget.classList.remove('tab-click-blue')
+          }}
           onClick={() => setActiveTab('admin')}
           style={{ flex: 1, padding: '12px 14px', border: 'none', cursor: 'pointer' }}
         >

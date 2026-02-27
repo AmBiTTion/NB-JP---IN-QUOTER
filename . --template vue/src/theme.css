@@ -330,11 +330,16 @@ html,body{
   pointer-events: none;
   transform: translate(-50%, -50%) scale(0.4);
   opacity: 0;
-  background: radial-gradient(circle, rgba(var(--accent-2-rgb), .38) 0%, rgba(var(--accent-rgb), .24) 42%, rgba(var(--accent-rgb), 0) 72%);
+  background: radial-gradient(circle, rgba(59,130,246,.42) 0%, rgba(37,99,235,.28) 42%, rgba(37,99,235,0) 72%);
 }
 
 .tab-btn-split.tab-ripple-active::after {
   animation: tabRippleExpand 420ms cubic-bezier(.42, 0, 1, 1);
+}
+
+.tab-btn-split.tab-click-blue {
+  border-color: rgba(59,130,246,.55) !important;
+  box-shadow: 0 0 0 1px rgba(59,130,246,.22) inset, 0 0 16px rgba(59,130,246,.2);
 }
 
 .tab-btn:hover {

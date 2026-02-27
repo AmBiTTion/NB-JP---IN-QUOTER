@@ -115,8 +115,8 @@ function EditableTable<T extends { id: string }>(props: {
           const raw = row[c.key] as unknown
           if (c.type === 'checkbox') return <td key={String(c.key)}><input type="checkbox" checked={Boolean(raw)} disabled={c.readOnly} onChange={(e) => onChange(row.id, c.key, e.target.checked)} /></td>
           if (c.type === 'select') return <td key={String(c.key)}><MantineSelect className="ui-select" value={((raw ?? '') as string) || ''} disabled={c.readOnly} onChange={(value) => onChange(row.id, c.key, value ?? '')} data={c.options ?? []} searchable={false} allowDeselect={false} styles={{ input: inputBaseStyle, dropdown: { backgroundColor: 'var(--surface-2)' } }} /></td>
-          if (c.type === 'number') return <td key={String(c.key)}><input type="number" step={c.step ?? '0.01'} value={formatNumberInput(raw)} readOnly={c.readOnly} onChange={(e) => onChange(row.id, c.key, parseNumberInput(e.target.value, Boolean(c.nullable)))} style={{ ...inputBaseStyle, backgroundColor: c.readOnly ? '#111827' : 'var(--surface-2)' }} /></td>
-          return <td key={String(c.key)}><input type="text" value={(raw ?? '') as string} readOnly={c.readOnly} onChange={(e) => onChange(row.id, c.key, e.target.value)} style={{ ...inputBaseStyle, backgroundColor: c.readOnly ? '#111827' : 'var(--surface-2)' }} /></td>
+          if (c.type === 'number') return <td key={String(c.key)}><input type="number" step={c.step ?? '0.01'} value={formatNumberInput(raw)} readOnly={c.readOnly} onChange={(e) => onChange(row.id, c.key, parseNumberInput(e.target.value, Boolean(c.nullable)))} style={{ ...inputBaseStyle, backgroundColor: 'var(--surface-2)' }} /></td>
+          return <td key={String(c.key)}><input type="text" value={(raw ?? '') as string} readOnly={c.readOnly} onChange={(e) => onChange(row.id, c.key, e.target.value)} style={{ ...inputBaseStyle, backgroundColor: 'var(--surface-2)' }} /></td>
         })}<td>{renderActions && <span style={{ marginRight: 8 }}>{renderActions(row)}</span>}<button className="btn-danger-soft" onClick={() => onDelete(row.id)}>{ta('common.delete')}</button></td></tr>)}</tbody>
       </table>
     </div>
@@ -529,7 +529,7 @@ export default function Admin() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr 1.2fr 0.8fr 0.8fr 0.8fr 1fr', gap: 8, marginBottom: 12 }}>
               <div>
                 <div style={fieldLabelStyle}>ID</div>
-                <input type="text" value={row.id} readOnly style={{ ...inputBaseStyle, backgroundColor: '#111827' }} />
+                <input type="text" value={row.id} readOnly style={inputBaseStyle} />
               </div>
               <div>
                 <div style={fieldLabelStyle}>{ta('fields.name')}</div>
@@ -575,7 +575,7 @@ export default function Admin() {
                     type="text"
                     value={row.image_path ?? ''}
                     readOnly
-                    style={{ ...inputBaseStyle, backgroundColor: '#111827' }}
+                    style={inputBaseStyle}
                   />
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -631,7 +631,7 @@ export default function Admin() {
                         type="text"
                         value={pack.id}
                         readOnly
-                        style={{ ...inputBaseStyle, backgroundColor: '#111827' }}
+                        style={inputBaseStyle}
                       />
                     </div>
                     <div>
