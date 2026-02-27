@@ -28,6 +28,15 @@
   --gap-1: 8px;
   --gap-2: 12px;
   --text-dim: rgba(255,255,255,.62);
+  --accent-rgb: 59,130,246;
+  --accent-2-rgb: 99,102,241;
+  --focus-ring: rgba(59,130,246,.24);
+  --focus-glow: rgba(99,102,241,.16);
+  --hover-glow: rgba(59,130,246,.18);
+  --motion-fast: 160ms;
+  --motion-mid: 240ms;
+  --motion-slow: 360ms;
+  --ease-smooth: cubic-bezier(.22,.61,.36,1);
 
   /* semantic status tokens */
   --state-success-bg: rgba(34,197,94,.16);
@@ -52,6 +61,11 @@
   --gridOpacity:.0;
   --glowA:none;
   --glowB:none;
+  --accent-rgb: 59,130,246;
+  --accent-2-rgb: 37,99,235;
+  --focus-ring: rgba(59,130,246,.22);
+  --focus-glow: rgba(37,99,235,.14);
+  --hover-glow: rgba(59,130,246,.18);
 }
 
 .theme-creative{
@@ -67,6 +81,11 @@
   --surface-2: rgba(255,255,255,.06);
   --border-1: rgba(255,255,255,.12);
   --radius-1: 12px;
+  --accent-rgb: 124,58,237;
+  --accent-2-rgb: 236,72,153;
+  --focus-ring: rgba(124,58,237,.25);
+  --focus-glow: rgba(236,72,153,.18);
+  --hover-glow: rgba(236,72,153,.22);
 }
 
 .theme-minimal{
@@ -88,6 +107,11 @@
   --state-warning-bg: rgba(245,158,11,.12);
   --state-error-bg: rgba(239,68,68,.12);
   --state-info-bg: rgba(59,130,246,.12);
+  --accent-rgb: 34,197,94;
+  --accent-2-rgb: 20,184,166;
+  --focus-ring: rgba(34,197,94,.22);
+  --focus-glow: rgba(20,184,166,.14);
+  --hover-glow: rgba(20,184,166,.18);
 }
 
 html,body{
@@ -152,10 +176,10 @@ html,body{
 .ui-textarea{ resize:none; }
 
 .ui-input:focus, .ui-select:focus, .ui-textarea:focus{
-  border-color: rgba(124,58,237,.55) !important;
+  border-color: rgba(var(--accent-rgb), .65) !important;
   box-shadow:
-    0 0 0 3px rgba(124,58,237,.18),
-    0 0 22px rgba(236,72,153,.12) !important;
+    0 0 0 3px var(--focus-ring),
+    0 0 22px var(--focus-glow) !important;
 }
 
 .btn-primary{
@@ -164,27 +188,31 @@ html,body{
   color: white !important;
   border-radius: 12px !important;
   padding: 10px 14px !important;
-  box-shadow: 0 10px 30px rgba(124,58,237,.25) !important;
+  box-shadow: 0 10px 30px rgba(var(--accent-rgb), .28) !important;
+  transition: transform var(--motion-fast) var(--ease-smooth), box-shadow var(--motion-mid) var(--ease-smooth), filter var(--motion-fast) var(--ease-smooth);
 }
 
 .btn-primary:hover{
   filter: brightness(1.05);
-  box-shadow: 0 12px 40px rgba(124,58,237,.32), 0 0 26px rgba(236,72,153,.18);
+  box-shadow: 0 12px 40px rgba(var(--accent-rgb), .34), 0 0 24px var(--hover-glow);
+  transform: translateY(-1px);
 }
 
 .btn-outline-neon{
   background: rgba(0,0,0,.20) !important;
-  border: 1px solid rgba(236,72,153,.70) !important;
+  border: 1px solid rgba(var(--accent-2-rgb), .75) !important;
   color: rgba(255,255,255,.92) !important;
   border-radius: 12px !important;
   padding: 10px 14px !important;
-  box-shadow: 0 0 0 2px rgba(236,72,153,.15) inset !important;
+  box-shadow: 0 0 0 2px rgba(var(--accent-2-rgb), .18) inset !important;
+  transition: transform var(--motion-fast) var(--ease-smooth), box-shadow var(--motion-mid) var(--ease-smooth), border-color var(--motion-fast) var(--ease-smooth);
 }
 
 .btn-outline-neon:hover{
   box-shadow:
-    0 0 0 2px rgba(236,72,153,.22) inset,
-    0 0 24px rgba(236,72,153,.22);
+    0 0 0 2px rgba(var(--accent-2-rgb), .28) inset,
+    0 0 24px rgba(var(--accent-2-rgb), .24);
+  transform: translateY(-1px);
 }
 
 .kpi-row{
@@ -265,10 +293,10 @@ html,body{
 .app-root .quote-page input[type="number"]:focus,
 .app-root .quote-page select:focus,
 .app-root .quote-page textarea:focus {
-  border-color: rgba(124,58,237,.55) !important;
+  border-color: rgba(var(--accent-rgb), .65) !important;
   box-shadow:
-    0 0 0 3px rgba(124,58,237,.18),
-    0 0 22px rgba(236,72,153,.12) !important;
+    0 0 0 3px var(--focus-ring),
+    0 0 22px var(--focus-glow) !important;
   outline: none;
 }
 
@@ -277,19 +305,20 @@ html,body{
   border: 1px solid rgba(255,255,255,.12) !important;
   background: rgba(255,255,255,.04) !important;
   color: rgba(255,255,255,.86) !important;
-  transition: all .18s ease;
+  transition: background-color var(--motion-fast) var(--ease-smooth), border-color var(--motion-fast) var(--ease-smooth), box-shadow var(--motion-mid) var(--ease-smooth), transform var(--motion-fast) var(--ease-smooth);
 }
 
 .tab-btn:hover {
-  border-color: rgba(236,72,153,.45) !important;
-  box-shadow: 0 0 18px rgba(236,72,153,.16);
+  border-color: rgba(var(--accent-2-rgb), .45) !important;
+  box-shadow: 0 0 18px rgba(var(--accent-2-rgb), .16);
+  transform: translateY(-1px);
 }
 
 .tab-btn.active {
   background: var(--primaryGrad) !important;
   border-color: rgba(255,255,255,.18) !important;
   color: #fff !important;
-  box-shadow: 0 10px 30px rgba(124,58,237,.28), 0 0 20px rgba(236,72,153,.16);
+  box-shadow: 0 10px 30px rgba(var(--accent-rgb), .28), 0 0 20px rgba(var(--accent-2-rgb), .16);
 }
 
 .nav-glass {
@@ -303,11 +332,12 @@ html,body{
 .ui-select{
   appearance:none;
   background: rgba(255,255,255,.04);
-  border: 1px solid rgba(124,58,237,.35);
+  border: 1px solid rgba(var(--accent-rgb), .35);
   border-radius:12px;
   color:white;
   padding: 10px 14px;
-  box-shadow: 0 0 0 1px rgba(124,58,237,.12) inset;
+  box-shadow: 0 0 0 1px rgba(var(--accent-rgb), .12) inset;
+  transition: border-color var(--motion-fast) var(--ease-smooth), box-shadow var(--motion-mid) var(--ease-smooth), background-color var(--motion-fast) var(--ease-smooth), transform var(--motion-fast) var(--ease-smooth);
 }
 
 /* unified panels / controls for quote page */
@@ -352,7 +382,7 @@ html,body{
 .app-root .quote-page .mantine-Select-input:focus,
 .app-root .quote-page .mantine-NumberInput-input:focus,
 .app-root .quote-page .mantine-Input-input:focus {
-  box-shadow: 0 0 0 3px rgba(124,58,237,.2), 0 0 16px rgba(236,72,153,.14) !important;
+  box-shadow: 0 0 0 3px var(--focus-ring), 0 0 16px var(--focus-glow) !important;
 }
 
 .app-root .quote-page .mantine-Select-dropdown {
@@ -364,7 +394,7 @@ html,body{
 .admin-page .glass-card,
 .admin-page .panel,
 .admin-page .subpanel {
-  transition: background-color .22s linear, border-color .22s linear, box-shadow .22s linear, transform .22s linear;
+  transition: background-color var(--motion-mid) var(--ease-smooth), border-color var(--motion-mid) var(--ease-smooth), box-shadow var(--motion-mid) var(--ease-smooth), transform var(--motion-mid) var(--ease-smooth);
 }
 
 .admin-page .panel:hover,
@@ -376,14 +406,14 @@ html,body{
 .admin-page textarea,
 .admin-page .mantine-Input-input,
 .admin-page .mantine-Select-input {
-  transition: border-color .18s linear, box-shadow .18s linear, background-color .18s linear;
+  transition: border-color var(--motion-fast) var(--ease-smooth), box-shadow var(--motion-fast) var(--ease-smooth), background-color var(--motion-fast) var(--ease-smooth), transform var(--motion-fast) var(--ease-smooth);
 }
 
 .admin-page button,
 .admin-page .btn-primary,
 .admin-page .btn-outline-neon,
 .admin-page .tab-btn {
-  transition: transform .16s linear, box-shadow .2s linear, background-color .2s linear, border-color .2s linear;
+  transition: transform var(--motion-fast) var(--ease-smooth), box-shadow var(--motion-mid) var(--ease-smooth), background-color var(--motion-fast) var(--ease-smooth), border-color var(--motion-fast) var(--ease-smooth);
 }
 
 .admin-page button:active,
@@ -402,7 +432,7 @@ html,body{
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  animation: fadeInLinear .18s linear;
+  animation: fadeInLinear var(--motion-fast) var(--ease-smooth);
 }
 
 .modal-card {
@@ -414,7 +444,7 @@ html,body{
   border: 1px solid rgba(255,255,255,.14);
   background: rgba(10, 16, 30, 0.92);
   box-shadow: 0 24px 60px rgba(0,0,0,.48);
-  animation: slideUpLinear .22s linear;
+  animation: slideUpLinear var(--motion-mid) var(--ease-smooth);
 }
 
 .status-pill{
@@ -491,6 +521,9 @@ html,body{
 .mantine-Combobox-dropdown {
   background: #0b1220 !important;
   border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  border-radius: 12px !important;
+  animation: dropdownIn var(--motion-fast) var(--ease-smooth);
+  transform-origin: top center;
 }
 
 .mantine-Select-option,
@@ -502,7 +535,7 @@ html,body{
 .mantine-Select-option[data-selected],
 .mantine-Combobox-option[data-combobox-selected],
 .mantine-Combobox-option[data-combobox-active] {
-  background: rgba(59, 130, 246, 0.24) !important;
+  background: rgba(var(--accent-rgb), 0.26) !important;
 }
 
 .app-root .quote-page .btn-primary,
@@ -513,10 +546,10 @@ html,body{
 }
 
 .ui-select:focus{
-  border-color: rgba(236,72,153,.7);
+  border-color: rgba(var(--accent-2-rgb), .72);
   box-shadow:
-    0 0 0 3px rgba(124,58,237,.25),
-    0 0 20px rgba(236,72,153,.2);
+    0 0 0 3px var(--focus-ring),
+    0 0 20px var(--focus-glow);
 }
 
 select option{
@@ -525,9 +558,23 @@ select option{
 }
 
 select option:hover{
-  background: rgba(124,58,237,.35);
+  background: rgba(var(--accent-rgb), .35);
 }
 
 select option:checked{
-  background: linear-gradient(135deg,#2d6bff,#ec4899);
+  background: linear-gradient(135deg, rgba(var(--accent-rgb),.92), rgba(var(--accent-2-rgb),.92));
+}
+
+@keyframes dropdownIn {
+  from { opacity: 0; transform: translateY(-4px) scaleY(.985); }
+  to { opacity: 1; transform: translateY(0) scaleY(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
 }
