@@ -134,6 +134,9 @@ export default function Admin() {
   const [autoSaveState, setAutoSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [status, setStatus] = useState('')
   const [error, setError] = useState('')
+  const [addModalOpen, setAddModalOpen] = useState(false)
+  const [addDraftTable, setAddDraftTable] = useState<EditableTableKey | null>(null)
+  const [addDraftRow, setAddDraftRow] = useState<Record<string, unknown> | null>(null)
   const autoSaveTimerRef = useRef<number | null>(null)
   const suppressAutoSaveRef = useRef(false)
 
@@ -206,8 +209,8 @@ export default function Admin() {
     } catch (e) { setError(`图片上传失败: ${String(e)}`) }
   }, [updateRow])
 
-  const addRow = useCallback((table: EditableTableKey) => {
-    const nextRow = (() => {
+  const buildNewRow = useCallback((table: EditableTableKey) => {
+    return (() => {
       switch (table) {
         case 'products': return { id: nextIdFromRows(ID_PREFIX.products, tables.products), name: '', name_en: '', description_en: '', image_path: '', refund_rate: 0, purchase_vat_rate: 0.13, invoice_tax_point: 0.03, pol_port_id: tables.ports[0]?.id ?? '' } satisfies Product
         case 'packaging_options': return { id: nextIdFromRows(ID_PREFIX.packaging_options, tables.packaging_options), product_id: tables.products[0]?.id ?? '', name: '', unit_weight_kg: 1, units_per_carton: null, carton_price_rmb: 0, bag_price_rmb: 0, inner_pack_type: 'none', unit_cbm: null, carton_cbm: null, default_selected: false } satisfies PackagingOption
@@ -222,10 +225,30 @@ export default function Admin() {
         default: return null
       }
     })()
+  }, [tables])
+
+  const openAddModal = useCallback((table: EditableTableKey) => {
+    const nextRow = buildNewRow(table)
     if (!nextRow) return
-    setTables((prev) => ({ ...prev, [table]: [...prev[table], nextRow] }) as TableState)
-    markTableDirty(table)
-  }, [tables, markTableDirty])
+    setAddDraftTable(table)
+    setAddDraftRow(nextRow as unknown as Record<string, unknown>)
+    setAddModalOpen(true)
+  }, [buildNewRow])
+
+  const confirmAddRow = useCallback(() => {
+    if (!addDraftTable || !addDraftRow) return
+    setTables((prev) => ({ ...prev, [addDraftTable]: [...prev[addDraftTable], addDraftRow] }) as TableState)
+    markTableDirty(addDraftTable)
+    setAddModalOpen(false)
+    setAddDraftTable(null)
+    setAddDraftRow(null)
+  }, [addDraftRow, addDraftTable, markTableDirty])
+
+  const cancelAddRow = useCallback(() => {
+    setAddModalOpen(false)
+    setAddDraftTable(null)
+    setAddDraftRow(null)
+  }, [])
   const validateTable = useCallback((table: EditableTableKey): string[] => {
     const errors: string[] = []
     const rowPrefix = (key: EditableTableKey, i: number) => `${TABS.find((t) => t.key === key)?.label ?? key} 第${i + 1}行`
@@ -386,7 +409,14 @@ export default function Admin() {
     const portSelect = selectWithEmpty(portOptions, '请选择港口')
     const innerPackSelect = selectWithEmpty(innerPackOptions, '请选择内包装')
     return {
-      products: [] as Array<Column<Product>>,
+      products: [
+        { key: 'id', label: labelFor('id'), type: 'text', readOnly: true, width: 140 },
+        { key: 'name', label: labelFor('name'), type: 'text', width: 220 },
+        { key: 'refund_rate', label: labelFor('refund_rate'), type: 'number' },
+        { key: 'purchase_vat_rate', label: labelFor('purchase_vat_rate'), type: 'number' },
+        { key: 'invoice_tax_point', label: labelFor('invoice_tax_point'), type: 'number' },
+        { key: 'pol_port_id', label: labelFor('pol_port_id'), type: 'select', options: portSelect },
+      ] as Array<Column<Product>>,
       packaging_options: [
         { key: 'id', label: labelFor('id'), type: 'text', readOnly: true, width: 140 }, { key: 'product_id', label: labelFor('product_id'), type: 'select', options: productSelect },
         { key: 'name', label: labelFor('name'), type: 'text', width: 220 }, { key: 'unit_weight_kg', label: labelFor('unit_weight_kg'), type: 'number', step: '0.01' },
@@ -407,17 +437,26 @@ export default function Admin() {
     }
   }, [factoryOptions, innerPackOptions, packagingOptions, portOptions, productOptions, selectWithEmpty])
 
-  const sectionStyle: React.CSSProperties = { padding: 14, border: '1px solid #1f2937', borderRadius: 12, backgroundColor: '#111827' }
+  const draftColumns = useMemo(() => {
+    if (!addDraftTable) return []
+    return (columnsByTable[addDraftTable] as unknown as Array<Column<Record<string, unknown>>>) ?? []
+  }, [addDraftTable, columnsByTable])
+
+  const updateDraftField = useCallback((key: string, value: unknown) => {
+    setAddDraftRow((prev) => (prev ? { ...prev, [key]: value } : prev))
+  }, [])
+
+  const sectionStyle: React.CSSProperties = { padding: 14, border: '1px solid var(--border-1)', borderRadius: 12, backgroundColor: 'var(--surface-1)' }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0b0f1a', color: '#e5e7eb', padding: 20 }}>
+    <div className="admin-page" style={{ minHeight: '100vh', backgroundColor: 'transparent', color: '#e5e7eb', padding: 20 }}>
       <h1 style={{ marginTop: 0 }}>数据维护</h1>
       <div style={{ marginBottom: 12, display: 'flex', gap: 8, alignItems: 'center' }}>
-        <button onClick={() => void loadData()} style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #334155', backgroundColor: '#0f172a', color: '#fff', cursor: 'pointer' }}>刷新</button>
+        <button className="btn-outline-neon" onClick={() => void loadData()} style={{ padding: '8px 12px', cursor: 'pointer' }}>刷新</button>
         <span style={{ color: '#93c5fd' }}>{status}</span><span style={{ color: autoSaveColor }}>{autoSaveLabel}</span>
       </div>
       {error && <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, border: '1px solid #7f1d1d', backgroundColor: '#2a1111', color: '#fecaca' }}>{error}</div>}
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>{TABS.map((tab) => <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #1f2937', backgroundColor: activeTab === tab.key ? '#1f2937' : '#0f172a', color: '#fff', cursor: 'pointer' }}>{tab.label}</button>)}</div>      {activeTab === 'settings' && (
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>{TABS.map((tab) => <button className={`tab-btn ${activeTab === tab.key ? 'active' : ''}`} key={tab.key} onClick={() => setActiveTab(tab.key)} style={{ padding: '8px 12px', cursor: 'pointer' }}>{tab.label}</button>)}</div>      {activeTab === 'settings' && (
         <div style={sectionStyle}>
           <h2 style={{ marginTop: 0 }}>设置</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12 }}>
@@ -451,7 +490,7 @@ export default function Admin() {
               </Text>
             </div>
             <div style={{ gridColumn: '1 / span 2' }}><label>{labelFor('terms_template')}</label><textarea className="no-scroll" value={settingsTermsTemplate} onChange={(e) => { setSettingsTermsTemplate(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} rows={3} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
-            <div style={{ display: 'flex', alignItems: 'end' }}><button onClick={() => void saveSettings()} style={{ padding: '8px 12px', borderRadius: 6, border: 'none', backgroundColor: '#4ade80', color: '#000', cursor: 'pointer', fontWeight: 700, height: 38 }}>保存</button></div>
+            <div style={{ display: 'flex', alignItems: 'end' }}><button className="btn-primary" onClick={() => void saveSettings()} style={{ height: 38 }}>保存</button></div>
           </div>
         </div>
       )}
@@ -461,8 +500,8 @@ export default function Admin() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2 style={{ marginTop: 0 }}>{TABS.find((t) => t.key === activeTab)?.label ?? activeTab}</h2>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={() => addRow(activeTab)} style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #334155', backgroundColor: '#0f172a', color: '#fff', cursor: 'pointer' }}>新增</button>
-              <button onClick={() => void saveTable(activeTab)} style={{ padding: '8px 12px', borderRadius: 6, border: 'none', backgroundColor: '#3b82f6', color: '#fff', cursor: 'pointer', fontWeight: 700 }}>保存</button>
+              <button className="btn-outline-neon" onClick={() => openAddModal(activeTab)} style={{ cursor: 'pointer' }}>新增</button>
+              <button className="btn-primary" onClick={() => void saveTable(activeTab)} style={{ cursor: 'pointer', fontWeight: 700 }}>保存</button>
             </div>
           </div>
 
@@ -728,6 +767,86 @@ export default function Admin() {
           {activeTab === 'container_load_rules' && <EditableTable columns={columnsByTable.container_load_rules} rows={tables.container_load_rules} onChange={(id, k, v) => updateRow('container_load_rules', id, String(k), v)} onDelete={(id) => deleteRow('container_load_rules', id)} />}
           {activeTab === 'land_freight_rules' && <><div style={{ marginBottom: 8, color: '#9ca3af' }}>国内段费用按 RMB/吨 维护，可在报价页临时覆盖本次每吨运费。</div><EditableTable columns={columnsByTable.land_freight_rules} rows={tables.land_freight_rules} onChange={(id, k, v) => updateRow('land_freight_rules', id, String(k), v)} onDelete={(id) => deleteRow('land_freight_rules', id)} /></>}
           {activeTab === 'factory_packaging_overrides' && <EditableTable columns={columnsByTable.factory_packaging_overrides} rows={tables.factory_packaging_overrides} onChange={(id, k, v) => updateRow('factory_packaging_overrides', id, String(k), v)} onDelete={(id) => deleteRow('factory_packaging_overrides', id)} />}
+        </div>
+      )}
+
+      {addModalOpen && addDraftTable && addDraftRow && (
+        <div className="modal-backdrop">
+          <div className="modal-card glass-card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <h3 style={{ margin: 0 }}>新增 {TABS.find((t) => t.key === addDraftTable)?.label ?? addDraftTable}</h3>
+              <button className="btn-outline-neon" onClick={cancelAddRow}>关闭</button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 }}>
+              {draftColumns
+                .filter((c) => c.key !== 'id')
+                .map((column) => {
+                  const raw = addDraftRow[column.key as string] as unknown
+                  if (column.type === 'checkbox') {
+                    return (
+                      <label key={String(column.key)} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <input
+                          type="checkbox"
+                          checked={Boolean(raw)}
+                          onChange={(e) => updateDraftField(String(column.key), e.target.checked)}
+                        />
+                        {column.label}
+                      </label>
+                    )
+                  }
+                  if (column.type === 'select') {
+                    return (
+                      <div key={String(column.key)}>
+                        <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>{column.label}</div>
+                        <MantineSelect
+                          className="ui-select"
+                          value={((raw ?? '') as string) || ''}
+                          onChange={(value) => updateDraftField(String(column.key), value ?? '')}
+                          data={column.options ?? []}
+                          searchable={false}
+                          allowDeselect={false}
+                          styles={{ input: inputBaseStyle, dropdown: { backgroundColor: '#0b1220' } }}
+                        />
+                      </div>
+                    )
+                  }
+                  if (column.type === 'number') {
+                    return (
+                      <div key={String(column.key)}>
+                        <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>{column.label}</div>
+                        <input
+                          type="number"
+                          step={column.step ?? '0.01'}
+                          value={formatNumberInput(raw)}
+                          onChange={(e) =>
+                            updateDraftField(
+                              String(column.key),
+                              parseNumberInput(e.target.value, Boolean(column.nullable)),
+                            )
+                          }
+                          style={inputBaseStyle}
+                        />
+                      </div>
+                    )
+                  }
+                  return (
+                    <div key={String(column.key)}>
+                      <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>{column.label}</div>
+                      <input
+                        type="text"
+                        value={(raw ?? '') as string}
+                        onChange={(e) => updateDraftField(String(column.key), e.target.value)}
+                        style={inputBaseStyle}
+                      />
+                    </div>
+                  )
+                })}
+            </div>
+            <div style={{ marginTop: 14, display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <button className="btn-outline-neon" onClick={cancelAddRow}>取消</button>
+              <button className="btn-primary" onClick={confirmAddRow}>保存</button>
+            </div>
+          </div>
         </div>
       )}
 
