@@ -308,6 +308,35 @@ html,body{
   transition: background-color var(--motion-fast) var(--ease-smooth), border-color var(--motion-fast) var(--ease-smooth), box-shadow var(--motion-mid) var(--ease-smooth), transform var(--motion-fast) var(--ease-smooth);
 }
 
+.top-tab-row {
+  align-items: stretch;
+}
+
+.tab-btn-split {
+  position: relative;
+  overflow: hidden;
+  min-height: 48px;
+  box-shadow: var(--shadow-1);
+}
+
+.tab-btn-split::after {
+  content: '';
+  position: absolute;
+  left: var(--ripple-x, 50%);
+  top: var(--ripple-y, 50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0.4);
+  opacity: 0;
+  background: radial-gradient(circle, rgba(var(--accent-2-rgb), .38) 0%, rgba(var(--accent-rgb), .24) 42%, rgba(var(--accent-rgb), 0) 72%);
+}
+
+.tab-btn-split.tab-ripple-active::after {
+  animation: tabRippleExpand var(--motion-mid) var(--ease-smooth);
+}
+
 .tab-btn:hover {
   border-color: rgba(var(--accent-2-rgb), .45) !important;
   box-shadow: 0 0 18px rgba(var(--accent-2-rgb), .16);
@@ -319,6 +348,10 @@ html,body{
   border-color: rgba(255,255,255,.18) !important;
   color: #fff !important;
   box-shadow: 0 10px 30px rgba(var(--accent-rgb), .28), 0 0 20px rgba(var(--accent-2-rgb), .16);
+}
+
+.tab-btn-split:active {
+  transform: scale(0.985);
 }
 
 .nav-glass {
@@ -568,6 +601,17 @@ select option:checked{
 @keyframes dropdownIn {
   from { opacity: 0; transform: translateY(-4px) scaleY(.985); }
   to { opacity: 1; transform: translateY(0) scaleY(1); }
+}
+
+@keyframes tabRippleExpand {
+  0% {
+    opacity: .45;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(26);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

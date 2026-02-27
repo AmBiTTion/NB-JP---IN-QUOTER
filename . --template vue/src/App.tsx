@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type MouseEvent } from 'react'
 import { Button, Card, NumberInput, Select } from '@mantine/core'
 import Admin from '@/components/Admin'
 import { calculateQuote, formatCurrency, type CalculateQuoteResult } from '@/utils/calculateQuote'
@@ -768,11 +768,40 @@ export default function App() {
   const uiThemeClass =
     uiThemeKey === 'neon' ? 'theme-creative' : uiThemeKey === 'minimal' ? 'theme-minimal' : 'theme-classic'
 
+  const triggerTabRipple = (event: MouseEvent<HTMLButtonElement>) => {
+    const button = event.currentTarget
+    const rect = button.getBoundingClientRect()
+    const x = event.clientX - rect.left
+    const y = event.clientY - rect.top
+    button.style.setProperty('--ripple-x', `${x}px`)
+    button.style.setProperty('--ripple-y', `${y}px`)
+    button.classList.remove('tab-ripple-active')
+    // Force reflow to restart animation for rapid repeated clicks.
+    void button.offsetWidth
+    button.classList.add('tab-ripple-active')
+  }
+
   return (
     <div className={`app-root ${uiThemeClass}`} style={{ minHeight: '100vh', color: '#e5e7eb', padding: 20 }}>
-      <div className="nav-glass" style={{ display: 'flex', borderRadius: 16, overflow: 'hidden', marginBottom: 16 }}>
-        <button className={`tab-btn ${activeTab === 'quote' ? 'active' : ''}`} onClick={() => setActiveTab('quote')} style={{ flex: 1, padding: '12px 14px', border: 'none', cursor: 'pointer' }}>{t('app.quoteTab')}</button>
-        <button className={`tab-btn ${activeTab === 'admin' ? 'active' : ''}`} onClick={() => setActiveTab('admin')} style={{ flex: 1, padding: '12px 14px', border: 'none', cursor: 'pointer' }}>{t('app.adminTab')}</button>
+      <div className="top-tab-row" style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+        <button
+          className={`tab-btn tab-btn-split ${activeTab === 'quote' ? 'active' : ''}`}
+          onMouseDown={triggerTabRipple}
+          onAnimationEnd={(e) => e.currentTarget.classList.remove('tab-ripple-active')}
+          onClick={() => setActiveTab('quote')}
+          style={{ flex: 1, padding: '12px 14px', border: 'none', cursor: 'pointer' }}
+        >
+          {t('app.quoteTab')}
+        </button>
+        <button
+          className={`tab-btn tab-btn-split ${activeTab === 'admin' ? 'active' : ''}`}
+          onMouseDown={triggerTabRipple}
+          onAnimationEnd={(e) => e.currentTarget.classList.remove('tab-ripple-active')}
+          onClick={() => setActiveTab('admin')}
+          style={{ flex: 1, padding: '12px 14px', border: 'none', cursor: 'pointer' }}
+        >
+          {t('app.adminTab')}
+        </button>
       </div>
       <div style={{ display: activeTab === 'quote' ? 'block' : 'none' }}><Quoter /></div>
       <div style={{ display: activeTab === 'admin' ? 'block' : 'none' }}><Admin /></div>
