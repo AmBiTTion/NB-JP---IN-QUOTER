@@ -10,6 +10,7 @@ import type {
   AppData,
   ContainerType,
   Factory,
+  FactoryProductCost,
   InnerPackType,
   Mode,
   PackagingOption,
@@ -149,12 +150,12 @@ function Quoter() {
   )
 
   const factories: Factory[] = data?.factories ?? []
-  const costByFactoryId = useMemo(() => {
-    const map = new Map<string, number>()
+  const factoryCostByFactoryId = useMemo(() => {
+    const map = new Map<string, FactoryProductCost>()
     if (!data || !selectedProductId) return map
     data.factory_product_costs
       .filter((item) => item.product_id === selectedProductId)
-      .forEach((item) => map.set(item.factory_id, item.cost_rmb_per_ton))
+      .forEach((item) => map.set(item.factory_id, item))
     return map
   }, [data, selectedProductId])
 
@@ -165,7 +166,11 @@ function Quoter() {
     return positive?.factory_id ?? matched[0]?.factory_id ?? ''
   }, [data, selectedProductId])
 
-  const selectedFactoryCost = selectedFactoryId ? costByFactoryId.get(selectedFactoryId) : undefined
+  const selectedFactoryCostRecord = selectedFactoryId
+    ? factoryCostByFactoryId.get(selectedFactoryId)
+    : undefined
+  const selectedFactoryCost = selectedFactoryCostRecord?.cost_rmb_per_ton
+  const selectedFactoryCostUnit = selectedFactoryCostRecord?.cost_unit ?? 'ton'
 
   const defaultPackagingId = useMemo(() => {
     if (!selectedProduct || packagingOptions.length === 0) return ''
@@ -185,7 +190,7 @@ function Quoter() {
     }
     if (defaultPackagingId) setSelectedPackagingId(defaultPackagingId)
     if (factories.length > 0) {
-      const fallback = factories.find((factory) => costByFactoryId.has(factory.id))?.id ?? factories[0].id
+      const fallback = factories.find((factory) => factoryCostByFactoryId.has(factory.id))?.id ?? factories[0].id
       setSelectedFactoryId(preferredFactoryId || fallback)
     }
     setQuoteResult(null)
@@ -196,7 +201,7 @@ function Quoter() {
     setFclBagsHint('')
     setLclInputValue('')
     setLandFreightOverridePerTon('')
-  }, [selectedProductId, defaultPackagingId, factories, costByFactoryId, preferredFactoryId])
+  }, [selectedProductId, defaultPackagingId, factories, factoryCostByFactoryId, preferredFactoryId])
 
   useEffect(() => {
     if (!selectedPackaging) return
@@ -254,6 +259,31 @@ function Quoter() {
   }, [effectiveUnitWeight, fclLastEdited, fclTonsHint, fclBagsHint])
 
   const bagsPerTon = effectiveUnitWeight ? 1000 / effectiveUnitWeight : null
+  const effectiveUnitsPerCartonForCost = useMemo(() => {
+    if (!selectedPackaging) return null
+    if (!showCustomPackaging) return selectedPackaging.units_per_carton
+    if (customUnitsPerCarton.trim() === '') return selectedPackaging.units_per_carton
+    const parsed = Number(customUnitsPerCarton)
+    if (!Number.isFinite(parsed)) return null
+    return parsed
+  }, [selectedPackaging, showCustomPackaging, customUnitsPerCarton])
+
+  const selectedFactoryCostPerTonUsed = useMemo(() => {
+    if (!Number.isFinite(selectedFactoryCost ?? Number.NaN) || !selectedFactoryCost || selectedFactoryCost <= 0) {
+      return null
+    }
+    const base = Number(selectedFactoryCost)
+    if (selectedFactoryCostUnit === 'ton') return base
+    if (!bagsPerTon || bagsPerTon <= 0) return null
+    if (selectedFactoryCostUnit === 'bag' || selectedFactoryCostUnit === 'piece') {
+      return base * bagsPerTon
+    }
+    if (selectedFactoryCostUnit === 'carton') {
+      if (!effectiveUnitsPerCartonForCost || effectiveUnitsPerCartonForCost <= 0) return null
+      return base * (bagsPerTon / effectiveUnitsPerCartonForCost)
+    }
+    return base
+  }, [selectedFactoryCost, selectedFactoryCostUnit, bagsPerTon, effectiveUnitsPerCartonForCost])
   const lclTonsValue = useMemo(() => {
     if (!bagsPerTon) return null
     const input = parseNumber(lclInputValue)
@@ -371,7 +401,7 @@ function Quoter() {
     if (!selectedProduct) return t('quote.productRequired')
     if (!selectedPackaging) return t('quote.packagingRequired')
     if (!selectedFactoryId) return t('quote.factoryRequired')
-    if (selectedFactoryCost === undefined || selectedFactoryCost === null || selectedFactoryCost <= 0) {
+    if (!selectedFactoryCostPerTonUsed || selectedFactoryCostPerTonUsed <= 0) {
       return t('quote.factoryCostRequired')
     }
     const fx = parseNumber(fxRate)
@@ -388,7 +418,7 @@ function Quoter() {
     selectedProduct,
     selectedPackaging,
     selectedFactoryId,
-    selectedFactoryCost,
+    selectedFactoryCostPerTonUsed,
     fxRate,
     marginPct,
     mode,
@@ -475,8 +505,20 @@ function Quoter() {
       const margin = Number(marginPct)
       const fclTons = parseNumber(fclTonsHint)
       const lclQty = parseNumber(lclInputValue)
+      if (!selectedFactoryCostPerTonUsed || selectedFactoryCostPerTonUsed <= 0) {
+        setValidationError(t('quote.factoryCostRequired'))
+        return
+      }
+      const dataForCalc: AppData = {
+        ...data,
+        factory_product_costs: data.factory_product_costs.map((item) =>
+          item.factory_id === selectedFactoryId && item.product_id === selectedProduct.id
+            ? { ...item, cost_rmb_per_ton: selectedFactoryCostPerTonUsed }
+            : item,
+        ),
+      }
       const result = calculateQuote({
-        data,
+        data: dataForCalc,
         product_id: selectedProduct.id,
         packaging_option_id: selectedPackaging.id,
         factory_id: selectedFactoryId,
@@ -657,11 +699,16 @@ function Quoter() {
 
           <div style={{ marginTop: 12, marginBottom: 8, fontSize: 13, color: '#9ca3af' }}>{t('quote.sectionFactory')}</div>
           <Select className="ui-select" value={selectedFactoryId || null} onChange={(value) => setSelectedFactoryId(value ?? '')} data={factorySelectData} placeholder={t('quote.selectFactory')} searchable={false} />
-          {selectedFactoryId && (selectedFactoryCost === undefined || selectedFactoryCost === null || selectedFactoryCost <= 0) && (
+          {selectedFactoryId && (!selectedFactoryCostPerTonUsed || selectedFactoryCostPerTonUsed <= 0) && (
             <div style={{ color: '#f87171', marginTop: 6 }}>{t('quote.maintainFactoryCost')}</div>
           )}
-          {selectedFactoryId && selectedFactoryCost !== undefined && selectedFactoryCost !== null && selectedFactoryCost > 0 && (
-            <div style={{ color: '#93c5fd', marginTop: 6 }}>{t('quote.costPerTon')}{formatRmb(selectedFactoryCost, 2)}</div>
+          {selectedFactoryId && selectedFactoryCost !== undefined && selectedFactoryCost !== null && selectedFactoryCost > 0 && selectedFactoryCostPerTonUsed && (
+            <div style={{ color: '#93c5fd', marginTop: 6 }}>
+              {t('quote.costPerTon')}{formatRmb(selectedFactoryCostPerTonUsed, 2)}
+              <span style={{ marginLeft: 8, color: '#9ca3af' }}>
+                ({formatRmb(selectedFactoryCost, 2)}/{selectedFactoryCostUnit === 'ton' ? '吨' : selectedFactoryCostUnit === 'bag' ? '包' : selectedFactoryCostUnit === 'piece' ? '个' : '箱'})
+              </span>
+            </div>
           )}
 
           <div style={{ marginTop: 12, marginBottom: 8, fontSize: 13, color: '#9ca3af' }}>{t('quote.sectionPackingQty')}</div>
