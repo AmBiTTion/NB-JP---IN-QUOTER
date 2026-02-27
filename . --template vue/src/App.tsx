@@ -229,6 +229,21 @@ function Quoter() {
     return lclInputType === 'bags' ? input : input * bagsPerTon
   }, [bagsPerTon, lclInputType, lclInputValue])
 
+  const handleLclInputTypeChange = (nextType: QtyInputType) => {
+    if (nextType === lclInputType) return
+    if (nextType === 'tons') {
+      if (lclTonsValue !== null) {
+        setLclInputValue(String(lclTonsValue))
+      }
+      setLclInputType('tons')
+      return
+    }
+    if (lclBagsValue !== null) {
+      setLclInputValue(String(lclBagsValue))
+    }
+    setLclInputType('bags')
+  }
+
   const packagingRecommendations = data?.packaging_recommendations ?? []
   const matchedRecommendation = useMemo(() => {
     if (!selectedProductId) return null
@@ -621,8 +636,8 @@ function Quoter() {
           {mode === 'LCL' && (
             <div style={{ marginTop: 10 }}>
               <div style={{ display: 'flex', gap: 14, alignItems: 'center', marginBottom: 8, flexWrap: 'wrap' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}><input type="radio" checked={lclInputType === 'tons'} onChange={() => setLclInputType('tons')} />输入吨数</label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}><input type="radio" checked={lclInputType === 'bags'} onChange={() => setLclInputType('bags')} />输入袋数</label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}><input type="radio" checked={lclInputType === 'tons'} onChange={() => handleLclInputTypeChange('tons')} />输入吨数</label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}><input type="radio" checked={lclInputType === 'bags'} onChange={() => handleLclInputTypeChange('bags')} />输入袋数</label>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                 <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{lclInputType === 'tons' ? '吨数' : '袋数'}</div><NumberInput className="ui-input" value={toMantineNumber(lclInputValue)} onChange={(value) => setLclInputValue(toInputString(value))} hideControls /></div>
