@@ -7,7 +7,7 @@ export interface Settings {
   fx_rate: number
   margin_pct: number
   quote_valid_days: number
-  ui_theme?: 'classic' | 'neon' | 'minimal'
+  ui_theme?: 'classic' | 'neon' | 'minimal' | 'paper'
   money_format: {
     rmb_decimals: number
     usd_decimals: number
@@ -64,6 +64,7 @@ export interface FactoryProductCost {
   factory_id: string
   product_id: string
   cost_rmb_per_ton: number
+  cost_unit?: 'ton' | 'bag' | 'piece' | 'carton'
 }
 
 export interface Port {

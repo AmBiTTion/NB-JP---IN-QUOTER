@@ -18,7 +18,7 @@ import type {
   QtyInputType,
 } from '@/types/domain'
 
-const APP_VERSION = '2.6.8'
+const APP_VERSION = '2.7.5'
 
 function parseNumber(value: string): number | null {
   const trimmed = value.trim()
@@ -158,6 +158,13 @@ function Quoter() {
     return map
   }, [data, selectedProductId])
 
+  const preferredFactoryId = useMemo(() => {
+    if (!data || !selectedProductId) return ''
+    const matched = data.factory_product_costs.filter((item) => item.product_id === selectedProductId)
+    const positive = matched.find((item) => Number.isFinite(item.cost_rmb_per_ton) && item.cost_rmb_per_ton > 0)
+    return positive?.factory_id ?? matched[0]?.factory_id ?? ''
+  }, [data, selectedProductId])
+
   const selectedFactoryCost = selectedFactoryId ? costByFactoryId.get(selectedFactoryId) : undefined
 
   const defaultPackagingId = useMemo(() => {
@@ -178,8 +185,8 @@ function Quoter() {
     }
     if (defaultPackagingId) setSelectedPackagingId(defaultPackagingId)
     if (factories.length > 0) {
-      const withCost = factories.find((factory) => costByFactoryId.has(factory.id))
-      setSelectedFactoryId(withCost?.id ?? factories[0].id)
+      const fallback = factories.find((factory) => costByFactoryId.has(factory.id))?.id ?? factories[0].id
+      setSelectedFactoryId(preferredFactoryId || fallback)
     }
     setQuoteResult(null)
     setShowCustomPackaging(false)
@@ -189,7 +196,7 @@ function Quoter() {
     setFclBagsHint('')
     setLclInputValue('')
     setLandFreightOverridePerTon('')
-  }, [selectedProductId, defaultPackagingId, factories, costByFactoryId])
+  }, [selectedProductId, defaultPackagingId, factories, costByFactoryId, preferredFactoryId])
 
   useEffect(() => {
     if (!selectedPackaging) return
@@ -601,9 +608,9 @@ function Quoter() {
     },
     {
       title: t('quote.result.kpiCostUsd'),
-      value: quoteResult ? quoteResult.summary.cost_usd_per_bag : 0,
-      unit: t('quote.unit.usdPerBag'),
-      format: (value) => formatUsd(value),
+      value: quoteResult ? quoteResult.summary.net_rmb_per_bag : 0,
+      unit: t('quote.unit.rmbPerBag'),
+      format: (value) => formatRmb(value),
     },
     {
       title: t('quote.result.kpiGpPerBag'),
@@ -709,7 +716,6 @@ function Quoter() {
             </div>
           )}
 
-          <div style={{ marginTop: 12, marginBottom: 8, fontSize: 13, color: '#9ca3af' }}>{t('quote.sectionTransport')}</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{t('quote.mode')}</div><Select className="ui-select" value={mode} onChange={(value) => setMode((value as Mode | null) ?? 'FCL')} data={[{ value: 'FCL', label: 'FCL' }, { value: 'LCL', label: 'LCL' }]} searchable={false} /></div>
             <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{t('quote.container')}</div><Select className="ui-select" value={containerType} onChange={(value) => setContainerType((value as ContainerType | null) ?? '20GP')} data={[{ value: '20GP', label: '20GP' }, { value: '40HQ', label: '40HQ' }]} searchable={false} /></div>
@@ -732,7 +738,9 @@ function Quoter() {
         </div>
 
         <div className="panel glass-card">
-          <h2 style={{ marginTop: 0, fontSize: 18 }}>{t('quote.sectionResult')}</h2>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: 6 }}>
+            <div style={{ textAlign: 'right', fontSize: 12, color: '#94a3b8' }}>{t('app.versionPrefix')}{APP_VERSION}</div>
+          </div>
           <div className="kpi-row" style={{ marginTop: 8 }}>
             {kpiCards.map((card) => (
               <div key={card.title} className="kpi-card">
@@ -746,15 +754,15 @@ function Quoter() {
           <div className="subpanel glass-card" style={{ padding: 12, marginTop: 12 }}>
             <div style={{ fontWeight: 700, marginBottom: 8 }}>{t('quote.result.summary')}</div>
             {quoteResult ? (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                <div>{t('quote.result.mode')}{quoteResult.summary.mode}</div>
-                <div>{t('quote.result.container')}{quoteResult.summary.container_type}</div>
-                <div>{t('quote.result.tons')}{quoteResult.summary.tons.toFixed(4)}</div>
-                <div>{t('quote.result.bags')}{quoteResult.summary.bags_int}</div>
-                <div>{t('quote.result.cartons')}{quoteResult.summary.cartons_int}</div>
-                <div>{t('quote.result.netCost')}{formatRmb(quoteResult.summary.net_rmb_per_bag)} / {t('quote.unit.bag')}</div>
-                <div>{t('quote.result.bagSource')}{sourceLabel(quoteResult.summary.bag_price_source)}</div>
-                <div>{t('quote.result.cartonSource')}{sourceLabel(quoteResult.summary.carton_price_source)}</div>
+              <div className="summary-box-grid">
+                <div className="summary-box-item"><div className="summary-box-label">{t('quote.result.mode')}</div><div className="summary-box-value">{quoteResult.summary.mode}</div></div>
+                <div className="summary-box-item"><div className="summary-box-label">{t('quote.result.container')}</div><div className="summary-box-value">{quoteResult.summary.container_type}</div></div>
+                <div className="summary-box-item"><div className="summary-box-label">{t('quote.result.tons')}</div><div className="summary-box-value">{quoteResult.summary.tons.toFixed(4)}</div></div>
+                <div className="summary-box-item"><div className="summary-box-label">{t('quote.result.bags')}</div><div className="summary-box-value">{quoteResult.summary.bags_int}</div></div>
+                <div className="summary-box-item"><div className="summary-box-label">{t('quote.result.cartons')}</div><div className="summary-box-value">{quoteResult.summary.cartons_int}</div></div>
+                <div className="summary-box-item"><div className="summary-box-label">{t('quote.result.netCost')}</div><div className="summary-box-value">{formatRmb(quoteResult.summary.net_rmb_per_bag)} / {t('quote.unit.bag')}</div></div>
+                <div className="summary-box-item"><div className="summary-box-label">{t('quote.result.bagSource')}</div><div className="summary-box-value">{sourceLabel(quoteResult.summary.bag_price_source)}</div></div>
+                <div className="summary-box-item"><div className="summary-box-label">{t('quote.result.cartonSource')}</div><div className="summary-box-value">{sourceLabel(quoteResult.summary.carton_price_source)}</div></div>
               </div>
             ) : (
               <div style={{ color: '#9ca3af' }}>{t('quote.result.fillHint')}</div>
@@ -793,8 +801,6 @@ function Quoter() {
               </ul>
             </div>
           )}
-
-          <div style={{ marginTop: 10, textAlign: 'right', fontSize: 12, color: '#94a3b8' }}>{t('app.versionPrefix')}{APP_VERSION}</div>
         </div>
       </div>
     </div>
@@ -805,7 +811,13 @@ export default function App() {
   const { uiThemeKey } = useUiTheme()
   const [activeTab, setActiveTab] = useState<'quote' | 'admin'>('quote')
   const uiThemeClass =
-    uiThemeKey === 'neon' ? 'theme-creative' : uiThemeKey === 'minimal' ? 'theme-minimal' : 'theme-classic'
+    uiThemeKey === 'neon'
+      ? 'theme-creative'
+      : uiThemeKey === 'minimal'
+        ? 'theme-minimal'
+        : uiThemeKey === 'paper'
+          ? 'theme-paper'
+          : 'theme-classic'
 
   const triggerTabRipple = (event: MouseEvent<HTMLButtonElement>) => {
     const button = event.currentTarget
@@ -823,7 +835,7 @@ export default function App() {
   }
 
   return (
-    <div className={`app-root ${uiThemeClass}`} style={{ minHeight: '100vh', color: '#e5e7eb', padding: 20 }}>
+    <div className={`app-root ${uiThemeClass}`} style={{ minHeight: '100vh', color: 'var(--text)', padding: 20 }}>
       <div className="top-tab-row" style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
         <button
           className={`tab-btn tab-btn-split ${activeTab === 'quote' ? 'active' : ''}`}

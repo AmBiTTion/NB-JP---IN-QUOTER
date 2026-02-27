@@ -73,6 +73,7 @@ interface FactoryProductCost {
   factory_id: string
   product_id: string
   cost_rmb_per_ton: number
+  cost_unit?: 'ton' | 'bag' | 'piece' | 'carton'
 }
 
 interface Port {
@@ -438,6 +439,7 @@ function migrateLegacyData(raw: LegacyData): AppData {
       factory_id: factoryId,
       product_id: productId,
       cost_rmb_per_ton: toNumber(legacy.price_per_ton, 0),
+      cost_unit: 'ton',
     })
 
     containerLoadRules.push({

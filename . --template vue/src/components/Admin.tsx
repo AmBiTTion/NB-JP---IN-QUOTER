@@ -81,6 +81,7 @@ const LABELS: Record<string, string> = {
   inner_pack_type: ta('fields.inner_pack_type'), cost_rmb_per_ton: ta('fields.cost_rmb_per_ton'), max_tons: ta('fields.max_tons'),
   port_id: ta('fields.port_id'), mode: ta('fields.mode'), container_type: ta('fields.container_type'), base_rmb: ta('fields.base_rmb'), extra_rmb_per_ton: ta('fields.extra_rmb_per_ton'),
   min_rmb_per_ton: ta('fields.min_rmb_per_ton'), max_rmb_per_ton: ta('fields.max_rmb_per_ton'), default_rmb_per_ton: ta('fields.default_rmb_per_ton'),
+  cost_unit: ta('fields.cost_unit'),
   fx_rate: ta('fields.fx_rate'), margin_pct: ta('fields.margin_pct'), quote_valid_days: ta('fields.quote_valid_days'), pricing_formula_mode: ta('fields.pricing_formula_mode'),
   rounding_policy: ta('fields.rounding_policy'), terms_template: ta('fields.terms_template'), ui_theme: ta('fields.ui_theme'), money_format_rmb_decimals: ta('fields.money_format_rmb_decimals'), money_format_usd_decimals: ta('fields.money_format_usd_decimals'),
   recommended_units_per_carton: ta('fields.recommended_units_per_carton'), notes: ta('fields.notes'), carton_price_rmb_override: ta('fields.carton_price_rmb_override'), bag_price_rmb_override: ta('fields.bag_price_rmb_override'),
@@ -151,9 +152,6 @@ export default function Admin() {
   const [addModalOpen, setAddModalOpen] = useState(false)
   const [addDraftTable, setAddDraftTable] = useState<EditableTableKey | null>(null)
   const [addDraftRow, setAddDraftRow] = useState<Record<string, unknown> | null>(null)
-  const [imagePreviewOpen, setImagePreviewOpen] = useState(false)
-  const [imagePreviewPath, setImagePreviewPath] = useState('')
-  const [imagePreviewTitle, setImagePreviewTitle] = useState('')
   const [themeCustomOpen, setThemeCustomOpen] = useState(false)
   const [themeDraft, setThemeDraft] = useState<CustomThemeOverrides>(defaultCustomThemeOverrides)
   const autoSaveTimerRef = useRef<number | null>(null)
@@ -227,30 +225,6 @@ export default function Admin() {
     markTableDirty(table)
   }, [markTableDirty])
 
-  const handleUploadProductImage = useCallback(async (productId: string) => {
-    try {
-      // @ts-ignore
-      const result = (await window.ipcRenderer.invoke('select-product-image', { productId })) as { success: boolean; canceled?: boolean; filePath?: string; message?: string }
-      if (!result.success) { if (!result.canceled) setError(result.message ?? ta('statusText.uploadFailed')); return }
-      if (!result.filePath) { setError(ta('statusText.imagePathMissing')); return }
-      updateRow('products', productId, 'image_path', result.filePath)
-      setStatus(ta('common.dataLoaded')); setError('')
-    } catch (e) { setError(`${ta('statusText.uploadFailed')}: ${String(e)}`) }
-  }, [updateRow])
-
-  const openProductImagePreview = useCallback((product: Product) => {
-    const rawPath = String(product.image_path ?? '').trim()
-    if (!rawPath) {
-      setError('该产品尚未上传图片')
-      return
-    }
-    const fileUrl = `file:///${rawPath.replace(/\\/g, '/').replace(/^\/+/, '')}`
-    setImagePreviewPath(encodeURI(fileUrl))
-    setImagePreviewTitle(product.name || product.name_en || product.id)
-    setImagePreviewOpen(true)
-    setError('')
-  }, [])
-
   const buildNewRow = useCallback((table: EditableTableKey) => {
     return (() => {
       switch (table) {
@@ -258,7 +232,7 @@ export default function Admin() {
         case 'packaging_options': return { id: nextIdFromRows(ID_PREFIX.packaging_options, tables.packaging_options), product_id: tables.products[0]?.id ?? '', name: '', unit_weight_kg: 1, units_per_carton: null, carton_price_rmb: 0, bag_price_rmb: 0, inner_pack_type: 'none', unit_cbm: null, carton_cbm: null, default_selected: false } satisfies PackagingOption
         case 'packaging_recommendations': return { id: nextIdFromRows(ID_PREFIX.packaging_recommendations, tables.packaging_recommendations), product_id: tables.products[0]?.id ?? '', inner_pack_type: null, unit_weight_kg: 1, recommended_units_per_carton: 1, notes: '' } satisfies PackagingRecommendation
         case 'factories': return { id: nextIdFromRows(ID_PREFIX.factories, tables.factories), name: '', default_port_id: null } satisfies Factory
-        case 'factory_product_costs': return { id: nextIdFromRows(ID_PREFIX.factory_product_costs, tables.factory_product_costs), factory_id: tables.factories[0]?.id ?? '', product_id: tables.products[0]?.id ?? '', cost_rmb_per_ton: 0 } satisfies FactoryProductCost
+        case 'factory_product_costs': return { id: nextIdFromRows(ID_PREFIX.factory_product_costs, tables.factory_product_costs), factory_id: tables.factories[0]?.id ?? '', product_id: tables.products[0]?.id ?? '', cost_rmb_per_ton: 0, cost_unit: 'ton' } satisfies FactoryProductCost
         case 'ports': return { id: nextIdFromRows(ID_PREFIX.ports, tables.ports), name: '', code: '', country: null } satisfies Port
         case 'port_charges_rules': return { id: nextIdFromRows(ID_PREFIX.port_charges_rules, tables.port_charges_rules), port_id: null, mode: 'FCL', container_type: '20GP', base_rmb: 0, extra_rmb_per_ton: 0 } satisfies PortChargesRule
         case 'container_load_rules': return { id: nextIdFromRows(ID_PREFIX.container_load_rules, tables.container_load_rules), product_id: tables.products[0]?.id ?? '', container_type: '20GP', max_tons: 0 } satisfies ContainerLoadRule
@@ -370,7 +344,7 @@ export default function Admin() {
       }
       current.factories.forEach((f) => {
         if (!nextCosts.some((x) => x.factory_id === f.id && x.product_id === p.id)) {
-          nextCosts.push({ id: nextIdFromRows(ID_PREFIX.factory_product_costs, nextCosts), factory_id: f.id, product_id: p.id, cost_rmb_per_ton: 0 })
+          nextCosts.push({ id: nextIdFromRows(ID_PREFIX.factory_product_costs, nextCosts), factory_id: f.id, product_id: p.id, cost_rmb_per_ton: 0, cost_unit: 'ton' })
           touched.add('factory_product_costs')
         }
       })
@@ -473,7 +447,13 @@ export default function Admin() {
         { key: 'unit_weight_kg', label: ta('fields.unit_weight_kg'), type: 'number', step: '0.01' }, { key: 'recommended_units_per_carton', label: ta('fields.recommended_units_per_carton'), type: 'number', step: '1' }, { key: 'notes', label: ta('fields.notes'), type: 'text', width: 220 },
       ] as Array<Column<PackagingRecommendation>>,
       factories: [{ key: 'id', label: ta('fields.id'), type: 'text', readOnly: true, width: 140 }, { key: 'name', label: ta('fields.name'), type: 'text', width: 220 }, { key: 'default_port_id', label: ta('fields.default_port_id'), type: 'select', options: portSelect }] as Array<Column<Factory>>,
-      factory_product_costs: [{ key: 'id', label: ta('fields.id'), type: 'text', readOnly: true, width: 140 }, { key: 'factory_id', label: ta('fields.factory_id'), type: 'select', options: factorySelect }, { key: 'product_id', label: ta('fields.product_id'), type: 'select', options: productSelect }, { key: 'cost_rmb_per_ton', label: ta('fields.cost_rmb_per_ton'), type: 'number' }] as Array<Column<FactoryProductCost>>,
+      factory_product_costs: [
+        { key: 'id', label: ta('fields.id'), type: 'text', readOnly: true, width: 140 },
+        { key: 'factory_id', label: ta('fields.factory_id'), type: 'select', options: factorySelect },
+        { key: 'product_id', label: ta('fields.product_id'), type: 'select', options: productSelect },
+        { key: 'cost_rmb_per_ton', label: ta('fields.cost_rmb_per_ton'), type: 'number' },
+        { key: 'cost_unit', label: ta('fields.cost_unit'), type: 'select', options: [{ value: 'ton', label: '吨' }, { value: 'bag', label: '包' }, { value: 'piece', label: '个' }, { value: 'carton', label: '箱' }] },
+      ] as Array<Column<FactoryProductCost>>,
       ports: [{ key: 'id', label: ta('fields.id'), type: 'text', readOnly: true, width: 140 }, { key: 'name', label: ta('fields.name'), type: 'text', width: 200 }, { key: 'code', label: ta('fields.code'), type: 'text', width: 120 }, { key: 'country', label: ta('fields.country'), type: 'text', width: 160 }] as Array<Column<Port>>,
       port_charges_rules: [{ key: 'id', label: ta('fields.id'), type: 'text', readOnly: true, width: 140 }, { key: 'port_id', label: ta('fields.port_id'), type: 'select', options: portSelect }, { key: 'mode', label: ta('fields.mode'), type: 'select', options: [{ value: 'FCL', label: 'FCL' }, { value: 'LCL', label: 'LCL' }] }, { key: 'container_type', label: ta('fields.container_type'), type: 'select', options: [{ value: '', label: 'N/A' }, { value: '20GP', label: '20GP' }, { value: '40HQ', label: '40HQ' }] }, { key: 'base_rmb', label: ta('fields.base_rmb'), type: 'number' }, { key: 'extra_rmb_per_ton', label: ta('fields.extra_rmb_per_ton'), type: 'number' }] as Array<Column<PortChargesRule>>,
       container_load_rules: [{ key: 'id', label: ta('fields.id'), type: 'text', readOnly: true, width: 140 }, { key: 'product_id', label: ta('fields.product_id'), type: 'select', options: productSelect }, { key: 'container_type', label: ta('fields.container_type'), type: 'select', options: [{ value: '20GP', label: '20GP' }, { value: '40HQ', label: '40HQ' }] }, { key: 'max_tons', label: ta('fields.max_tons'), type: 'number' }] as Array<Column<ContainerLoadRule>>,
@@ -589,51 +569,14 @@ export default function Admin() {
                 <MantineSelect className="ui-select" value={row.pol_port_id ?? ''} onChange={(value) => updateRow('products', row.id, 'pol_port_id', value ?? '')} data={portOptions} searchable={false} allowDeselect={false} styles={{ input: inputBaseStyle, dropdown: { backgroundColor: 'var(--surface-2)' } }} />
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 12, alignItems: 'stretch' }}>
-              <div style={{ flex: 1 }}>
-                <div style={fieldLabelStyle}>Description (EN)</div>
-                <textarea
-                  className="no-scroll"
-                  value={row.description_en ?? ''}
-                  onChange={(e) => updateRow('products', row.id, 'description_en', e.target.value)}
-                  style={{ ...inputBaseStyle, minHeight: 80 }}
-                />
-              </div>
-              <div
-                style={{ width: 360, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 10 }}
-              >
-                <div>
-                  <div style={fieldLabelStyle}>产品图片</div>
-                  <div className="subpanel" style={{ minHeight: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                    {row.image_path ? (
-                      <img
-                        src={encodeURI(`file:///${String(row.image_path).replace(/\\/g, '/').replace(/^\/+/, '')}`)}
-                        alt={row.name || row.id}
-                        style={{ maxWidth: '100%', maxHeight: 76, objectFit: 'contain' }}
-                      />
-                    ) : (
-                      <span style={{ color: 'var(--text-dim)', fontSize: 12 }}>未上传图片</span>
-                    )}
-                  </div>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-                  <button
-                    className="btn-outline-neon"
-                    onClick={() => openProductImagePreview(row)}
-                    disabled={!row.image_path}
-                    style={{ cursor: row.image_path ? 'pointer' : 'not-allowed', opacity: row.image_path ? 1 : 0.5 }}
-                  >
-                    预览图片
-                  </button>
-                  <button
-                    className="btn-info-soft"
-                    onClick={() => void handleUploadProductImage(row.id)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    {ta('common.uploadImage')}
-                  </button>
-                </div>
-              </div>
+            <div>
+              <div style={fieldLabelStyle}>Description (EN)</div>
+              <textarea
+                className="no-scroll"
+                value={row.description_en ?? ''}
+                onChange={(e) => updateRow('products', row.id, 'description_en', e.target.value)}
+                style={{ ...inputBaseStyle, minHeight: 80 }}
+              />
             </div>
           </div>)}</div>}
 
@@ -897,28 +840,6 @@ export default function Admin() {
             <div style={{ marginTop: 14, display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
               <button className="btn-outline-neon" onClick={cancelAddRow}>{ta('common.cancel')}</button>
               <button className="btn-primary" onClick={confirmAddRow}>{ta('common.save')}</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {imagePreviewOpen && (
-        <div className="modal-backdrop">
-          <div className="modal-card glass-card" style={{ width: 640, maxWidth: '90vw' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <h3 style={{ margin: 0 }}>图片预览 - {imagePreviewTitle}</h3>
-              <button className="btn-outline-neon" onClick={() => setImagePreviewOpen(false)}>{ta('common.close')}</button>
-            </div>
-            <div className="subpanel" style={{ minHeight: 360, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 12 }}>
-              {imagePreviewPath ? (
-                <img
-                  src={imagePreviewPath}
-                  alt={imagePreviewTitle}
-                  style={{ maxWidth: '100%', maxHeight: '70vh', objectFit: 'contain', borderRadius: 8 }}
-                />
-              ) : (
-                <span style={{ color: 'var(--text-dim)' }}>暂无可预览图片</span>
-              )}
             </div>
           </div>
         </div>
