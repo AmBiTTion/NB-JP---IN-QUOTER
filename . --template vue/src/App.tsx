@@ -18,7 +18,7 @@ import type {
   QtyInputType,
 } from '@/types/domain'
 
-const APP_VERSION = '2.5.8'
+const APP_VERSION = '2.5.9'
 
 function parseNumber(value: string): number | null {
   const trimmed = value.trim()

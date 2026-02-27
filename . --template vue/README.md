@@ -1,4 +1,4 @@
-# FOB Quotation System v2.5.8
+# FOB Quotation System v2.5.9
 
 A desktop quotation tool for export business, built with Electron + React + TypeScript.
 
@@ -37,7 +37,7 @@ npm run dev
 - `run_hidden.vbs`: Hidden launch script (no visible PowerShell window)
 
 ## Version
-- `v2.5.8` (current)
+- `v2.5.9` (current)
 
 ## Signatures
 - Codex // GPT-5 Engineering Edition
