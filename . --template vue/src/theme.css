@@ -334,7 +334,7 @@ html,body{
 }
 
 .tab-btn-split.tab-ripple-active::after {
-  animation: tabRippleExpand var(--motion-mid) var(--ease-smooth);
+  animation: tabRippleExpand 420ms cubic-bezier(.42, 0, 1, 1);
 }
 
 .tab-btn:hover {
@@ -430,6 +430,14 @@ html,body{
   transition: background-color var(--motion-mid) var(--ease-smooth), border-color var(--motion-mid) var(--ease-smooth), box-shadow var(--motion-mid) var(--ease-smooth), transform var(--motion-mid) var(--ease-smooth);
 }
 
+/* Admin: Mantine Select should use the same single-layer frame as inputs */
+.admin-page .ui-select {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
 .admin-page .panel:hover,
 .admin-page .subpanel:hover {
   transform: translateY(-1px);
@@ -440,6 +448,9 @@ html,body{
 .admin-page .mantine-Input-input,
 .admin-page .mantine-Select-input {
   transition: border-color var(--motion-fast) var(--ease-smooth), box-shadow var(--motion-fast) var(--ease-smooth), background-color var(--motion-fast) var(--ease-smooth), transform var(--motion-fast) var(--ease-smooth);
+  min-height: 40px;
+  border-radius: var(--radius-1) !important;
+  font-size: 14px;
 }
 
 .admin-page button,
@@ -447,6 +458,8 @@ html,body{
 .admin-page .btn-outline-neon,
 .admin-page .tab-btn {
   transition: transform var(--motion-fast) var(--ease-smooth), box-shadow var(--motion-mid) var(--ease-smooth), background-color var(--motion-fast) var(--ease-smooth), border-color var(--motion-fast) var(--ease-smooth);
+  min-height: 40px;
+  border-radius: var(--radius-1) !important;
 }
 
 .admin-page button:active,
@@ -537,7 +550,21 @@ html,body{
 .admin-table input[type='text'],
 .admin-table input[type='number'],
 .admin-table .mantine-Select-input {
-  min-height: 38px !important;
+  min-height: 40px !important;
+}
+
+.admin-tabs-row .tab-btn {
+  min-width: 92px;
+}
+
+.admin-toolbar h2 {
+  margin: 0;
+  line-height: 40px;
+}
+
+.admin-add-btn {
+  min-width: 104px;
+  box-shadow: 0 8px 20px rgba(var(--accent-rgb), .24) !important;
 }
 
 @keyframes fadeInLinear {
@@ -578,6 +605,42 @@ html,body{
   padding: 0 14px !important;
 }
 
+.quote-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 10px 0 8px 0;
+}
+
+.quote-hero-kicker {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: rgba(var(--accent-rgb), .98);
+  border: 1px solid rgba(var(--accent-rgb), .32);
+  background: rgba(var(--accent-rgb), .10);
+}
+
+.quote-hero-title {
+  margin: 8px 0 2px 0;
+  font-size: 28px;
+  line-height: 1.08;
+  letter-spacing: .2px;
+  color: var(--text);
+  font-weight: 750;
+}
+
+.quote-hero-subtitle {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
 .ui-select:focus{
   border-color: rgba(var(--accent-2-rgb), .72);
   box-shadow:
@@ -605,12 +668,12 @@ select option:checked{
 
 @keyframes tabRippleExpand {
   0% {
-    opacity: .45;
-    transform: translate(-50%, -50%) scale(0.5);
+    opacity: .48;
+    transform: translate(-50%, -50%) scale(0.35);
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(26);
+    transform: translate(-50%, -50%) scale(30);
   }
 }
 

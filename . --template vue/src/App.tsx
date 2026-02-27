@@ -18,7 +18,7 @@ import type {
   QtyInputType,
 } from '@/types/domain'
 
-const APP_VERSION = '2.5.9'
+const APP_VERSION = '2.6.5'
 
 function parseNumber(value: string): number | null {
   const trimmed = value.trim()
@@ -586,8 +586,12 @@ function Quoter() {
 
   return (
     <div className="quote-page" style={{ padding: 24 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <h1 style={{ fontSize: 24, margin: 0 }}>{t('app.title')}</h1>
+      <div className="quote-hero">
+        <div>
+          <div className="quote-hero-kicker">FOB Pricing</div>
+          <h1 className="quote-hero-title">FOB Quotation Studio</h1>
+          <div className="quote-hero-subtitle">Professional Internal Pricing Console</div>
+        </div>
         <Button className="btn-outline-neon" variant="outline" size="sm" onClick={() => void loadData()}>
           {t('app.refresh')}
         </Button>

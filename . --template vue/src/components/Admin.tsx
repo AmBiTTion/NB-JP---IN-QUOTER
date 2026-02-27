@@ -466,14 +466,17 @@ export default function Admin() {
 
   return (
     <div className="admin-page" style={{ minHeight: '100vh', backgroundColor: 'transparent', color: '#e5e7eb', padding: 20 }}>
-      <h1 style={{ marginTop: 0 }}>{ta('common.dataManage')}</h1>
-      <div style={{ marginBottom: 12, display: 'flex', gap: 8, alignItems: 'center' }}>
-        <button className="btn-outline-neon" onClick={() => void loadData()} style={{ padding: '8px 12px', cursor: 'pointer' }}>{ta('common.refresh')}</button>
-        <span className="status-pill status-info">{status || ta('common.ready')}</span>
-        <span className={`status-pill ${autoSaveToneClass}`}>{autoSaveLabel}</span>
-      </div>
       {error && <div className="status-box status-error" style={{ marginBottom: 12 }}>{error}</div>}
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>{TABS.map((tab) => <button className={`tab-btn ${activeTab === tab.key ? 'active' : ''}`} key={tab.key} onClick={() => setActiveTab(tab.key)} style={{ padding: '8px 12px', cursor: 'pointer' }}>{tab.label}</button>)}</div>      {activeTab === 'settings' && (
+      <div className="admin-tabs-row" style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', marginBottom: 16 }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {TABS.map((tab) => <button className={`tab-btn ${activeTab === tab.key ? 'active' : ''}`} key={tab.key} onClick={() => setActiveTab(tab.key)} style={{ padding: '8px 14px', cursor: 'pointer' }}>{tab.label}</button>)}
+        </div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
+          <span className="status-pill status-info">{status || ta('common.ready')}</span>
+          <span className={`status-pill ${autoSaveToneClass}`}>{autoSaveLabel}</span>
+        </div>
+      </div>
+      {activeTab === 'settings' && (
         <div className="panel" style={sectionStyle}>
           <h2 style={{ marginTop: 0 }}>{ta('common.settings')}</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12 }}>
@@ -505,18 +508,16 @@ export default function Admin() {
               <Text size="xs" c="dimmed" mt={6}>{ta('hint.theme')}</Text>
             </div>
             <div style={{ gridColumn: '1 / span 2' }}><label>{labelFor('terms_template')}</label><textarea className="no-scroll" value={settingsTermsTemplate} onChange={(e) => { setSettingsTermsTemplate(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} rows={3} style={{ ...inputBaseStyle, marginTop: 6, minHeight: 88 }} /></div>
-            <div style={{ display: 'flex', alignItems: 'end' }}><button className="btn-primary" onClick={() => void saveSettings()} style={{ height: 38 }}>{ta('common.save')}</button></div>
           </div>
         </div>
       )}
 
       {activeTab !== 'settings' && (
         <div className="panel" style={sectionStyle}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="admin-toolbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
             <h2 style={{ marginTop: 0 }}>{TABS.find((t) => t.key === activeTab)?.label ?? activeTab}</h2>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button className="btn-outline-neon" onClick={() => openAddModal(activeTab)} style={{ cursor: 'pointer' }}>{ta('common.add')}</button>
-              <button className="btn-primary" onClick={() => void saveTable(activeTab)} style={{ cursor: 'pointer', fontWeight: 700 }}>{ta('common.save')}</button>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <button className="btn-primary admin-add-btn" onClick={() => openAddModal(activeTab)} style={{ cursor: 'pointer', fontWeight: 700 }}>{ta('common.add')}</button>
             </div>
           </div>
 
