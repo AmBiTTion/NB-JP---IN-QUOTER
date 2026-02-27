@@ -316,6 +316,24 @@ html,body{
   border-radius: var(--radius-1) !important;
 }
 
+.mantine-Select-dropdown,
+.mantine-Combobox-dropdown {
+  background: #0b1220 !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+}
+
+.mantine-Select-option,
+.mantine-Combobox-option {
+  background: transparent !important;
+  color: #e5e7eb !important;
+}
+
+.mantine-Select-option[data-selected],
+.mantine-Combobox-option[data-combobox-selected],
+.mantine-Combobox-option[data-combobox-active] {
+  background: rgba(59, 130, 246, 0.24) !important;
+}
+
 .app-root .quote-page .btn-primary,
 .app-root .quote-page .btn-outline-neon {
   min-height: var(--control-h) !important;

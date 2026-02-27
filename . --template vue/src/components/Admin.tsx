@@ -107,7 +107,7 @@ function EditableTable<T extends { id: string }>(props: {
         <tbody>{rows.map((row) => <tr key={row.id} style={{ borderTop: '1px solid #1f2937' }}>{columns.map((c) => {
           const raw = row[c.key] as unknown
           if (c.type === 'checkbox') return <td key={String(c.key)} style={{ padding: '8px 6px' }}><input type="checkbox" checked={Boolean(raw)} disabled={c.readOnly} onChange={(e) => onChange(row.id, c.key, e.target.checked)} /></td>
-          if (c.type === 'select') return <td key={String(c.key)} style={{ padding: '8px 6px' }}><select className="ui-select" value={(raw ?? '') as string} disabled={c.readOnly} onChange={(e) => onChange(row.id, c.key, e.target.value)} style={inputBaseStyle}>{(c.options ?? []).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select></td>
+          if (c.type === 'select') return <td key={String(c.key)} style={{ padding: '8px 6px' }}><MantineSelect className="ui-select" value={((raw ?? '') as string) || ''} disabled={c.readOnly} onChange={(value) => onChange(row.id, c.key, value ?? '')} data={c.options ?? []} searchable={false} allowDeselect={false} styles={{ input: { ...inputBaseStyle, padding: '6px 8px' }, dropdown: { backgroundColor: '#0b1220' } }} /></td>
           if (c.type === 'number') return <td key={String(c.key)} style={{ padding: '8px 6px' }}><input type="number" step={c.step ?? '0.01'} value={formatNumberInput(raw)} readOnly={c.readOnly} onChange={(e) => onChange(row.id, c.key, parseNumberInput(e.target.value, Boolean(c.nullable)))} style={{ ...inputBaseStyle, backgroundColor: c.readOnly ? '#111827' : '#0f172a' }} /></td>
           return <td key={String(c.key)} style={{ padding: '8px 6px' }}><input type="text" value={(raw ?? '') as string} readOnly={c.readOnly} onChange={(e) => onChange(row.id, c.key, e.target.value)} style={{ ...inputBaseStyle, backgroundColor: c.readOnly ? '#111827' : '#0f172a' }} /></td>
         })}<td style={{ padding: '8px 6px' }}>{renderActions && <span style={{ marginRight: 8 }}>{renderActions(row)}</span>}<button onClick={() => onDelete(row.id)} style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid #7f1d1d', backgroundColor: '#2a1111', color: '#fecaca', cursor: 'pointer' }}>删除</button></td></tr>)}</tbody>
@@ -426,8 +426,8 @@ export default function Admin() {
             <div><label>{labelFor('quote_valid_days')}</label><input type="number" step="1" value={settingsQuoteValidDays} onChange={(e) => { setSettingsQuoteValidDays(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
             <div><label>{labelFor('money_format_rmb_decimals')}</label><input type="number" step="1" value={settingsRmbDecimals} onChange={(e) => { setSettingsRmbDecimals(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
             <div><label>{labelFor('money_format_usd_decimals')}</label><input type="number" step="1" value={settingsUsdDecimals} onChange={(e) => { setSettingsUsdDecimals(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
-            <div><label>{labelFor('pricing_formula_mode')}</label><select className="ui-select" value={settingsPricingFormulaMode} onChange={(e) => { setSettingsPricingFormulaMode(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }}><option value="divide">cost/(1-margin)</option></select></div>
-            <div><label>{labelFor('rounding_policy')}</label><select className="ui-select" value={settingsRoundingPolicy} onChange={(e) => { setSettingsRoundingPolicy(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }}><option value="ceil">向上取整</option></select></div>
+            <div><label>{labelFor('pricing_formula_mode')}</label><MantineSelect className="ui-select" mt={6} value={settingsPricingFormulaMode} onChange={(value) => { setSettingsPricingFormulaMode(value ?? 'divide'); setDirtySettings(true); setAutoSaveState('idle') }} data={[{ value: 'divide', label: 'cost/(1-margin)' }]} searchable={false} allowDeselect={false} styles={{ input: { ...inputBaseStyle, padding: 8 }, dropdown: { backgroundColor: '#0b1220' } }} /></div>
+            <div><label>{labelFor('rounding_policy')}</label><MantineSelect className="ui-select" mt={6} value={settingsRoundingPolicy} onChange={(value) => { setSettingsRoundingPolicy(value ?? 'ceil'); setDirtySettings(true); setAutoSaveState('idle') }} data={[{ value: 'ceil', label: '向上取整' }]} searchable={false} allowDeselect={false} styles={{ input: { ...inputBaseStyle, padding: 8 }, dropdown: { backgroundColor: '#0b1220' } }} /></div>
             <div>
               <label>{labelFor('ui_theme')}</label>
               <MantineSelect
@@ -498,7 +498,7 @@ export default function Admin() {
               </div>
               <div>
                 <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>起运港</div>
-                <select className="ui-select" value={row.pol_port_id ?? ''} onChange={(e) => updateRow('products', row.id, 'pol_port_id', e.target.value)} style={inputBaseStyle}>{portOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
+                <MantineSelect className="ui-select" value={row.pol_port_id ?? ''} onChange={(value) => updateRow('products', row.id, 'pol_port_id', value ?? '')} data={portOptions} searchable={false} allowDeselect={false} styles={{ input: inputBaseStyle, dropdown: { backgroundColor: '#0b1220' } }} />
               </div>
             </div>
             <div style={{ display: 'flex', gap: 12, alignItems: 'stretch' }}>
@@ -591,20 +591,17 @@ export default function Admin() {
                     </div>
                     <div>
                       <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>产品</div>
-                      <select
+                      <MantineSelect
                         className="ui-select"
                         value={pack.product_id}
-                        onChange={(e) =>
-                          updateRow('packaging_options', pack.id, 'product_id', e.target.value)
+                        onChange={(value) =>
+                          updateRow('packaging_options', pack.id, 'product_id', value ?? '')
                         }
-                        style={inputBaseStyle}
-                      >
-                        {productOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
+                        data={productOptions}
+                        searchable={false}
+                        allowDeselect={false}
+                        styles={{ input: inputBaseStyle, dropdown: { backgroundColor: '#0b1220' } }}
+                      />
                     </div>
                     <div>
                       <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>名称</div>
@@ -696,20 +693,17 @@ export default function Admin() {
                     </div>
                     <div>
                       <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>内包装类型</div>
-                      <select
+                      <MantineSelect
                         className="ui-select"
                         value={pack.inner_pack_type}
-                        onChange={(e) =>
-                          updateRow('packaging_options', pack.id, 'inner_pack_type', e.target.value)
+                        onChange={(value) =>
+                          updateRow('packaging_options', pack.id, 'inner_pack_type', value ?? 'none')
                         }
-                        style={inputBaseStyle}
-                      >
-                        {innerPackOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
+                        data={innerPackOptions}
+                        searchable={false}
+                        allowDeselect={false}
+                        styles={{ input: inputBaseStyle, dropdown: { backgroundColor: '#0b1220' } }}
+                      />
                     </div>
                     <div>
                       <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 6 }}>默认</div>
