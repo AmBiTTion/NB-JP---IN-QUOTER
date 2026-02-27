@@ -4,6 +4,7 @@ import Admin from '@/components/Admin'
 import { calculateQuote, formatCurrency, type CalculateQuoteResult } from '@/utils/calculateQuote'
 import { INNER_PACK_LABELS } from '@/utils/fieldLabels'
 import { nextIdFromRows } from '@/utils/id'
+import { t } from '@/i18n'
 import { useUiTheme } from '@/ui/ThemeProvider'
 import type {
   AppData,
@@ -39,9 +40,9 @@ function toMantineNumber(value: string): number | '' {
 }
 
 function sourceLabel(source: 'default' | 'override' | 'custom'): string {
-  if (source === 'override') return '使用覆盖（含0覆盖）'
-  if (source === 'custom') return '使用自定义'
-  return '使用默认'
+  if (source === 'override') return t('quote.result.sourceOverride')
+  if (source === 'custom') return t('quote.result.sourceCustom')
+  return t('quote.result.sourceDefault')
 }
 
 function Quoter() {
@@ -84,7 +85,7 @@ function Quoter() {
       setMarginPct(String(appData.settings.margin_pct ?? 0.05))
     } catch (error) {
       console.error(error)
-      setLoadError('数据加载失败，请重试。')
+      setLoadError(t('common.loadFailedRetry'))
     } finally {
       setLoading(false)
     }
@@ -328,20 +329,20 @@ function Quoter() {
   )
 
   const disableReason = useMemo(() => {
-    if (!data) return '数据未加载完成'
-    if (!selectedProduct) return '请选择产品'
-    if (!selectedPackaging) return '请选择包装方案'
-    if (!selectedFactoryId) return '请选择工厂'
+    if (!data) return t('quote.dataNotReady')
+    if (!selectedProduct) return t('quote.productRequired')
+    if (!selectedPackaging) return t('quote.packagingRequired')
+    if (!selectedFactoryId) return t('quote.factoryRequired')
     if (selectedFactoryCost === undefined || selectedFactoryCost === null || selectedFactoryCost <= 0) {
-      return '请维护工厂吨成本'
+      return t('quote.factoryCostRequired')
     }
     const fx = parseNumber(fxRate)
-    if (!fx || fx <= 0) return '汇率必须大于 0'
+    if (!fx || fx <= 0) return t('quote.fxMustPositive')
     const margin = parseNumber(marginPct)
-    if (margin === null || margin < 0 || margin >= 1) return '毛利率必须在 [0,1) 范围内'
+    if (margin === null || margin < 0 || margin >= 1) return t('quote.marginRange')
     if (mode === 'LCL') {
       const input = parseNumber(lclInputValue)
-      if (!input || input <= 0) return 'LCL 模式需要输入吨数或袋数'
+      if (!input || input <= 0) return t('quote.lclQtyRequired')
     }
     return ''
   }, [
@@ -360,7 +361,7 @@ function Quoter() {
     if (!data || !selectedProduct || !selectedPackaging) return
     const weight = parseNumber(customUnitWeightKg)
     if (!weight || weight <= 0) {
-      setValidationError('每袋重量必须大于 0')
+      setValidationError(t('quote.customWeightRequired'))
       return
     }
 
@@ -368,7 +369,7 @@ function Quoter() {
     const unitsValue = unitsRaw === '' ? null : Number(unitsRaw)
     if (unitsValue !== null) {
       if (!Number.isFinite(unitsValue) || unitsValue < 0 || !Number.isInteger(unitsValue)) {
-        setValidationError('每箱袋数必须为非负整数')
+        setValidationError(t('quote.customUnitsInvalid'))
         return
       }
     }
@@ -383,7 +384,7 @@ function Quoter() {
       !Number.isFinite(cartonPrice) ||
       cartonPrice < 0
     ) {
-      setValidationError('包装成本必须为非负数')
+      setValidationError(t('quote.customPackCostInvalid'))
       return
     }
 
@@ -411,7 +412,7 @@ function Quoter() {
       })) as { success: boolean; message?: string }
 
       if (!result.success) {
-        setValidationError(result.message ?? '保存失败')
+        setValidationError(result.message ?? t('common.saveFailed'))
         return
       }
 
@@ -538,10 +539,10 @@ function Quoter() {
 
       if (!result.success) {
         if (result.canceled) {
-          setExportMessage('已取消导出。')
+          setExportMessage(t('common.exportCanceled'))
           return
         }
-        setExportMessage(result.message ?? '导出失败。')
+        setExportMessage(result.message ?? t('common.exportFailed'))
         return
       }
       setExportMessage(`已导出：${result.filePath ?? ''}`)
@@ -550,34 +551,34 @@ function Quoter() {
     }
   }
 
-  if (loading) return <div style={{ color: '#e5e7eb', padding: 24 }}>加载中...</div>
+  if (loading) return <div style={{ color: '#e5e7eb', padding: 24 }}>{t('common.loading')}</div>
   if (loadError) {
     return (
       <div style={{ color: '#e5e7eb', padding: 24 }}>
         <p>{loadError}</p>
-        <Button onClick={() => void loadData()}>重试</Button>
+        <Button onClick={() => void loadData()}>{t('common.retry')}</Button>
       </div>
     )
   }
 
   const kpiCards = [
     {
-      title: '销售单价',
+      title: t('quote.result.kpiSell'),
       value: quoteResult ? formatUsd(quoteResult.summary.sell_usd_per_bag) : formatUsd(0),
-      unit: 'USD/袋',
+      unit: t('quote.unit.usdPerBag'),
     },
     {
-      title: '成本折算',
+      title: t('quote.result.kpiCostUsd'),
       value: quoteResult ? formatUsd(quoteResult.summary.cost_usd_per_bag) : formatUsd(0),
-      unit: 'USD/袋',
+      unit: t('quote.unit.usdPerBag'),
     },
     {
-      title: '毛利/袋',
+      title: t('quote.result.kpiGpPerBag'),
       value: quoteResult ? formatRmb(quoteResult.summary.gp_rmb_per_bag) : formatRmb(0),
-      unit: 'RMB/袋',
+      unit: t('quote.unit.rmbPerBag'),
     },
     {
-      title: '毛利合计',
+      title: t('quote.result.kpiGpTotal'),
       value: quoteResult ? formatRmb(quoteResult.summary.gp_rmb_total, 2) : formatRmb(0, 2),
       unit: 'RMB',
     },
@@ -586,113 +587,113 @@ function Quoter() {
   return (
     <div className="quote-page" style={{ padding: 24 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <h1 style={{ fontSize: 24, margin: 0 }}>FOB 报价系统</h1>
+        <h1 style={{ fontSize: 24, margin: 0 }}>{t('app.title')}</h1>
         <Button className="btn-outline-neon" variant="outline" size="sm" onClick={() => void loadData()}>
-          刷新数据
+          {t('app.refresh')}
         </Button>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '0.95fr 1.45fr', gap: 20 }}>
         <div className="panel glass-card">
-          <div style={{ marginBottom: 8, fontSize: 13, color: '#9ca3af' }}>产品</div>
-          <Select className="ui-select" value={selectedProductId || null} onChange={(value) => setSelectedProductId(value ?? '')} data={productSelectData} placeholder="请选择产品" searchable={false} />
+          <div style={{ marginBottom: 8, fontSize: 13, color: '#9ca3af' }}>{t('quote.sectionProduct')}</div>
+          <Select className="ui-select" value={selectedProductId || null} onChange={(value) => setSelectedProductId(value ?? '')} data={productSelectData} placeholder={t('quote.selectProduct')} searchable={false} />
 
           {selectedProduct && (
             <Card className="subpanel" style={{ marginTop: 12, padding: 12 }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 10 }}>
                 <div style={{ textAlign: 'center' }}><div style={{ fontSize: 12, color: '#94a3b8' }}>POL</div><div style={{ fontSize: 16, fontWeight: 700 }}>{polPortName}</div></div>
-                <div style={{ textAlign: 'center' }}><div style={{ fontSize: 12, color: '#94a3b8' }}>退税率</div><div style={{ fontSize: 16, fontWeight: 700 }}>{(selectedProduct.refund_rate * 100).toFixed(2)}%</div></div>
-                <div style={{ textAlign: 'center' }}><div style={{ fontSize: 12, color: '#94a3b8' }}>采购 VAT</div><div style={{ fontSize: 16, fontWeight: 700 }}>{(selectedProduct.purchase_vat_rate * 100).toFixed(2)}%</div></div>
-                <div style={{ textAlign: 'center' }}><div style={{ fontSize: 12, color: '#94a3b8' }}>税点</div><div style={{ fontSize: 16, fontWeight: 700 }}>{(selectedProduct.invoice_tax_point * 100).toFixed(2)}%</div></div>
+                <div style={{ textAlign: 'center' }}><div style={{ fontSize: 12, color: '#94a3b8' }}>{t('quote.productInfo.rebate')}</div><div style={{ fontSize: 16, fontWeight: 700 }}>{(selectedProduct.refund_rate * 100).toFixed(2)}%</div></div>
+                <div style={{ textAlign: 'center' }}><div style={{ fontSize: 12, color: '#94a3b8' }}>{t('quote.productInfo.purchaseVat')}</div><div style={{ fontSize: 16, fontWeight: 700 }}>{(selectedProduct.purchase_vat_rate * 100).toFixed(2)}%</div></div>
+                <div style={{ textAlign: 'center' }}><div style={{ fontSize: 12, color: '#94a3b8' }}>{t('quote.productInfo.invoiceTax')}</div><div style={{ fontSize: 16, fontWeight: 700 }}>{(selectedProduct.invoice_tax_point * 100).toFixed(2)}%</div></div>
               </div>
             </Card>
           )}
 
-          <div style={{ marginTop: 12, marginBottom: 8, fontSize: 13, color: '#9ca3af' }}>工厂</div>
-          <Select className="ui-select" value={selectedFactoryId || null} onChange={(value) => setSelectedFactoryId(value ?? '')} data={factorySelectData} placeholder="请选择工厂" searchable={false} />
+          <div style={{ marginTop: 12, marginBottom: 8, fontSize: 13, color: '#9ca3af' }}>{t('quote.sectionFactory')}</div>
+          <Select className="ui-select" value={selectedFactoryId || null} onChange={(value) => setSelectedFactoryId(value ?? '')} data={factorySelectData} placeholder={t('quote.selectFactory')} searchable={false} />
           {selectedFactoryId && (selectedFactoryCost === undefined || selectedFactoryCost === null || selectedFactoryCost <= 0) && (
-            <div style={{ color: '#f87171', marginTop: 6 }}>请维护工厂吨成本。</div>
+            <div style={{ color: '#f87171', marginTop: 6 }}>{t('quote.maintainFactoryCost')}</div>
           )}
           {selectedFactoryId && selectedFactoryCost !== undefined && selectedFactoryCost !== null && selectedFactoryCost > 0 && (
-            <div style={{ color: '#93c5fd', marginTop: 6 }}>吨成本：{formatRmb(selectedFactoryCost, 2)}</div>
+            <div style={{ color: '#93c5fd', marginTop: 6 }}>{t('quote.costPerTon')}{formatRmb(selectedFactoryCost, 2)}</div>
           )}
 
-          <div style={{ marginTop: 12, marginBottom: 8, fontSize: 13, color: '#9ca3af' }}>包装与数量</div>
+          <div style={{ marginTop: 12, marginBottom: 8, fontSize: 13, color: '#9ca3af' }}>{t('quote.sectionPackingQty')}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ flex: 1 }}>
-              <Select className="ui-select" value={selectedPackagingId || null} onChange={(value) => setSelectedPackagingId(value ?? '')} data={packagingSelectData} placeholder="请选择包装方案" searchable={false} />
+              <Select className="ui-select" value={selectedPackagingId || null} onChange={(value) => setSelectedPackagingId(value ?? '')} data={packagingSelectData} placeholder={t('quote.selectPackaging')} searchable={false} />
             </div>
-            <Button className="btn-outline-neon" variant="outline" size="xs" onClick={() => setShowCustomPackaging((prev) => !prev)} disabled={!selectedPackagingId}>自定义</Button>
+            <Button className="btn-outline-neon" variant="outline" size="xs" onClick={() => setShowCustomPackaging((prev) => !prev)} disabled={!selectedPackagingId}>{t('quote.customPack')}</Button>
           </div>
 
           {selectedPackaging && showCustomPackaging && (
             <div className="subpanel glass-card" style={{ marginTop: 10, padding: 10 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <strong style={{ fontSize: 13 }}>自定义包装（临时派生）</strong>
-                <Button className="btn-outline-neon" variant="outline" size="xs" onClick={() => setShowCustomPackaging(false)}>收起</Button>
+                <strong style={{ fontSize: 13 }}>{t('quote.customPackTitle')}</strong>
+                <Button className="btn-outline-neon" variant="outline" size="xs" onClick={() => setShowCustomPackaging(false)}>{t('quote.collapse')}</Button>
               </div>
               <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10 }}>
-                <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>每袋重量（kg）</div><NumberInput className="ui-input" value={toMantineNumber(customUnitWeightKg)} onChange={(value) => { setCustomUnitWeightKg(toInputString(value)); setUnitsPerCartonTouched(false) }} hideControls /></div>
-                <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>每箱袋数</div><NumberInput className="ui-input" value={toMantineNumber(customUnitsPerCarton)} onChange={(value) => { setCustomUnitsPerCarton(toInputString(value)); setUnitsPerCartonTouched(true) }} hideControls placeholder="0 表示不装箱" /></div>
-                <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>每袋包装成本（RMB）</div><NumberInput className="ui-input" value={toMantineNumber(customBagPrice)} onChange={(value) => setCustomBagPrice(toInputString(value))} hideControls /></div>
-                <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>每箱纸箱成本（RMB）</div><NumberInput className="ui-input" value={toMantineNumber(customCartonPrice)} onChange={(value) => setCustomCartonPrice(toInputString(value))} hideControls /></div>
-                <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>内包装类型</div><Select className="ui-select" value={customInnerPackType} onChange={(value) => setCustomInnerPackType((value as InnerPackType | null) ?? 'carton')} data={Object.entries(INNER_PACK_LABELS).map(([value, label]) => ({ value, label }))} searchable={false} /></div>
+                <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{t('quote.customFields.unitWeightKg')}</div><NumberInput className="ui-input" value={toMantineNumber(customUnitWeightKg)} onChange={(value) => { setCustomUnitWeightKg(toInputString(value)); setUnitsPerCartonTouched(false) }} hideControls /></div>
+                <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{t('quote.customFields.unitsPerCarton')}</div><NumberInput className="ui-input" value={toMantineNumber(customUnitsPerCarton)} onChange={(value) => { setCustomUnitsPerCarton(toInputString(value)); setUnitsPerCartonTouched(true) }} hideControls placeholder={t('quote.customFields.unitsPerCartonHint')} /></div>
+                <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{t('quote.customFields.bagPriceRmb')}</div><NumberInput className="ui-input" value={toMantineNumber(customBagPrice)} onChange={(value) => setCustomBagPrice(toInputString(value))} hideControls /></div>
+                <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{t('quote.customFields.cartonPriceRmb')}</div><NumberInput className="ui-input" value={toMantineNumber(customCartonPrice)} onChange={(value) => setCustomCartonPrice(toInputString(value))} hideControls /></div>
+                <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{t('quote.customFields.innerPackType')}</div><Select className="ui-select" value={customInnerPackType} onChange={(value) => setCustomInnerPackType((value as InnerPackType | null) ?? 'carton')} data={Object.entries(INNER_PACK_LABELS).map(([value, label]) => ({ value, label }))} searchable={false} /></div>
               </div>
               {recommendedUnitsPerCarton !== null && (
-                <div style={{ marginTop: 8, color: '#93c5fd' }}>推荐箱规：{recommendedUnitsPerCarton} 袋/箱</div>
+                <div style={{ marginTop: 8, color: '#93c5fd' }}>{t('quote.recommendation')}{recommendedUnitsPerCarton} {t('quote.unit.bagsPerCarton')}</div>
               )}
               <div style={{ marginTop: 12, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                <Button className="btn-primary" onClick={handleSaveDerivedPackaging}>保存为新包装方案</Button>
-                <Button className="btn-outline-neon" variant="outline" onClick={() => setShowCustomPackaging(false)}>取消</Button>
-                <span style={{ color: '#9ca3af' }}>仅本次报价生效，不会自动写回主数据。</span>
+                <Button className="btn-primary" onClick={handleSaveDerivedPackaging}>{t('quote.saveAsPack')}</Button>
+                <Button className="btn-outline-neon" variant="outline" onClick={() => setShowCustomPackaging(false)}>{t('quote.cancel')}</Button>
+                <span style={{ color: '#9ca3af' }}>{t('quote.saveAsPackHint')}</span>
               </div>
             </div>
           )}
 
           {mode === 'FCL' && (
             <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>吨数（可选，仅自动切换判定）</div><NumberInput className="ui-input" value={toMantineNumber(fclTonsHint)} onChange={(value) => handleFclTonsChange(toInputString(value))} hideControls /></div>
-              <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>袋数</div><NumberInput className="ui-input" value={toMantineNumber(fclBagsHint)} onChange={(value) => handleFclBagsChange(toInputString(value))} hideControls /></div>
+              <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{t('quote.fclHint')}</div><NumberInput className="ui-input" value={toMantineNumber(fclTonsHint)} onChange={(value) => handleFclTonsChange(toInputString(value))} hideControls /></div>
+              <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{t('quote.bags')}</div><NumberInput className="ui-input" value={toMantineNumber(fclBagsHint)} onChange={(value) => handleFclBagsChange(toInputString(value))} hideControls /></div>
             </div>
           )}
 
           {mode === 'LCL' && (
             <div style={{ marginTop: 10 }}>
               <div style={{ display: 'flex', gap: 14, alignItems: 'center', marginBottom: 8, flexWrap: 'wrap' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}><input type="radio" checked={lclInputType === 'tons'} onChange={() => handleLclInputTypeChange('tons')} />输入吨数</label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}><input type="radio" checked={lclInputType === 'bags'} onChange={() => handleLclInputTypeChange('bags')} />输入袋数</label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}><input type="radio" checked={lclInputType === 'tons'} onChange={() => handleLclInputTypeChange('tons')} />{t('quote.inputTons')}</label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}><input type="radio" checked={lclInputType === 'bags'} onChange={() => handleLclInputTypeChange('bags')} />{t('quote.inputBags')}</label>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{lclInputType === 'tons' ? '吨数' : '袋数'}</div><NumberInput className="ui-input" value={toMantineNumber(lclInputValue)} onChange={(value) => setLclInputValue(toInputString(value))} hideControls /></div>
-                <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{lclInputType === 'tons' ? '袋数（自动换算）' : '吨数（自动换算）'}</div><NumberInput className="ui-input" value={toMantineNumber(lclInputType === 'tons' ? toInputString(lclBagsValue) : toInputString(lclTonsValue))} readOnly hideControls /></div>
+                <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{lclInputType === 'tons' ? t('quote.tons') : t('quote.bags')}</div><NumberInput className="ui-input" value={toMantineNumber(lclInputValue)} onChange={(value) => setLclInputValue(toInputString(value))} hideControls /></div>
+                <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{lclInputType === 'tons' ? t('quote.convertedBags') : t('quote.convertedTons')}</div><NumberInput className="ui-input" value={toMantineNumber(lclInputType === 'tons' ? toInputString(lclBagsValue) : toInputString(lclTonsValue))} readOnly hideControls /></div>
               </div>
             </div>
           )}
 
-          <div style={{ marginTop: 12, marginBottom: 8, fontSize: 13, color: '#9ca3af' }}>运输参数</div>
+          <div style={{ marginTop: 12, marginBottom: 8, fontSize: 13, color: '#9ca3af' }}>{t('quote.sectionTransport')}</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>运输模式</div><Select className="ui-select" value={mode} onChange={(value) => setMode((value as Mode | null) ?? 'FCL')} data={[{ value: 'FCL', label: 'FCL' }, { value: 'LCL', label: 'LCL' }]} searchable={false} /></div>
-            <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>柜型</div><Select className="ui-select" value={containerType} onChange={(value) => setContainerType((value as ContainerType | null) ?? '20GP')} data={[{ value: '20GP', label: '20GP' }, { value: '40HQ', label: '40HQ' }]} searchable={false} /></div>
-            <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>汇率</div><NumberInput className="ui-input" value={toMantineNumber(fxRate)} onChange={(value) => setFxRate(toInputString(value))} hideControls /></div>
-            <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>毛利率</div><NumberInput className="ui-input" value={toMantineNumber(marginPct)} onChange={(value) => setMarginPct(toInputString(value))} hideControls /></div>
+            <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{t('quote.mode')}</div><Select className="ui-select" value={mode} onChange={(value) => setMode((value as Mode | null) ?? 'FCL')} data={[{ value: 'FCL', label: 'FCL' }, { value: 'LCL', label: 'LCL' }]} searchable={false} /></div>
+            <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{t('quote.container')}</div><Select className="ui-select" value={containerType} onChange={(value) => setContainerType((value as ContainerType | null) ?? '20GP')} data={[{ value: '20GP', label: '20GP' }, { value: '40HQ', label: '40HQ' }]} searchable={false} /></div>
+            <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{t('quote.fxRate')}</div><NumberInput className="ui-input" value={toMantineNumber(fxRate)} onChange={(value) => setFxRate(toInputString(value))} hideControls /></div>
+            <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{t('quote.margin')}</div><NumberInput className="ui-input" value={toMantineNumber(marginPct)} onChange={(value) => setMarginPct(toInputString(value))} hideControls /></div>
           </div>
 
           <div style={{ marginTop: 10 }}>
-            <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>每吨国内运费到港（RMB/吨）</div>
-            <NumberInput className="ui-input" value={toMantineNumber(landFreightOverridePerTon)} onChange={(value) => setLandFreightOverridePerTon(toInputString(value))} hideControls placeholder={defaultLandFreightPerTon !== null ? `默认 ${defaultLandFreightPerTon}` : '未配置时默认 0'} />
+            <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{t('quote.landFreight')}</div>
+            <NumberInput className="ui-input" value={toMantineNumber(landFreightOverridePerTon)} onChange={(value) => setLandFreightOverridePerTon(toInputString(value))} hideControls placeholder={defaultLandFreightPerTon !== null ? `${t('quote.defaultValue')} ${defaultLandFreightPerTon}` : t('quote.unconfiguredDefaultZero')} />
           </div>
 
           <div style={{ marginTop: 16, display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-            <Button className="btn-primary" onClick={handleCalculate} disabled={Boolean(disableReason)}>计算报价</Button>
-            <Button className="btn-primary" onClick={handleExportExternalQuotation} disabled={!quoteResult}>导出外部报价单（Excel）</Button>
-            {disableReason && <span style={{ color: '#fca5a5', alignSelf: 'center' }}>不可计算：{disableReason}</span>}
+            <Button className="btn-primary" onClick={handleCalculate} disabled={Boolean(disableReason)}>{t('quote.calc')}</Button>
+            <Button className="btn-primary" onClick={handleExportExternalQuotation} disabled={!quoteResult}>{t('quote.exportExcel')}</Button>
+            {disableReason && <span style={{ color: '#fca5a5', alignSelf: 'center' }}>{t('quote.disabledReason')}：{disableReason}</span>}
           </div>
           {validationError && <div style={{ marginTop: 10, color: '#f87171' }}>{validationError}</div>}
           {exportMessage && <div style={{ marginTop: 10, color: '#93c5fd' }}>{exportMessage}</div>}
         </div>
 
         <div className="panel glass-card">
-          <h2 style={{ marginTop: 0, fontSize: 18 }}>结果区</h2>
+          <h2 style={{ marginTop: 0, fontSize: 18 }}>{t('quote.sectionResult')}</h2>
           <div className="kpi-row" style={{ marginTop: 8 }}>
             {kpiCards.map((card) => (
               <div key={card.title} className="kpi-card">
@@ -704,48 +705,48 @@ function Quoter() {
           </div>
 
           <div className="subpanel glass-card" style={{ padding: 12, marginTop: 12 }}>
-            <div style={{ fontWeight: 700, marginBottom: 8 }}>汇总</div>
+            <div style={{ fontWeight: 700, marginBottom: 8 }}>{t('quote.result.summary')}</div>
             {quoteResult ? (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                <div>运输模式：{quoteResult.summary.mode}</div>
-                <div>柜型：{quoteResult.summary.container_type}</div>
-                <div>实际吨数：{quoteResult.summary.tons.toFixed(4)}</div>
-                <div>实际袋数：{quoteResult.summary.bags_int}</div>
-                <div>实际箱数：{quoteResult.summary.cartons_int}</div>
-                <div>净成本：{formatRmb(quoteResult.summary.net_rmb_per_bag)} / 袋</div>
-                <div>袋材来源：{sourceLabel(quoteResult.summary.bag_price_source)}</div>
-                <div>箱材来源：{sourceLabel(quoteResult.summary.carton_price_source)}</div>
+                <div>{t('quote.result.mode')}{quoteResult.summary.mode}</div>
+                <div>{t('quote.result.container')}{quoteResult.summary.container_type}</div>
+                <div>{t('quote.result.tons')}{quoteResult.summary.tons.toFixed(4)}</div>
+                <div>{t('quote.result.bags')}{quoteResult.summary.bags_int}</div>
+                <div>{t('quote.result.cartons')}{quoteResult.summary.cartons_int}</div>
+                <div>{t('quote.result.netCost')}{formatRmb(quoteResult.summary.net_rmb_per_bag)} / {t('quote.unit.bag')}</div>
+                <div>{t('quote.result.bagSource')}{sourceLabel(quoteResult.summary.bag_price_source)}</div>
+                <div>{t('quote.result.cartonSource')}{sourceLabel(quoteResult.summary.carton_price_source)}</div>
               </div>
             ) : (
-              <div style={{ color: '#9ca3af' }}>填写参数后点击“计算报价”。</div>
+              <div style={{ color: '#9ca3af' }}>{t('quote.result.fillHint')}</div>
             )}
           </div>
 
           <div className="subpanel glass-card" style={{ padding: 12, marginTop: 12 }}>
-            <div style={{ fontWeight: 700, marginBottom: 8 }}>费用明细</div>
+            <div style={{ fontWeight: 700, marginBottom: 8 }}>{t('quote.result.breakdown')}</div>
             {quoteResult ? (
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <tbody>
-                  <tr><td>原料（RMB/袋）</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.raw_rmb_per_bag)}</td></tr>
-                  <tr><td>袋材（RMB/袋）</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.bag_mat_rmb_per_bag)}</td></tr>
-                  <tr><td>纸箱（RMB/袋）</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.carton_rmb_per_bag)}</td></tr>
-                  <tr><td>国内段（RMB/袋）</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.land_rmb_per_bag)}</td></tr>
-                  <tr><td>每吨国内运费（RMB/吨）</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.land_rmb_per_ton_used, 2)}</td></tr>
-                  <tr><td>国内段总费用（RMB）</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.land_total_rmb, 2)}</td></tr>
-                  <tr><td>港杂（RMB/袋）</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.port_rmb_per_bag)}</td></tr>
-                  <tr><td>国内总成本（RMB/袋）</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.domestic_total_rmb_per_bag)}</td></tr>
-                  <tr><td>退税（RMB/袋）</td><td style={{ textAlign: 'right' }}>-{formatRmb(quoteResult.breakdown.rebate_rmb_per_bag)}</td></tr>
-                  <tr><td>净成本（RMB/袋）</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.net_rmb_per_bag)}</td></tr>
+                  <tr><td>{t('quote.result.raw')}</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.raw_rmb_per_bag)}</td></tr>
+                  <tr><td>{t('quote.result.bagMat')}</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.bag_mat_rmb_per_bag)}</td></tr>
+                  <tr><td>{t('quote.result.carton')}</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.carton_rmb_per_bag)}</td></tr>
+                  <tr><td>{t('quote.result.landPerBag')}</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.land_rmb_per_bag)}</td></tr>
+                  <tr><td>{t('quote.result.landPerTon')}</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.land_rmb_per_ton_used, 2)}</td></tr>
+                  <tr><td>{t('quote.result.landTotal')}</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.land_total_rmb, 2)}</td></tr>
+                  <tr><td>{t('quote.result.port')}</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.port_rmb_per_bag)}</td></tr>
+                  <tr><td>{t('quote.result.domestic')}</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.domestic_total_rmb_per_bag)}</td></tr>
+                  <tr><td>{t('quote.result.rebate')}</td><td style={{ textAlign: 'right' }}>-{formatRmb(quoteResult.breakdown.rebate_rmb_per_bag)}</td></tr>
+                  <tr><td>{t('quote.result.net')}</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.net_rmb_per_bag)}</td></tr>
                 </tbody>
               </table>
             ) : (
-              <div style={{ color: '#9ca3af' }}>尚无结果</div>
+              <div style={{ color: '#9ca3af' }}>{t('common.noResult')}</div>
             )}
           </div>
 
           {quoteResult && quoteResult.warnings.length > 0 && (
             <div style={{ marginTop: 12, padding: 12, borderRadius: 10, border: '1px solid #78350f', backgroundColor: 'rgba(120,53,15,.26)', color: '#fde68a' }}>
-              <div style={{ fontWeight: 700, marginBottom: 6 }}>提示 / 警告</div>
+              <div style={{ fontWeight: 700, marginBottom: 6 }}>{t('quote.result.warnings')}</div>
               <ul style={{ margin: 0, paddingLeft: 18 }}>
                 {quoteResult.warnings.map((warning, index) => (
                   <li key={`${warning}-${index}`} style={{ marginBottom: 4 }}>{warning}</li>
@@ -754,7 +755,7 @@ function Quoter() {
             </div>
           )}
 
-          <div style={{ marginTop: 10, textAlign: 'right', fontSize: 12, color: '#94a3b8' }}>版本：v{APP_VERSION}</div>
+          <div style={{ marginTop: 10, textAlign: 'right', fontSize: 12, color: '#94a3b8' }}>{t('app.versionPrefix')}{APP_VERSION}</div>
         </div>
       </div>
     </div>
@@ -770,8 +771,8 @@ export default function App() {
   return (
     <div className={`app-root ${uiThemeClass}`} style={{ minHeight: '100vh', color: '#e5e7eb', padding: 20 }}>
       <div className="nav-glass" style={{ display: 'flex', borderRadius: 16, overflow: 'hidden', marginBottom: 16 }}>
-        <button className={`tab-btn ${activeTab === 'quote' ? 'active' : ''}`} onClick={() => setActiveTab('quote')} style={{ flex: 1, padding: '12px 14px', border: 'none', cursor: 'pointer' }}>报价</button>
-        <button className={`tab-btn ${activeTab === 'admin' ? 'active' : ''}`} onClick={() => setActiveTab('admin')} style={{ flex: 1, padding: '12px 14px', border: 'none', cursor: 'pointer' }}>管理</button>
+        <button className={`tab-btn ${activeTab === 'quote' ? 'active' : ''}`} onClick={() => setActiveTab('quote')} style={{ flex: 1, padding: '12px 14px', border: 'none', cursor: 'pointer' }}>{t('app.quoteTab')}</button>
+        <button className={`tab-btn ${activeTab === 'admin' ? 'active' : ''}`} onClick={() => setActiveTab('admin')} style={{ flex: 1, padding: '12px 14px', border: 'none', cursor: 'pointer' }}>{t('app.adminTab')}</button>
       </div>
       <div style={{ display: activeTab === 'quote' ? 'block' : 'none' }}><Quoter /></div>
       <div style={{ display: activeTab === 'admin' ? 'block' : 'none' }}><Admin /></div>
