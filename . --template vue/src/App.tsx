@@ -692,7 +692,7 @@ function Quoter() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '0.9fr 1.4fr', gap: 20 }}>
-        <div style={panelStyle} className="glass-card">
+        <div style={panelStyle} className="glass-card panel">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2 style={{ margin: 0, fontSize: 18 }}>输入区</h2>
           </div>
@@ -711,6 +711,7 @@ function Quoter() {
 
           {selectedProduct && (
             <Card
+              className="subpanel"
               style={{
                 marginTop: 12,
                 padding: 12,
@@ -852,7 +853,7 @@ function Quoter() {
 
           {selectedPackaging && showCustomPackaging && (
             <div
-              className="glass-card"
+              className="glass-card subpanel"
               style={{
                 marginTop: 10,
                 padding: 10,
@@ -1362,7 +1363,7 @@ function Quoter() {
             </div>
           )}
         </div>
-        <div style={panelStyle} className="glass-card">
+        <div style={panelStyle} className="glass-card panel">
           <h2 style={{ margin: 0, fontSize: 18 }}>结果区</h2>
 
           {!quoteResult && (
@@ -1395,7 +1396,7 @@ function Quoter() {
               </div>
 
               <div
-                className="glass-card-strong"
+                className="glass-card-strong subpanel"
                 style={{
                   padding: 12,
                   border: '1px solid #1f2937',
@@ -1421,7 +1422,7 @@ function Quoter() {
               </div>
 
               <div
-                className="glass-card"
+                className="glass-card subpanel"
                 style={{
                   padding: 12,
                   border: '1px solid #1f2937',
@@ -1504,7 +1505,7 @@ function Quoter() {
 
               {quoteResult.warnings.length > 0 && (
                 <div
-                  className="glass-card"
+                  className="glass-card subpanel"
                   style={{
                     padding: 12,
                     border: '1px solid #b45309',

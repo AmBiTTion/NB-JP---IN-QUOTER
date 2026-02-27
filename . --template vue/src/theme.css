@@ -16,6 +16,18 @@
   --radius:16px;
   --shadow:0 18px 50px rgba(0,0,0,.55);
   --shadow2:0 10px 30px rgba(0,0,0,.45);
+
+  /* unified design tokens */
+  --surface-0: #0a0f1b;
+  --surface-1: rgba(255,255,255,.045);
+  --surface-2: rgba(255,255,255,.06);
+  --border-1: rgba(255,255,255,.12);
+  --shadow-1: 0 10px 28px rgba(0,0,0,.42);
+  --radius-1: 12px;
+  --control-h: 40px;
+  --gap-1: 8px;
+  --gap-2: 12px;
+  --text-dim: rgba(255,255,255,.62);
 }
 
 .theme-classic{
@@ -36,6 +48,11 @@
   --gridOpacity:.18;
   --glowA: radial-gradient(600px 380px at 30% 15%, rgba(45,107,255,.35), transparent 60%);
   --glowB: radial-gradient(520px 360px at 70% 25%, rgba(236,72,153,.26), transparent 62%);
+  --surface-0: #070b14;
+  --surface-1: rgba(255,255,255,.045);
+  --surface-2: rgba(255,255,255,.06);
+  --border-1: rgba(255,255,255,.12);
+  --radius-1: 12px;
 }
 
 .theme-minimal{
@@ -48,6 +65,11 @@
   --gridOpacity:.0;
   --glowA:none;
   --glowB:none;
+  --surface-0: #0b0f17;
+  --surface-1: rgba(255,255,255,.035);
+  --surface-2: rgba(255,255,255,.05);
+  --border-1: rgba(255,255,255,.1);
+  --radius-1: 12px;
 }
 
 html,body{
@@ -241,6 +263,64 @@ html,body{
   color:white;
   padding: 10px 14px;
   box-shadow: 0 0 0 1px rgba(124,58,237,.12) inset;
+}
+
+/* unified panels / controls for quote page */
+.app-root .panel {
+  background: var(--surface-1) !important;
+  border: 1px solid var(--border-1) !important;
+  border-radius: var(--radius-1) !important;
+  box-shadow: var(--shadow-1) !important;
+  padding: 16px !important;
+}
+
+.app-root .subpanel {
+  background: var(--surface-2) !important;
+  border: 1px solid var(--border-1) !important;
+  border-radius: var(--radius-1) !important;
+  box-shadow: 0 6px 18px rgba(0,0,0,.32) !important;
+}
+
+.app-root .quote-page .kpi-card {
+  background: var(--surface-2) !important;
+  border: 1px solid var(--border-1) !important;
+  border-radius: var(--radius-1) !important;
+  padding: 12px 14px !important;
+}
+
+.app-root .quote-page .kpi-title { color: var(--text-dim) !important; }
+
+.app-root .quote-page .mantine-Select-input,
+.app-root .quote-page .mantine-NumberInput-input,
+.app-root .quote-page .mantine-Input-input,
+.app-root .quote-page input[type='text'],
+.app-root .quote-page input[type='number'],
+.app-root .quote-page select,
+.app-root .quote-page textarea {
+  height: var(--control-h) !important;
+  min-height: var(--control-h) !important;
+  border-radius: var(--radius-1) !important;
+  border: 1px solid var(--border-1) !important;
+  background: var(--surface-2) !important;
+}
+
+.app-root .quote-page .mantine-Select-input:focus,
+.app-root .quote-page .mantine-NumberInput-input:focus,
+.app-root .quote-page .mantine-Input-input:focus {
+  box-shadow: 0 0 0 3px rgba(124,58,237,.2), 0 0 16px rgba(236,72,153,.14) !important;
+}
+
+.app-root .quote-page .mantine-Select-dropdown {
+  background: var(--surface-2) !important;
+  border: 1px solid var(--border-1) !important;
+  border-radius: var(--radius-1) !important;
+}
+
+.app-root .quote-page .btn-primary,
+.app-root .quote-page .btn-outline-neon {
+  min-height: var(--control-h) !important;
+  border-radius: var(--radius-1) !important;
+  padding: 0 14px !important;
 }
 
 .ui-select:focus{
