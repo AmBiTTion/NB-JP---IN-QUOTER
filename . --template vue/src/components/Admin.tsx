@@ -19,6 +19,13 @@ import type {
 import { nextIdFromRows } from '@/utils/id'
 import { useUiTheme } from '@/ui/ThemeProvider'
 import { ta, tf } from '@/i18n/admin'
+import {
+  applyCustomThemeOverrides,
+  defaultCustomThemeOverrides,
+  loadCustomThemeOverrides,
+  saveCustomThemeOverrides,
+  type CustomThemeOverrides,
+} from '@/ui/customTheme'
 
 type TabKey = EditableTableKey | 'settings'
 type ColumnType = 'text' | 'number' | 'select' | 'checkbox'
@@ -134,7 +141,7 @@ export default function Admin() {
   const [settingsUsdDecimals, setSettingsUsdDecimals] = useState('4')
   const [settingsPricingFormulaMode, setSettingsPricingFormulaMode] = useState('divide')
   const [settingsRoundingPolicy, setSettingsRoundingPolicy] = useState('ceil')
-  const [settingsUiTheme, setSettingsUiTheme] = useState<'classic' | 'neon' | 'minimal'>('classic')
+  const [settingsUiTheme, setSettingsUiTheme] = useState<'classic' | 'neon' | 'minimal' | 'paper'>('classic')
   const [settingsTermsTemplate, setSettingsTermsTemplate] = useState('')
   const [dirtyTables, setDirtyTables] = useState<EditableTableKey[]>([])
   const [dirtySettings, setDirtySettings] = useState(false)
@@ -144,6 +151,11 @@ export default function Admin() {
   const [addModalOpen, setAddModalOpen] = useState(false)
   const [addDraftTable, setAddDraftTable] = useState<EditableTableKey | null>(null)
   const [addDraftRow, setAddDraftRow] = useState<Record<string, unknown> | null>(null)
+  const [imagePreviewOpen, setImagePreviewOpen] = useState(false)
+  const [imagePreviewPath, setImagePreviewPath] = useState('')
+  const [imagePreviewTitle, setImagePreviewTitle] = useState('')
+  const [themeCustomOpen, setThemeCustomOpen] = useState(false)
+  const [themeDraft, setThemeDraft] = useState<CustomThemeOverrides>(defaultCustomThemeOverrides)
   const autoSaveTimerRef = useRef<number | null>(null)
   const suppressAutoSaveRef = useRef(false)
 
@@ -177,13 +189,17 @@ export default function Admin() {
       })
       setSettingsFxRate(String(appData.settings.fx_rate ?? 6.9)); setSettingsMarginPct(String(appData.settings.margin_pct ?? 0.05)); setSettingsQuoteValidDays(String(appData.settings.quote_valid_days ?? 7))
       setSettingsRmbDecimals(String(appData.settings.money_format?.rmb_decimals ?? 4)); setSettingsUsdDecimals(String(appData.settings.money_format?.usd_decimals ?? 4))
-      setSettingsPricingFormulaMode(appData.settings.pricing_formula_mode ?? 'divide'); setSettingsRoundingPolicy(appData.settings.rounding_policy ?? 'ceil'); const rawUiTheme = String(appData.settings.ui_theme ?? 'classic'); const loadedUiTheme = ((rawUiTheme === 'creative' ? 'neon' : rawUiTheme) as 'classic' | 'neon' | 'minimal' | undefined) ?? 'classic'; setSettingsUiTheme(loadedUiTheme); setUiThemeKey(loadedUiTheme); setSettingsTermsTemplate(appData.settings.terms_template ?? '')
+      setSettingsPricingFormulaMode(appData.settings.pricing_formula_mode ?? 'divide'); setSettingsRoundingPolicy(appData.settings.rounding_policy ?? 'ceil'); const rawUiTheme = String(appData.settings.ui_theme ?? 'classic'); const loadedUiTheme = ((rawUiTheme === 'creative' ? 'neon' : rawUiTheme) as 'classic' | 'neon' | 'minimal' | 'paper' | undefined) ?? 'classic'; setSettingsUiTheme(loadedUiTheme); setUiThemeKey(loadedUiTheme); setSettingsTermsTemplate(appData.settings.terms_template ?? '')
       suppressAutoSaveRef.current = true; setDirtyTables([]); setDirtySettings(false); setAutoSaveState('idle'); setStatus(ta('common.dataLoaded'))
     } catch (e) {
       console.error(e); setError(ta('statusText.loadFailed')); setStatus('')
     }
   }, [])
   useEffect(() => { void loadData() }, [loadData])
+
+  useEffect(() => {
+    setThemeDraft(loadCustomThemeOverrides())
+  }, [])
 
   const productOptions = useMemo(() => tables.products.map((x) => ({ value: x.id, label: x.name || x.id })), [tables.products])
   const factoryOptions = useMemo(() => tables.factories.map((x) => ({ value: x.id, label: x.name || x.id })), [tables.factories])
@@ -221,6 +237,19 @@ export default function Admin() {
       setStatus(ta('common.dataLoaded')); setError('')
     } catch (e) { setError(`${ta('statusText.uploadFailed')}: ${String(e)}`) }
   }, [updateRow])
+
+  const openProductImagePreview = useCallback((product: Product) => {
+    const rawPath = String(product.image_path ?? '').trim()
+    if (!rawPath) {
+      setError('该产品尚未上传图片')
+      return
+    }
+    const fileUrl = `file:///${rawPath.replace(/\\/g, '/').replace(/^\/+/, '')}`
+    setImagePreviewPath(encodeURI(fileUrl))
+    setImagePreviewTitle(product.name || product.name_en || product.id)
+    setImagePreviewOpen(true)
+    setError('')
+  }, [])
 
   const buildNewRow = useCallback((table: EditableTableKey) => {
     return (() => {
@@ -465,7 +494,7 @@ export default function Admin() {
   const sectionStyle: React.CSSProperties = { padding: 14, border: '1px solid var(--border-1)', borderRadius: 12, backgroundColor: 'var(--surface-1)' }
 
   return (
-    <div className="admin-page" style={{ minHeight: '100vh', backgroundColor: 'transparent', color: '#e5e7eb', padding: 20 }}>
+    <div className="admin-page" style={{ minHeight: '100vh', backgroundColor: 'transparent', color: 'var(--text)', padding: 20 }}>
       {error && <div className="status-box status-error" style={{ marginBottom: 12 }}>{error}</div>}
       <div className="admin-tabs-row" style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', marginBottom: 16 }}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -496,15 +525,19 @@ export default function Admin() {
                   { value: 'classic', label: ta('theme.classic') },
                   { value: 'neon', label: ta('theme.neon') },
                   { value: 'minimal', label: ta('theme.minimal') },
+                  { value: 'paper', label: ta('theme.paper') },
                 ]}
                 onChange={(value) => {
-                  const nextTheme = (value ?? 'classic') as 'classic' | 'neon' | 'minimal'
+                  const nextTheme = (value ?? 'classic') as 'classic' | 'neon' | 'minimal' | 'paper'
                   setSettingsUiTheme(nextTheme)
                   setUiThemeKey(nextTheme)
                   setDirtySettings(true)
                   setAutoSaveState('idle')
                 }}
               />
+              <div style={{ marginTop: 8, display: 'flex', justifyContent: 'flex-end' }}>
+                <button className="btn-outline-neon" onClick={() => setThemeCustomOpen(true)}>{ta('fields.ui_theme')}定制</button>
+              </div>
               <Text size="xs" c="dimmed" mt={6}>{ta('hint.theme')}</Text>
             </div>
             <div style={{ gridColumn: '1 / span 2' }}><label>{labelFor('terms_template')}</label><textarea className="no-scroll" value={settingsTermsTemplate} onChange={(e) => { setSettingsTermsTemplate(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} rows={3} style={{ ...inputBaseStyle, marginTop: 6, minHeight: 88 }} /></div>
@@ -570,15 +603,28 @@ export default function Admin() {
                 style={{ width: 360, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 10 }}
               >
                 <div>
-                  <div style={fieldLabelStyle}>Image Path</div>
-                  <input
-                    type="text"
-                    value={row.image_path ?? ''}
-                    readOnly
-                    style={inputBaseStyle}
-                  />
+                  <div style={fieldLabelStyle}>产品图片</div>
+                  <div className="subpanel" style={{ minHeight: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                    {row.image_path ? (
+                      <img
+                        src={encodeURI(`file:///${String(row.image_path).replace(/\\/g, '/').replace(/^\/+/, '')}`)}
+                        alt={row.name || row.id}
+                        style={{ maxWidth: '100%', maxHeight: 76, objectFit: 'contain' }}
+                      />
+                    ) : (
+                      <span style={{ color: 'var(--text-dim)', fontSize: 12 }}>未上传图片</span>
+                    )}
+                  </div>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+                  <button
+                    className="btn-outline-neon"
+                    onClick={() => openProductImagePreview(row)}
+                    disabled={!row.image_path}
+                    style={{ cursor: row.image_path ? 'pointer' : 'not-allowed', opacity: row.image_path ? 1 : 0.5 }}
+                  >
+                    预览图片
+                  </button>
                   <button
                     className="btn-info-soft"
                     onClick={() => void handleUploadProductImage(row.id)}
@@ -851,6 +897,77 @@ export default function Admin() {
             <div style={{ marginTop: 14, display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
               <button className="btn-outline-neon" onClick={cancelAddRow}>{ta('common.cancel')}</button>
               <button className="btn-primary" onClick={confirmAddRow}>{ta('common.save')}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {imagePreviewOpen && (
+        <div className="modal-backdrop">
+          <div className="modal-card glass-card" style={{ width: 640, maxWidth: '90vw' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <h3 style={{ margin: 0 }}>图片预览 - {imagePreviewTitle}</h3>
+              <button className="btn-outline-neon" onClick={() => setImagePreviewOpen(false)}>{ta('common.close')}</button>
+            </div>
+            <div className="subpanel" style={{ minHeight: 360, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 12 }}>
+              {imagePreviewPath ? (
+                <img
+                  src={imagePreviewPath}
+                  alt={imagePreviewTitle}
+                  style={{ maxWidth: '100%', maxHeight: '70vh', objectFit: 'contain', borderRadius: 8 }}
+                />
+              ) : (
+                <span style={{ color: 'var(--text-dim)' }}>暂无可预览图片</span>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {themeCustomOpen && (
+        <div className="modal-backdrop">
+          <div className="modal-card glass-card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <h3 style={{ margin: 0 }}>主题定制</h3>
+              <button className="btn-outline-neon" onClick={() => setThemeCustomOpen(false)}>{ta('common.close')}</button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }}>
+              <div><div style={fieldLabelStyle}>背景色 A</div><input type="color" value={themeDraft.bg0} onChange={(e) => setThemeDraft((p) => ({ ...p, bg0: e.target.value }))} style={inputBaseStyle} /></div>
+              <div><div style={fieldLabelStyle}>背景色 B</div><input type="color" value={themeDraft.bg1} onChange={(e) => setThemeDraft((p) => ({ ...p, bg1: e.target.value }))} style={inputBaseStyle} /></div>
+              <div><div style={fieldLabelStyle}>主文字色</div><input type="color" value={themeDraft.text} onChange={(e) => setThemeDraft((p) => ({ ...p, text: e.target.value }))} style={inputBaseStyle} /></div>
+              <div><div style={fieldLabelStyle}>弱文字色</div><input type="color" value={themeDraft.textDim} onChange={(e) => setThemeDraft((p) => ({ ...p, textDim: e.target.value }))} style={inputBaseStyle} /></div>
+              <div><div style={fieldLabelStyle}>面板色 1</div><input type="color" value={themeDraft.surface1} onChange={(e) => setThemeDraft((p) => ({ ...p, surface1: e.target.value }))} style={inputBaseStyle} /></div>
+              <div><div style={fieldLabelStyle}>面板色 2</div><input type="color" value={themeDraft.surface2} onChange={(e) => setThemeDraft((p) => ({ ...p, surface2: e.target.value }))} style={inputBaseStyle} /></div>
+              <div><div style={fieldLabelStyle}>边框色</div><input type="color" value={themeDraft.border1} onChange={(e) => setThemeDraft((p) => ({ ...p, border1: e.target.value }))} style={inputBaseStyle} /></div>
+              <div><div style={fieldLabelStyle}>主色</div><input type="color" value={themeDraft.primary} onChange={(e) => setThemeDraft((p) => ({ ...p, primary: e.target.value }))} style={inputBaseStyle} /></div>
+              <div><div style={fieldLabelStyle}>强调色 1</div><input type="color" value={themeDraft.accent} onChange={(e) => setThemeDraft((p) => ({ ...p, accent: e.target.value }))} style={inputBaseStyle} /></div>
+              <div><div style={fieldLabelStyle}>强调色 2</div><input type="color" value={themeDraft.accent2} onChange={(e) => setThemeDraft((p) => ({ ...p, accent2: e.target.value }))} style={inputBaseStyle} /></div>
+              <div style={{ gridColumn: 'span 2' }}>
+                <div style={fieldLabelStyle}>字体（font-family）</div>
+                <input type="text" value={themeDraft.fontFamily} onChange={(e) => setThemeDraft((p) => ({ ...p, fontFamily: e.target.value }))} style={inputBaseStyle} />
+              </div>
+              <div>
+                <div style={fieldLabelStyle}>背景图上传</div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (!file) return
+                    const reader = new FileReader()
+                    reader.onload = () => setThemeDraft((p) => ({ ...p, backgroundImage: String(reader.result ?? '') }))
+                    reader.readAsDataURL(file)
+                  }}
+                  style={inputBaseStyle}
+                />
+              </div>
+            </div>
+            <div style={{ marginTop: 14, display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+              <button className="btn-danger-soft" onClick={() => setThemeDraft((p) => ({ ...p, backgroundImage: '' }))}>清除背景图</button>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button className="btn-outline-neon" onClick={() => { setThemeDraft(defaultCustomThemeOverrides); applyCustomThemeOverrides(defaultCustomThemeOverrides); saveCustomThemeOverrides(defaultCustomThemeOverrides) }}>重置</button>
+                <button className="btn-primary" onClick={() => { applyCustomThemeOverrides(themeDraft); saveCustomThemeOverrides(themeDraft); setSettingsUiTheme('paper'); setUiThemeKey('paper'); setDirtySettings(true); setThemeCustomOpen(false) }}>应用并保存</button>
+              </div>
             </div>
           </div>
         </div>
