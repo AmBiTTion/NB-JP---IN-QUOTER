@@ -443,6 +443,10 @@ html,body{
   row-gap: 12px !important;
 }
 
+.admin-page .admin-card-grid > div {
+  min-width: 0;
+}
+
 .admin-add-modal {
   width: min(920px, 94vw);
 }
@@ -669,8 +673,16 @@ html,body{
   align-items: start;
 }
 
+.quote-meta-row {
+  align-items: end;
+}
+
 .quote-panel {
   min-height: 100%;
+}
+
+.quote-transport-block {
+  border-top: 1px dashed color-mix(in srgb, var(--border-1) 78%, transparent 22%);
 }
 
 .quote-actions {

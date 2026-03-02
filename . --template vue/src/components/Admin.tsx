@@ -698,7 +698,7 @@ export default function Admin() {
               <span>{ta('tabs.products')}: {row.id}</span>
               <button className="btn-danger-soft" onClick={() => deleteRow('products', row.id)} style={{ cursor: 'pointer' }}>{ta('common.delete')}</button>
             </div>
-            <div className="admin-card-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr 1.2fr 0.8fr 0.8fr 0.8fr 1fr', gap: 10, marginBottom: 14 }}>
+            <div className="admin-card-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 10, marginBottom: 14 }}>
               <div>
                 <div style={fieldLabelStyle}>ID</div>
                 <input type="text" value={row.id} readOnly style={inputBaseStyle} />
@@ -763,9 +763,10 @@ export default function Admin() {
                   </div>
 
                   <div
+                    className="admin-card-grid"
                     style={{
                       display: 'grid',
-                      gridTemplateColumns: '1fr 1.2fr 1.2fr',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
                       gap: 10,
                       marginBottom: 12,
                     }}
@@ -805,9 +806,10 @@ export default function Admin() {
                   </div>
 
                   <div
+                    className="admin-card-grid"
                     style={{
                       display: 'grid',
-                      gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr 0.7fr',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
                       gap: 10,
                     }}
                   >
@@ -897,13 +899,16 @@ export default function Admin() {
                     </div>
                     <div>
                       <div style={fieldLabelStyle}>{ta('common.defaultMark')}</div>
-                      <input
-                        type="checkbox"
-                        checked={Boolean(pack.default_selected)}
-                        onChange={(e) =>
-                          updateRow('packaging_options', pack.id, 'default_selected', e.target.checked)
-                        }
-                      />
+                      <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minHeight: 40 }}>
+                        <input
+                          type="checkbox"
+                          checked={Boolean(pack.default_selected)}
+                          onChange={(e) =>
+                            updateRow('packaging_options', pack.id, 'default_selected', e.target.checked)
+                          }
+                        />
+                        <span style={{ color: 'var(--text-dim)', fontSize: 12 }}>{ta('common.defaultMark')}</span>
+                      </label>
                     </div>
                   </div>
                 </div>

@@ -741,27 +741,17 @@ function Quoter(props: { onOperationSaved?: () => void }) {
         <div className="panel glass-card quote-panel">
           <div style={sectionTitleStyle}>{t('quote.sectionProduct')}</div>
           <Select className="ui-select" value={selectedProductId || null} onChange={(value) => setSelectedProductId(value ?? '')} data={productSelectData} placeholder={t('quote.selectProduct')} searchable={false} />
-          <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 140px', gap: 10 }}>
+          <div className="quote-meta-row" style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 140px', gap: 10 }}>
             <div>
               <div style={fieldLabelStyle}>{t('quote.customerName')}</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr', gap: 8 }}>
-                <Select
-                  className="ui-select"
-                  value={selectedCustomerId || null}
-                  onChange={(value) => setSelectedCustomerId(value ?? '')}
-                  data={customerSelectData}
-                  placeholder={t('quote.selectCustomer')}
-                  searchable={false}
-                />
-                <input
-                  type="text"
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  placeholder={t('quote.customerHint')}
-                  className="ui-input"
-                  style={{ width: '100%' }}
-                />
-              </div>
+              <Select
+                className="ui-select"
+                value={selectedCustomerId || null}
+                onChange={(value) => setSelectedCustomerId(value ?? '')}
+                data={customerSelectData}
+                placeholder={t('quote.selectCustomer')}
+                searchable={false}
+              />
             </div>
             <div>
               <div style={fieldLabelStyle}>{t('quote.versionTag')}</div>
@@ -859,16 +849,19 @@ function Quoter(props: { onOperationSaved?: () => void }) {
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <div><div style={fieldLabelStyle}>{t('quote.mode')}</div><Select className="ui-select" value={mode} onChange={(value) => setMode((value as Mode | null) ?? 'FCL')} data={[{ value: 'FCL', label: 'FCL' }, { value: 'LCL', label: 'LCL' }]} searchable={false} /></div>
-            <div><div style={fieldLabelStyle}>{t('quote.container')}</div><Select className="ui-select" value={containerType} onChange={(value) => setContainerType((value as ContainerType | null) ?? '20GP')} data={[{ value: '20GP', label: '20GP' }, { value: '40HQ', label: '40HQ' }]} searchable={false} /></div>
-            <div><div style={fieldLabelStyle}>{t('quote.fxRate')}</div><NumberInput className="ui-input" value={toMantineNumber(fxRate)} onChange={(value) => setFxRate(toInputString(value))} hideControls /></div>
-            <div><div style={fieldLabelStyle}>{t('quote.margin')}</div><NumberInput className="ui-input" value={toMantineNumber(marginPct)} onChange={(value) => setMarginPct(toInputString(value))} hideControls /></div>
-          </div>
+          <div className="quote-transport-block" style={{ marginTop: 16, paddingTop: 12 }}>
+            <div style={{ ...sectionTitleStyle, marginBottom: 10 }}>{t('quote.sectionTransport')}</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div><div style={fieldLabelStyle}>{t('quote.mode')}</div><Select className="ui-select" value={mode} onChange={(value) => setMode((value as Mode | null) ?? 'FCL')} data={[{ value: 'FCL', label: 'FCL' }, { value: 'LCL', label: 'LCL' }]} searchable={false} /></div>
+              <div><div style={fieldLabelStyle}>{t('quote.container')}</div><Select className="ui-select" value={containerType} onChange={(value) => setContainerType((value as ContainerType | null) ?? '20GP')} data={[{ value: '20GP', label: '20GP' }, { value: '40HQ', label: '40HQ' }]} searchable={false} /></div>
+              <div><div style={fieldLabelStyle}>{t('quote.fxRate')}</div><NumberInput className="ui-input" value={toMantineNumber(fxRate)} onChange={(value) => setFxRate(toInputString(value))} hideControls /></div>
+              <div><div style={fieldLabelStyle}>{t('quote.margin')}</div><NumberInput className="ui-input" value={toMantineNumber(marginPct)} onChange={(value) => setMarginPct(toInputString(value))} hideControls /></div>
+            </div>
 
-          <div style={{ marginTop: 10 }}>
-            <div style={fieldLabelStyle}>{t('quote.landFreight')}</div>
-            <NumberInput className="ui-input" value={toMantineNumber(landFreightOverridePerTon)} onChange={(value) => setLandFreightOverridePerTon(toInputString(value))} hideControls placeholder={defaultLandFreightPerTon !== null ? `${t('quote.defaultValue')} ${defaultLandFreightPerTon}` : t('quote.unconfiguredDefaultZero')} />
+            <div style={{ marginTop: 10 }}>
+              <div style={fieldLabelStyle}>{t('quote.landFreight')}</div>
+              <NumberInput className="ui-input" value={toMantineNumber(landFreightOverridePerTon)} onChange={(value) => setLandFreightOverridePerTon(toInputString(value))} hideControls placeholder={defaultLandFreightPerTon !== null ? `${t('quote.defaultValue')} ${defaultLandFreightPerTon}` : t('quote.unconfiguredDefaultZero')} />
+            </div>
           </div>
 
           <div className="quote-actions" style={{ marginTop: 16, display: 'flex', flexWrap: 'wrap', gap: 10 }}>
