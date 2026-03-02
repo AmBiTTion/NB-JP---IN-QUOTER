@@ -130,6 +130,14 @@ interface FactoryPackagingOverride {
   bag_price_rmb_override?: number | null
 }
 
+interface Customer {
+  id: string
+  name: string
+  contact?: string | null
+  default_port_id?: string | null
+  terms_template?: string | null
+}
+
 interface CalculationHistory {
   id: string
   timestamp: string
@@ -149,6 +157,7 @@ interface AppData {
   container_load_rules: ContainerLoadRule[]
   land_freight_rules: LandFreightRule[]
   factory_packaging_overrides: FactoryPackagingOverride[]
+  customers: Customer[]
   history: CalculationHistory[]
 }
 
@@ -182,6 +191,7 @@ type EditableTableKey =
   | 'container_load_rules'
   | 'land_freight_rules'
   | 'factory_packaging_overrides'
+  | 'customers'
 
 const SCHEMA_VERSION = 4
 const EDITABLE_TABLES: EditableTableKey[] = [
@@ -195,6 +205,7 @@ const EDITABLE_TABLES: EditableTableKey[] = [
   'container_load_rules',
   'land_freight_rules',
   'factory_packaging_overrides',
+  'customers',
 ]
 
 const file = path.join(process.cwd(), 'data.json')
@@ -306,6 +317,7 @@ function createEmptyData(): AppData {
     container_load_rules: [],
     land_freight_rules: [],
     factory_packaging_overrides: [],
+    customers: [],
     history: [],
   }
 }
@@ -580,6 +592,7 @@ function migrateLegacyData(raw: LegacyData): AppData {
     container_load_rules: containerLoadRules,
     land_freight_rules: landFreightRules,
     factory_packaging_overrides: factoryPackagingOverrides,
+    customers: [],
     history: toHistory(historyInput, nowIso),
   }
 }
@@ -669,6 +682,10 @@ function normalizeAppData(raw: AppData): AppData {
 
   if (!Array.isArray(raw.factory_packaging_overrides)) {
     normalized.factory_packaging_overrides = []
+  }
+
+  if (!Array.isArray((raw as any).customers)) {
+    normalized.customers = []
   }
 
   return normalized

@@ -124,6 +124,14 @@ export interface FactoryPackagingOverride {
   bag_price_rmb_override?: number | null
 }
 
+export interface Customer {
+  id: string
+  name: string
+  contact?: string | null
+  default_port_id?: string | null
+  terms_template?: string | null
+}
+
 export interface CalculationHistory {
   id: string
   timestamp: string
@@ -143,6 +151,7 @@ export interface AppData {
   container_load_rules: ContainerLoadRule[]
   land_freight_rules: LandFreightRule[]
   factory_packaging_overrides: FactoryPackagingOverride[]
+  customers: Customer[]
   history: CalculationHistory[]
 }
 
@@ -157,3 +166,4 @@ export type EditableTableKey =
   | 'container_load_rules'
   | 'land_freight_rules'
   | 'factory_packaging_overrides'
+  | 'customers'

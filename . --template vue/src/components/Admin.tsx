@@ -5,6 +5,7 @@ import type {
   AppData,
   CalculationHistory,
   ContainerLoadRule,
+  Customer,
   EditableTableKey,
   Factory,
   FactoryPackagingOverride,
@@ -44,6 +45,7 @@ type TableState = {
   container_load_rules: ContainerLoadRule[]
   land_freight_rules: LandFreightRule[]
   factory_packaging_overrides: FactoryPackagingOverride[]
+  customers: Customer[]
 }
 
 type Column<T> = {
@@ -68,13 +70,14 @@ const TABS: Array<{ key: TabKey; label: string }> = [
   { key: 'container_load_rules', label: ta('tabs.container_load_rules') },
   { key: 'land_freight_rules', label: ta('tabs.land_freight_rules') },
   { key: 'factory_packaging_overrides', label: ta('tabs.factory_packaging_overrides') },
+  { key: 'customers', label: '客户' },
   { key: 'settings', label: ta('tabs.settings') },
 ]
 
 const ID_PREFIX: Record<EditableTableKey, string> = {
   products: 'prod', packaging_options: 'pack', packaging_recommendations: 'pr', factories: 'fct',
   factory_product_costs: 'fpc', ports: 'port', port_charges_rules: 'pcr', container_load_rules: 'clr',
-  land_freight_rules: 'lfr', factory_packaging_overrides: 'fpo',
+  land_freight_rules: 'lfr', factory_packaging_overrides: 'fpo', customers: 'cus',
 }
 
 const LABELS: Record<string, string> = {
@@ -88,6 +91,9 @@ const LABELS: Record<string, string> = {
   fx_rate: ta('fields.fx_rate'), margin_pct: ta('fields.margin_pct'), quote_valid_days: ta('fields.quote_valid_days'), pricing_formula_mode: ta('fields.pricing_formula_mode'),
   rounding_policy: ta('fields.rounding_policy'), terms_template: ta('fields.terms_template'), ui_theme: ta('fields.ui_theme'), money_format_rmb_decimals: ta('fields.money_format_rmb_decimals'), money_format_usd_decimals: ta('fields.money_format_usd_decimals'),
   recommended_units_per_carton: ta('fields.recommended_units_per_carton'), notes: ta('fields.notes'), carton_price_rmb_override: ta('fields.carton_price_rmb_override'), bag_price_rmb_override: ta('fields.bag_price_rmb_override'),
+  contact: '联系人',
+  default_port_id: '默认港口',
+  customer_terms_template: '默认条款',
 }
 
 const INNER_PACK_LABELS: Record<InnerPackType, string> = { none: ta('innerPack.none'), carton: ta('innerPack.carton'), woven_bag: ta('innerPack.woven_bag'), small_box: ta('innerPack.small_box'), big_box: ta('innerPack.big_box') }
@@ -106,6 +112,7 @@ const labelFor = (k: string, fb?: string) => LABELS[k] ?? fb ?? k
 const createEmptyTables = (): TableState => ({
   products: [], packaging_options: [], packaging_recommendations: [], factories: [], factory_product_costs: [],
   ports: [], port_charges_rules: [], container_load_rules: [], land_freight_rules: [], factory_packaging_overrides: [],
+  customers: [],
 })
 const isBlank = (v: unknown) => v === null || v === undefined || (typeof v === 'string' && v.trim().length === 0)
 const isFiniteNumber = (v: unknown) => typeof v === 'number' && Number.isFinite(v)
@@ -195,7 +202,7 @@ export default function Admin() {
         products: appData.products ?? [], packaging_options: appData.packaging_options ?? [], packaging_recommendations: appData.packaging_recommendations ?? [],
         factories: appData.factories ?? [], factory_product_costs: appData.factory_product_costs ?? [], ports: appData.ports ?? [],
         port_charges_rules: appData.port_charges_rules ?? [], container_load_rules: appData.container_load_rules ?? [],
-        land_freight_rules: appData.land_freight_rules ?? [], factory_packaging_overrides: appData.factory_packaging_overrides ?? [],
+        land_freight_rules: appData.land_freight_rules ?? [], factory_packaging_overrides: appData.factory_packaging_overrides ?? [], customers: appData.customers ?? [],
       })
       setSettingsFxRate(String(appData.settings.fx_rate ?? 6.9)); setSettingsMarginPct(String(appData.settings.margin_pct ?? 0.05)); setSettingsQuoteValidDays(String(appData.settings.quote_valid_days ?? 7))
       setSettingsRmbDecimals(String(appData.settings.money_format?.rmb_decimals ?? 4)); setSettingsUsdDecimals(String(appData.settings.money_format?.usd_decimals ?? 4))
@@ -253,6 +260,7 @@ export default function Admin() {
         case 'container_load_rules': return { id: nextIdFromRows(ID_PREFIX.container_load_rules, tables.container_load_rules), product_id: tables.products[0]?.id ?? '', container_type: '20GP', max_tons: 0 } satisfies ContainerLoadRule
         case 'land_freight_rules': return { id: nextIdFromRows(ID_PREFIX.land_freight_rules, tables.land_freight_rules), mode: 'FCL', factory_id: null, container_type: '20GP', min_rmb_per_ton: 0, max_rmb_per_ton: 0, default_rmb_per_ton: 0 } satisfies LandFreightRule
         case 'factory_packaging_overrides': return { id: nextIdFromRows(ID_PREFIX.factory_packaging_overrides, tables.factory_packaging_overrides), factory_id: tables.factories[0]?.id ?? '', packaging_option_id: tables.packaging_options[0]?.id ?? '', carton_price_rmb_override: null, bag_price_rmb_override: null } satisfies FactoryPackagingOverride
+        case 'customers': return { id: nextIdFromRows(ID_PREFIX.customers, tables.customers), name: '', contact: '', default_port_id: null, terms_template: '' } satisfies Customer
         default: return null
       }
     })()
@@ -343,6 +351,7 @@ export default function Admin() {
     if (table === 'container_load_rules') runBasic(tables.container_load_rules, table, [(r, row) => { if (isBlank(r.id)) errors.push(`${row}: ${idLabel}${req}`); if (isBlank(r.product_id)) errors.push(`${row}: ${ta('fields.product_id')}${req}`); if (isBlank(r.container_type)) errors.push(`${row}: ${ta('fields.container_type')}${req}`); if (!isFiniteNumber(r.max_tons)) errors.push(`${row}: ${ta('fields.max_tons')}${num}`) }])
     if (table === 'land_freight_rules') runBasic(tables.land_freight_rules, table, [(r, row) => { if (isBlank(r.id)) errors.push(`${row}: ${idLabel}${req}`); if (isBlank(r.mode)) errors.push(`${row}: ${ta('fields.mode')}${req}`); if (isBlank(r.container_type)) errors.push(`${row}: ${ta('fields.container_type')}${req}`); if (!isFiniteNumber(r.min_rmb_per_ton)) errors.push(`${row}: ${ta('fields.min_rmb_per_ton')}${num}`); if (!isFiniteNumber(r.max_rmb_per_ton)) errors.push(`${row}: ${ta('fields.max_rmb_per_ton')}${num}`); if (!isFiniteNumber(r.default_rmb_per_ton)) errors.push(`${row}: ${ta('fields.default_rmb_per_ton')}${num}`) }])
     if (table === 'factory_packaging_overrides') runBasic(tables.factory_packaging_overrides, table, [(r, row) => { if (isBlank(r.id)) errors.push(`${row}: ${idLabel}${req}`); if (isBlank(r.factory_id)) errors.push(`${row}: ${ta('fields.factory_id')}${req}`); if (isBlank(r.packaging_option_id)) errors.push(`${row}: ${ta('fields.packaging_option_id')}${req}`); if (r.carton_price_rmb_override !== null && r.carton_price_rmb_override !== undefined && !isFiniteNumber(r.carton_price_rmb_override)) errors.push(`${row}: ${ta('fields.carton_price_rmb_override')}${num}`); if (r.bag_price_rmb_override !== null && r.bag_price_rmb_override !== undefined && !isFiniteNumber(r.bag_price_rmb_override)) errors.push(`${row}: ${ta('fields.bag_price_rmb_override')}${num}`) }])
+    if (table === 'customers') runBasic(tables.customers, table, [(r, row) => { if (isBlank(r.id)) errors.push(`${row}: ${idLabel}${req}`); if (isBlank(r.name)) errors.push(`${row}: ${ta('fields.name')}${req}`) }])
     return errors
   }, [tables])
 
@@ -474,6 +483,7 @@ export default function Admin() {
       container_load_rules: [{ key: 'id', label: ta('fields.id'), type: 'text', readOnly: true, width: 140 }, { key: 'product_id', label: ta('fields.product_id'), type: 'select', options: productSelect }, { key: 'container_type', label: ta('fields.container_type'), type: 'select', options: [{ value: '20GP', label: '20GP' }, { value: '40HQ', label: '40HQ' }] }, { key: 'max_tons', label: ta('fields.max_tons'), type: 'number' }] as Array<Column<ContainerLoadRule>>,
       land_freight_rules: [{ key: 'id', label: ta('fields.id'), type: 'text', readOnly: true, width: 140 }, { key: 'mode', label: ta('fields.mode'), type: 'select', options: [{ value: 'FCL', label: 'FCL' }, { value: 'LCL', label: 'LCL' }] }, { key: 'factory_id', label: ta('fields.factory_id'), type: 'select', options: factorySelect }, { key: 'container_type', label: ta('fields.container_type'), type: 'select', options: [{ value: '20GP', label: '20GP' }, { value: '40HQ', label: '40HQ' }] }, { key: 'min_rmb_per_ton', label: ta('fields.min_rmb_per_ton'), type: 'number' }, { key: 'max_rmb_per_ton', label: ta('fields.max_rmb_per_ton'), type: 'number' }, { key: 'default_rmb_per_ton', label: ta('fields.default_rmb_per_ton'), type: 'number' }] as Array<Column<LandFreightRule>>,
       factory_packaging_overrides: [{ key: 'id', label: ta('fields.id'), type: 'text', readOnly: true, width: 140 }, { key: 'factory_id', label: ta('fields.factory_id'), type: 'select', options: factorySelect }, { key: 'packaging_option_id', label: ta('fields.packaging_option_id'), type: 'select', options: packagingSelect }, { key: 'carton_price_rmb_override', label: ta('fields.carton_price_rmb_override'), type: 'number', nullable: true }, { key: 'bag_price_rmb_override', label: ta('fields.bag_price_rmb_override'), type: 'number', nullable: true }] as Array<Column<FactoryPackagingOverride>>,
+      customers: [{ key: 'id', label: ta('fields.id'), type: 'text', readOnly: true, width: 140 }, { key: 'name', label: ta('fields.name'), type: 'text', width: 220 }, { key: 'contact', label: labelFor('contact'), type: 'text', width: 220 }, { key: 'default_port_id', label: labelFor('default_port_id'), type: 'select', options: portSelect }, { key: 'terms_template', label: labelFor('customer_terms_template'), type: 'text', width: 260 }] as Array<Column<Customer>>,
     }
   }, [factoryOptions, innerPackOptions, packagingOptions, portOptions, productOptions, selectWithEmpty])
 
@@ -912,6 +922,7 @@ export default function Admin() {
           {activeTab === 'container_load_rules' && <EditableTable columns={columnsByTable.container_load_rules} rows={tables.container_load_rules} onChange={(id, k, v) => updateRow('container_load_rules', id, String(k), v)} onDelete={(id) => deleteRow('container_load_rules', id)} />}
           {activeTab === 'land_freight_rules' && <><div className="status-box status-info" style={{ marginBottom: 8 }}>{ta('hint.landFreight')}</div><EditableTable columns={columnsByTable.land_freight_rules} rows={tables.land_freight_rules} onChange={(id, k, v) => updateRow('land_freight_rules', id, String(k), v)} onDelete={(id) => deleteRow('land_freight_rules', id)} /></>}
           {activeTab === 'factory_packaging_overrides' && <EditableTable columns={columnsByTable.factory_packaging_overrides} rows={tables.factory_packaging_overrides} onChange={(id, k, v) => updateRow('factory_packaging_overrides', id, String(k), v)} onDelete={(id) => deleteRow('factory_packaging_overrides', id)} />}
+          {activeTab === 'customers' && <EditableTable columns={columnsByTable.customers} rows={tables.customers} onChange={(id, k, v) => updateRow('customers', id, String(k), v)} onDelete={(id) => deleteRow('customers', id)} />}
         </div>
       )}
 

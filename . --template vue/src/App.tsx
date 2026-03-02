@@ -10,6 +10,7 @@ import type {
   AppData,
   CalculationHistory,
   ContainerType,
+  Customer,
   Factory,
   FactoryProductCost,
   InnerPackType,
@@ -85,6 +86,7 @@ function Quoter(props: { onOperationSaved?: () => void }) {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
   const [selectedProductId, setSelectedProductId] = useState('')
+  const [selectedCustomerId, setSelectedCustomerId] = useState('')
   const [customerName, setCustomerName] = useState('')
   const [quoteVersionTag, setQuoteVersionTag] = useState('V1')
   const [selectedPackagingId, setSelectedPackagingId] = useState('')
@@ -139,6 +141,7 @@ function Quoter(props: { onOperationSaved?: () => void }) {
   }, [data])
 
   const products = data?.products ?? []
+  const customers: Customer[] = data?.customers ?? []
   const selectedProduct: Product | null = useMemo(
     () => products.find((item) => item.id === selectedProductId) ?? null,
     [products, selectedProductId],
@@ -401,6 +404,18 @@ function Quoter(props: { onOperationSaved?: () => void }) {
     () => factories.map((factory) => ({ value: factory.id, label: factory.name })),
     [factories],
   )
+  const customerSelectData = useMemo(
+    () => customers.map((customer) => ({ value: customer.id, label: customer.name })),
+    [customers],
+  )
+
+  useEffect(() => {
+    if (!selectedCustomerId) return
+    const selected = customers.find((item) => item.id === selectedCustomerId)
+    if (selected && selected.name && selected.name !== customerName) {
+      setCustomerName(selected.name)
+    }
+  }, [selectedCustomerId, customers])
 
   const disableReason = useMemo(() => {
     if (!data) return t('quote.dataNotReady')
@@ -556,6 +571,7 @@ function Quoter(props: { onOperationSaved?: () => void }) {
       // @ts-ignore
       await window.ipcRenderer.invoke('save-calculation', {
         input: {
+          customerId: selectedCustomerId || undefined,
           customerName,
           productName: selectedProduct.name,
           factoryId: selectedFactoryId,
@@ -724,14 +740,24 @@ function Quoter(props: { onOperationSaved?: () => void }) {
           <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 140px', gap: 10 }}>
             <div>
               <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>客户名称</div>
-              <input
-                type="text"
-                value={customerName}
-                onChange={(e) => setCustomerName(e.target.value)}
-                placeholder="用于历史和导出"
-                className="ui-input"
-                style={{ width: '100%' }}
-              />
+              <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr', gap: 8 }}>
+                <Select
+                  className="ui-select"
+                  value={selectedCustomerId || null}
+                  onChange={(value) => setSelectedCustomerId(value ?? '')}
+                  data={customerSelectData}
+                  placeholder="选择客户"
+                  searchable={false}
+                />
+                <input
+                  type="text"
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  placeholder="用于历史和导出"
+                  className="ui-input"
+                  style={{ width: '100%' }}
+                />
+              </div>
             </div>
             <div>
               <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>报价版本</div>
