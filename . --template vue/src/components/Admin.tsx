@@ -104,7 +104,7 @@ const inputBaseStyle: React.CSSProperties = {
   borderRadius: 12,
   border: '1px solid var(--border-1)',
   backgroundColor: 'var(--surface-2)',
-  color: '#fff',
+  color: 'var(--text)',
 }
 const fieldLabelStyle: React.CSSProperties = { color: 'var(--text-dim)', fontSize: 12, marginBottom: 6 }
 

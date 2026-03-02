@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type MouseEvent } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties, type MouseEvent } from 'react'
 import { Button, Card, NumberInput, Select } from '@mantine/core'
 import Admin from '@/components/Admin'
 import { calculateQuote, formatCurrency, type CalculateQuoteResult } from '@/utils/calculateQuote'
@@ -23,6 +23,9 @@ import type {
 } from '@/types/domain'
 
 const APP_VERSION = '2.7.5'
+const dimTextStyle: CSSProperties = { color: 'var(--text-dim)' }
+const sectionTitleStyle: CSSProperties = { marginBottom: 8, fontSize: 13, color: 'var(--text-dim)' }
+const fieldLabelStyle: CSSProperties = { fontSize: 12, color: 'var(--text-dim)', marginBottom: 6 }
 
 function parseNumber(value: string): number | null {
   const trimmed = value.trim()
@@ -683,10 +686,10 @@ function Quoter(props: { onOperationSaved?: () => void }) {
     }
   }
 
-  if (loading) return <div style={{ color: '#e5e7eb', padding: 24 }}>{t('common.loading')}</div>
+  if (loading) return <div style={{ color: 'var(--text)', padding: 24 }}>{t('common.loading')}</div>
   if (loadError) {
     return (
-      <div style={{ color: '#e5e7eb', padding: 24 }}>
+      <div style={{ color: 'var(--text)', padding: 24 }}>
         <p>{loadError}</p>
         <Button onClick={() => void loadData()}>{t('common.retry')}</Button>
       </div>
@@ -737,11 +740,11 @@ function Quoter(props: { onOperationSaved?: () => void }) {
 
       <div style={{ display: 'grid', gridTemplateColumns: '0.95fr 1.45fr', gap: 20 }}>
         <div className="panel glass-card">
-          <div style={{ marginBottom: 8, fontSize: 13, color: '#9ca3af' }}>{t('quote.sectionProduct')}</div>
+          <div style={sectionTitleStyle}>{t('quote.sectionProduct')}</div>
           <Select className="ui-select" value={selectedProductId || null} onChange={(value) => setSelectedProductId(value ?? '')} data={productSelectData} placeholder={t('quote.selectProduct')} searchable={false} />
           <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 140px', gap: 10 }}>
             <div>
-              <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{t('quote.customerName')}</div>
+              <div style={fieldLabelStyle}>{t('quote.customerName')}</div>
               <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr', gap: 8 }}>
                 <Select
                   className="ui-select"
@@ -762,7 +765,7 @@ function Quoter(props: { onOperationSaved?: () => void }) {
               </div>
             </div>
             <div>
-              <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{t('quote.versionTag')}</div>
+              <div style={fieldLabelStyle}>{t('quote.versionTag')}</div>
               <input
                 type="text"
                 value={quoteVersionTag}
@@ -776,23 +779,23 @@ function Quoter(props: { onOperationSaved?: () => void }) {
           {selectedProduct && (
             <Card className="subpanel" style={{ marginTop: 12, padding: 12 }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 10 }}>
-                <div style={{ textAlign: 'center' }}><div style={{ fontSize: 12, color: '#94a3b8' }}>POL</div><div style={{ fontSize: 16, fontWeight: 700 }}>{polPortName}</div></div>
-                <div style={{ textAlign: 'center' }}><div style={{ fontSize: 12, color: '#94a3b8' }}>{t('quote.productInfo.rebate')}</div><div style={{ fontSize: 16, fontWeight: 700 }}>{(selectedProduct.refund_rate * 100).toFixed(2)}%</div></div>
-                <div style={{ textAlign: 'center' }}><div style={{ fontSize: 12, color: '#94a3b8' }}>{t('quote.productInfo.purchaseVat')}</div><div style={{ fontSize: 16, fontWeight: 700 }}>{(selectedProduct.purchase_vat_rate * 100).toFixed(2)}%</div></div>
-                <div style={{ textAlign: 'center' }}><div style={{ fontSize: 12, color: '#94a3b8' }}>{t('quote.productInfo.invoiceTax')}</div><div style={{ fontSize: 16, fontWeight: 700 }}>{(selectedProduct.invoice_tax_point * 100).toFixed(2)}%</div></div>
+                <div style={{ textAlign: 'center' }}><div style={{ fontSize: 12, color: 'var(--text-dim)' }}>POL</div><div style={{ fontSize: 16, fontWeight: 700 }}>{polPortName}</div></div>
+                <div style={{ textAlign: 'center' }}><div style={{ fontSize: 12, color: 'var(--text-dim)' }}>{t('quote.productInfo.rebate')}</div><div style={{ fontSize: 16, fontWeight: 700 }}>{(selectedProduct.refund_rate * 100).toFixed(2)}%</div></div>
+                <div style={{ textAlign: 'center' }}><div style={{ fontSize: 12, color: 'var(--text-dim)' }}>{t('quote.productInfo.purchaseVat')}</div><div style={{ fontSize: 16, fontWeight: 700 }}>{(selectedProduct.purchase_vat_rate * 100).toFixed(2)}%</div></div>
+                <div style={{ textAlign: 'center' }}><div style={{ fontSize: 12, color: 'var(--text-dim)' }}>{t('quote.productInfo.invoiceTax')}</div><div style={{ fontSize: 16, fontWeight: 700 }}>{(selectedProduct.invoice_tax_point * 100).toFixed(2)}%</div></div>
               </div>
             </Card>
           )}
 
-          <div style={{ marginTop: 12, marginBottom: 8, fontSize: 13, color: '#9ca3af' }}>{t('quote.sectionFactory')}</div>
+          <div style={{ ...sectionTitleStyle, marginTop: 12 }}>{t('quote.sectionFactory')}</div>
           <Select className="ui-select" value={selectedFactoryId || null} onChange={(value) => setSelectedFactoryId(value ?? '')} data={factorySelectData} placeholder={t('quote.selectFactory')} searchable={false} />
           {selectedFactoryId && (!selectedFactoryCostPerTonUsed || selectedFactoryCostPerTonUsed <= 0) && (
-            <div style={{ color: '#f87171', marginTop: 6 }}>{t('quote.maintainFactoryCost')}</div>
+            <div className="status-box status-error" style={{ marginTop: 8 }}>{t('quote.maintainFactoryCost')}</div>
           )}
           {selectedFactoryId && selectedFactoryCost !== undefined && selectedFactoryCost !== null && selectedFactoryCost > 0 && selectedFactoryCostPerTonUsed && (
-            <div style={{ color: '#93c5fd', marginTop: 6 }}>
+            <div className="status-box status-info" style={{ marginTop: 8 }}>
               {t('quote.costPerTon')}{formatRmb(selectedFactoryCostPerTonUsed, 2)}
-              <span style={{ marginLeft: 8, color: '#9ca3af' }}>
+              <span style={{ marginLeft: 8, color: 'var(--text-dim)' }}>
                 ({formatRmb(selectedFactoryCost, 2)}/
                 {selectedFactoryCostUnit === 'ton'
                   ? t('quote.unit.ton')
@@ -805,7 +808,7 @@ function Quoter(props: { onOperationSaved?: () => void }) {
             </div>
           )}
 
-          <div style={{ marginTop: 12, marginBottom: 8, fontSize: 13, color: '#9ca3af' }}>{t('quote.sectionPackingQty')}</div>
+          <div style={{ ...sectionTitleStyle, marginTop: 12 }}>{t('quote.sectionPackingQty')}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ flex: 1 }}>
               <Select className="ui-select" value={selectedPackagingId || null} onChange={(value) => setSelectedPackagingId(value ?? '')} data={packagingSelectData} placeholder={t('quote.selectPackaging')} searchable={false} />
@@ -820,27 +823,27 @@ function Quoter(props: { onOperationSaved?: () => void }) {
                 <Button className="btn-outline-neon" variant="outline" size="xs" onClick={() => setShowCustomPackaging(false)}>{t('quote.collapse')}</Button>
               </div>
               <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10 }}>
-                <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{t('quote.customFields.unitWeightKg')}</div><NumberInput className="ui-input" value={toMantineNumber(customUnitWeightKg)} onChange={(value) => { setCustomUnitWeightKg(toInputString(value)); setUnitsPerCartonTouched(false) }} hideControls /></div>
-                <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{t('quote.customFields.unitsPerCarton')}</div><NumberInput className="ui-input" value={toMantineNumber(customUnitsPerCarton)} onChange={(value) => { setCustomUnitsPerCarton(toInputString(value)); setUnitsPerCartonTouched(true) }} hideControls placeholder={t('quote.customFields.unitsPerCartonHint')} /></div>
-                <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{t('quote.customFields.bagPriceRmb')}</div><NumberInput className="ui-input" value={toMantineNumber(customBagPrice)} onChange={(value) => setCustomBagPrice(toInputString(value))} hideControls /></div>
-                <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{t('quote.customFields.cartonPriceRmb')}</div><NumberInput className="ui-input" value={toMantineNumber(customCartonPrice)} onChange={(value) => setCustomCartonPrice(toInputString(value))} hideControls /></div>
-                <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{t('quote.customFields.innerPackType')}</div><Select className="ui-select" value={customInnerPackType} onChange={(value) => setCustomInnerPackType((value as InnerPackType | null) ?? 'carton')} data={Object.entries(INNER_PACK_LABELS).map(([value, label]) => ({ value, label }))} searchable={false} /></div>
+                <div><div style={fieldLabelStyle}>{t('quote.customFields.unitWeightKg')}</div><NumberInput className="ui-input" value={toMantineNumber(customUnitWeightKg)} onChange={(value) => { setCustomUnitWeightKg(toInputString(value)); setUnitsPerCartonTouched(false) }} hideControls /></div>
+                <div><div style={fieldLabelStyle}>{t('quote.customFields.unitsPerCarton')}</div><NumberInput className="ui-input" value={toMantineNumber(customUnitsPerCarton)} onChange={(value) => { setCustomUnitsPerCarton(toInputString(value)); setUnitsPerCartonTouched(true) }} hideControls placeholder={t('quote.customFields.unitsPerCartonHint')} /></div>
+                <div><div style={fieldLabelStyle}>{t('quote.customFields.bagPriceRmb')}</div><NumberInput className="ui-input" value={toMantineNumber(customBagPrice)} onChange={(value) => setCustomBagPrice(toInputString(value))} hideControls /></div>
+                <div><div style={fieldLabelStyle}>{t('quote.customFields.cartonPriceRmb')}</div><NumberInput className="ui-input" value={toMantineNumber(customCartonPrice)} onChange={(value) => setCustomCartonPrice(toInputString(value))} hideControls /></div>
+                <div><div style={fieldLabelStyle}>{t('quote.customFields.innerPackType')}</div><Select className="ui-select" value={customInnerPackType} onChange={(value) => setCustomInnerPackType((value as InnerPackType | null) ?? 'carton')} data={Object.entries(INNER_PACK_LABELS).map(([value, label]) => ({ value, label }))} searchable={false} /></div>
               </div>
               {recommendedUnitsPerCarton !== null && (
-                <div style={{ marginTop: 8, color: '#93c5fd' }}>{t('quote.recommendation')}{recommendedUnitsPerCarton} {t('quote.unit.bagsPerCarton')}</div>
+                <div className="status-box status-info" style={{ marginTop: 8 }}>{t('quote.recommendation')}{recommendedUnitsPerCarton} {t('quote.unit.bagsPerCarton')}</div>
               )}
               <div style={{ marginTop: 12, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                 <Button className="btn-primary" onClick={handleSaveDerivedPackaging}>{t('quote.saveAsPack')}</Button>
                 <Button className="btn-outline-neon" variant="outline" onClick={() => setShowCustomPackaging(false)}>{t('quote.cancel')}</Button>
-                <span style={{ color: '#9ca3af' }}>{t('quote.saveAsPackHint')}</span>
+                <span style={dimTextStyle}>{t('quote.saveAsPackHint')}</span>
               </div>
             </div>
           )}
 
           {mode === 'FCL' && (
             <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{t('quote.fclHint')}</div><NumberInput className="ui-input" value={toMantineNumber(fclTonsHint)} onChange={(value) => handleFclTonsChange(toInputString(value))} hideControls /></div>
-              <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{t('quote.bags')}</div><NumberInput className="ui-input" value={toMantineNumber(fclBagsHint)} onChange={(value) => handleFclBagsChange(toInputString(value))} hideControls /></div>
+              <div><div style={fieldLabelStyle}>{t('quote.fclHint')}</div><NumberInput className="ui-input" value={toMantineNumber(fclTonsHint)} onChange={(value) => handleFclTonsChange(toInputString(value))} hideControls /></div>
+              <div><div style={fieldLabelStyle}>{t('quote.bags')}</div><NumberInput className="ui-input" value={toMantineNumber(fclBagsHint)} onChange={(value) => handleFclBagsChange(toInputString(value))} hideControls /></div>
             </div>
           )}
 
@@ -851,36 +854,36 @@ function Quoter(props: { onOperationSaved?: () => void }) {
                 <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}><input type="radio" checked={lclInputType === 'bags'} onChange={() => handleLclInputTypeChange('bags')} />{t('quote.inputBags')}</label>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{lclInputType === 'tons' ? t('quote.tons') : t('quote.bags')}</div><NumberInput className="ui-input" value={toMantineNumber(lclInputValue)} onChange={(value) => setLclInputValue(toInputString(value))} hideControls /></div>
-                <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{lclInputType === 'tons' ? t('quote.convertedBags') : t('quote.convertedTons')}</div><NumberInput className="ui-input" value={toMantineNumber(lclInputType === 'tons' ? toInputString(lclBagsValue) : toInputString(lclTonsValue))} readOnly hideControls /></div>
+                <div><div style={fieldLabelStyle}>{lclInputType === 'tons' ? t('quote.tons') : t('quote.bags')}</div><NumberInput className="ui-input" value={toMantineNumber(lclInputValue)} onChange={(value) => setLclInputValue(toInputString(value))} hideControls /></div>
+                <div><div style={fieldLabelStyle}>{lclInputType === 'tons' ? t('quote.convertedBags') : t('quote.convertedTons')}</div><NumberInput className="ui-input" value={toMantineNumber(lclInputType === 'tons' ? toInputString(lclBagsValue) : toInputString(lclTonsValue))} readOnly hideControls /></div>
               </div>
             </div>
           )}
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{t('quote.mode')}</div><Select className="ui-select" value={mode} onChange={(value) => setMode((value as Mode | null) ?? 'FCL')} data={[{ value: 'FCL', label: 'FCL' }, { value: 'LCL', label: 'LCL' }]} searchable={false} /></div>
-            <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{t('quote.container')}</div><Select className="ui-select" value={containerType} onChange={(value) => setContainerType((value as ContainerType | null) ?? '20GP')} data={[{ value: '20GP', label: '20GP' }, { value: '40HQ', label: '40HQ' }]} searchable={false} /></div>
-            <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{t('quote.fxRate')}</div><NumberInput className="ui-input" value={toMantineNumber(fxRate)} onChange={(value) => setFxRate(toInputString(value))} hideControls /></div>
-            <div><div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{t('quote.margin')}</div><NumberInput className="ui-input" value={toMantineNumber(marginPct)} onChange={(value) => setMarginPct(toInputString(value))} hideControls /></div>
+            <div><div style={fieldLabelStyle}>{t('quote.mode')}</div><Select className="ui-select" value={mode} onChange={(value) => setMode((value as Mode | null) ?? 'FCL')} data={[{ value: 'FCL', label: 'FCL' }, { value: 'LCL', label: 'LCL' }]} searchable={false} /></div>
+            <div><div style={fieldLabelStyle}>{t('quote.container')}</div><Select className="ui-select" value={containerType} onChange={(value) => setContainerType((value as ContainerType | null) ?? '20GP')} data={[{ value: '20GP', label: '20GP' }, { value: '40HQ', label: '40HQ' }]} searchable={false} /></div>
+            <div><div style={fieldLabelStyle}>{t('quote.fxRate')}</div><NumberInput className="ui-input" value={toMantineNumber(fxRate)} onChange={(value) => setFxRate(toInputString(value))} hideControls /></div>
+            <div><div style={fieldLabelStyle}>{t('quote.margin')}</div><NumberInput className="ui-input" value={toMantineNumber(marginPct)} onChange={(value) => setMarginPct(toInputString(value))} hideControls /></div>
           </div>
 
           <div style={{ marginTop: 10 }}>
-            <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{t('quote.landFreight')}</div>
+            <div style={fieldLabelStyle}>{t('quote.landFreight')}</div>
             <NumberInput className="ui-input" value={toMantineNumber(landFreightOverridePerTon)} onChange={(value) => setLandFreightOverridePerTon(toInputString(value))} hideControls placeholder={defaultLandFreightPerTon !== null ? `${t('quote.defaultValue')} ${defaultLandFreightPerTon}` : t('quote.unconfiguredDefaultZero')} />
           </div>
 
           <div style={{ marginTop: 16, display: 'flex', flexWrap: 'wrap', gap: 10 }}>
             <Button className="btn-primary" onClick={handleCalculate} disabled={Boolean(disableReason)}>{t('quote.calc')}</Button>
             <Button className="btn-primary" onClick={handleExportExternalQuotation} disabled={!quoteResult}>{t('quote.exportExcel')}</Button>
-            {disableReason && <span style={{ color: '#fca5a5', alignSelf: 'center' }}>{t('quote.disabledReason')}：{disableReason}</span>}
+            {disableReason && <span className="status-pill status-warning" style={{ alignSelf: 'center' }}>{t('quote.disabledReason')}{disableReason}</span>}
           </div>
-          {validationError && <div style={{ marginTop: 10, color: '#f87171' }}>{validationError}</div>}
-          {exportMessage && <div style={{ marginTop: 10, color: '#93c5fd' }}>{exportMessage}</div>}
+          {validationError && <div className="status-box status-error" style={{ marginTop: 10 }}>{validationError}</div>}
+          {exportMessage && <div className="status-box status-info" style={{ marginTop: 10 }}>{exportMessage}</div>}
         </div>
 
         <div className="panel glass-card">
           <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-start', gap: 10, marginBottom: 6 }}>
-            <div style={{ textAlign: 'right', fontSize: 12, color: '#94a3b8' }}>{t('app.versionPrefix')}{APP_VERSION}</div>
+            <div style={{ textAlign: 'right', fontSize: 12, color: 'var(--text-dim)' }}>{t('app.versionPrefix')}{APP_VERSION}</div>
           </div>
           <div className="kpi-row" style={{ marginTop: 8 }}>
             {kpiCards.map((card) => (
@@ -906,7 +909,7 @@ function Quoter(props: { onOperationSaved?: () => void }) {
                 <div className="summary-box-item"><div className="summary-box-label">{t('quote.result.cartonSource')}</div><div className="summary-box-value">{sourceLabel(quoteResult.summary.carton_price_source)}</div></div>
               </div>
             ) : (
-              <div style={{ color: '#9ca3af' }}>{t('quote.result.fillHint')}</div>
+              <div style={dimTextStyle}>{t('quote.result.fillHint')}</div>
             )}
           </div>
 
@@ -928,12 +931,12 @@ function Quoter(props: { onOperationSaved?: () => void }) {
                 </tbody>
               </table>
             ) : (
-              <div style={{ color: '#9ca3af' }}>{t('common.noResult')}</div>
+              <div style={dimTextStyle}>{t('common.noResult')}</div>
             )}
           </div>
 
           {quoteResult && quoteResult.warnings.length > 0 && (
-            <div style={{ marginTop: 12, padding: 12, borderRadius: 10, border: '1px solid #78350f', backgroundColor: 'rgba(120,53,15,.26)', color: '#fde68a' }}>
+            <div className="status-box status-warning" style={{ marginTop: 12 }}>
               <div style={{ fontWeight: 700, marginBottom: 6 }}>{t('quote.result.warnings')}</div>
               <ul style={{ margin: 0, paddingLeft: 18 }}>
                 {quoteResult.warnings.map((warning, index) => (

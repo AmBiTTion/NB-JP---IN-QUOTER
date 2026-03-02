@@ -7,7 +7,9 @@ bad=0
 
 while IFS= read -r f; do
   [ -z "$f" ] && continue
-  if git show -- ":$f" | LC_ALL=C grep -q "$(printf '\000')"; then
+  if git show -- ":$f" | python -c "import sys; sys.exit(1 if b'\0' in sys.stdin.buffer.read() else 0)"; then
+    :
+  else
     echo "✗ $f looks like UTF-16/binary (contains NUL). Please convert to UTF-8 (no BOM)."
     bad=1
   fi
