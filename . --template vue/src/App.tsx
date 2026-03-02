@@ -747,7 +747,16 @@ function Quoter(props: { onOperationSaved?: () => void }) {
               <Select
                 className="ui-select"
                 value={selectedCustomerId || null}
-                onChange={(value) => setSelectedCustomerId(value ?? '')}
+                onChange={(value) => {
+                  const nextId = value ?? ''
+                  setSelectedCustomerId(nextId)
+                  if (!nextId) {
+                    setCustomerName('')
+                    return
+                  }
+                  const matched = customers.find((item) => item.id === nextId)
+                  setCustomerName(matched?.name ?? '')
+                }}
                 data={customerSelectData}
                 placeholder={t('quote.selectCustomer')}
                 searchable={false}
