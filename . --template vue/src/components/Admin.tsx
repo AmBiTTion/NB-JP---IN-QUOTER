@@ -695,7 +695,7 @@ export default function Admin() {
 
           {activeTab === 'products' && <div>{tables.products.map((row) => <div key={row.id} className="subpanel admin-card" style={{ padding: 16, marginBottom: 24 }}>
             <div className="admin-card-header" style={{ marginBottom: 12, color: 'var(--text)', fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span>Product: {row.id}</span>
+              <span>{ta('tabs.products')}: {row.id}</span>
               <button className="btn-danger-soft" onClick={() => deleteRow('products', row.id)} style={{ cursor: 'pointer' }}>{ta('common.delete')}</button>
             </div>
             <div className="admin-card-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr 1.2fr 0.8fr 0.8fr 0.8fr 1fr', gap: 10, marginBottom: 14 }}>
@@ -752,7 +752,7 @@ export default function Admin() {
                       marginBottom: 12,
                     }}
                   >
-                    <div style={{ color: 'var(--text)', fontWeight: 700 }}>Packaging: {pack.id}</div>
+                    <div style={{ color: 'var(--text)', fontWeight: 700 }}>{ta('tabs.packaging_options')}: {pack.id}</div>
                     <button
                       className="btn-danger-soft"
                       onClick={() => deleteRow('packaging_options', pack.id)}
@@ -924,12 +924,15 @@ export default function Admin() {
 
       {addModalOpen && addDraftTable && addDraftRow && (
         <div className="modal-backdrop">
-          <div className="modal-card glass-card">
+          <div className="modal-card glass-card admin-add-modal">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
               <h3 style={{ margin: 0 }}>{ta('common.add')} {TABS.find((t) => t.key === addDraftTable)?.label ?? addDraftTable}</h3>
               <button className="btn-outline-neon" onClick={cancelAddRow}>{ta('common.close')}</button>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 }}>
+            <div style={{ color: 'var(--text-dim)', fontSize: 12, marginBottom: 10 }}>
+              {tf('modal.addHint', { save: ta('common.save'), cancel: ta('common.cancel') })}
+            </div>
+            <div className="admin-add-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 }}>
               {draftColumns
                 .filter((c) => c.key !== 'id')
                 .map((column) => {
@@ -994,7 +997,7 @@ export default function Admin() {
                   )
                 })}
             </div>
-            <div style={{ marginTop: 14, display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+            <div className="admin-add-actions" style={{ marginTop: 14, display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
               <button className="btn-outline-neon" onClick={cancelAddRow}>{ta('common.cancel')}</button>
               <button className="btn-primary" onClick={confirmAddRow}>{ta('common.save')}</button>
             </div>

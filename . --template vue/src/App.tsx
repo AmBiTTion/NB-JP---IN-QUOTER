@@ -724,7 +724,7 @@ function Quoter(props: { onOperationSaved?: () => void }) {
 
   return (
     <div className="quote-page" style={{ padding: 24 }}>
-      <div className="quote-hero" style={{ display: 'grid', gridTemplateColumns: '0.95fr 1.45fr', gap: 20 }}>
+      <div className="quote-hero quote-layout" style={{ display: 'grid', gridTemplateColumns: '0.95fr 1.45fr', gap: 20 }}>
         <div>
           <div className="quote-hero-kicker">FOB Pricing</div>
           <h1 className="quote-hero-title">FOB Quotation Studio</h1>
@@ -737,8 +737,8 @@ function Quoter(props: { onOperationSaved?: () => void }) {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '0.95fr 1.45fr', gap: 20 }}>
-        <div className="panel glass-card">
+      <div className="quote-layout" style={{ display: 'grid', gridTemplateColumns: '0.95fr 1.45fr', gap: 20 }}>
+        <div className="panel glass-card quote-panel">
           <div style={sectionTitleStyle}>{t('quote.sectionProduct')}</div>
           <Select className="ui-select" value={selectedProductId || null} onChange={(value) => setSelectedProductId(value ?? '')} data={productSelectData} placeholder={t('quote.selectProduct')} searchable={false} />
           <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 140px', gap: 10 }}>
@@ -871,7 +871,7 @@ function Quoter(props: { onOperationSaved?: () => void }) {
             <NumberInput className="ui-input" value={toMantineNumber(landFreightOverridePerTon)} onChange={(value) => setLandFreightOverridePerTon(toInputString(value))} hideControls placeholder={defaultLandFreightPerTon !== null ? `${t('quote.defaultValue')} ${defaultLandFreightPerTon}` : t('quote.unconfiguredDefaultZero')} />
           </div>
 
-          <div style={{ marginTop: 16, display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+          <div className="quote-actions" style={{ marginTop: 16, display: 'flex', flexWrap: 'wrap', gap: 10 }}>
             <Button className="btn-primary" onClick={handleCalculate} disabled={Boolean(disableReason)}>{t('quote.calc')}</Button>
             <Button className="btn-primary" onClick={handleExportExternalQuotation} disabled={!quoteResult}>{t('quote.exportExcel')}</Button>
             {disableReason && <span className="status-pill status-warning" style={{ alignSelf: 'center' }}>{t('quote.disabledReason')}{disableReason}</span>}
@@ -880,7 +880,7 @@ function Quoter(props: { onOperationSaved?: () => void }) {
           {exportMessage && <div className="status-box status-info" style={{ marginTop: 10 }}>{exportMessage}</div>}
         </div>
 
-        <div className="panel glass-card">
+        <div className="panel glass-card quote-panel">
           <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-start', gap: 10, marginBottom: 6 }}>
             <div style={{ textAlign: 'right', fontSize: 12, color: 'var(--text-dim)' }}>{t('app.versionPrefix')}{APP_VERSION}</div>
           </div>
@@ -894,7 +894,7 @@ function Quoter(props: { onOperationSaved?: () => void }) {
             ))}
           </div>
 
-          <div className="subpanel glass-card" style={{ padding: 12, marginTop: 12 }}>
+          <div className="subpanel glass-card quote-result-card" style={{ padding: 12, marginTop: 12 }}>
             <div style={{ fontWeight: 700, marginBottom: 8 }}>{t('quote.result.summary')}</div>
             {quoteResult ? (
               <div className="summary-box-grid">
@@ -912,7 +912,7 @@ function Quoter(props: { onOperationSaved?: () => void }) {
             )}
           </div>
 
-          <div className="subpanel glass-card" style={{ padding: 12, marginTop: 12 }}>
+          <div className="subpanel glass-card quote-result-card" style={{ padding: 12, marginTop: 12 }}>
             <div style={{ fontWeight: 700, marginBottom: 8 }}>{t('quote.result.breakdown')}</div>
             {quoteResult ? (
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>

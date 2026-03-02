@@ -443,6 +443,23 @@ html,body{
   row-gap: 12px !important;
 }
 
+.admin-add-modal {
+  width: min(920px, 94vw);
+}
+
+.admin-add-grid {
+  max-height: 50vh;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.admin-add-actions {
+  position: sticky;
+  bottom: 0;
+  padding-top: 10px;
+  background: linear-gradient(to top, color-mix(in srgb, var(--surface-1) 94%, transparent 6%), transparent);
+}
+
 .admin-page input,
 .admin-page textarea,
 .admin-page .mantine-Input-input,
@@ -646,6 +663,28 @@ html,body{
 .quote-hero-subtitle {
   font-size: 13px;
   color: var(--text-dim);
+}
+
+.quote-layout {
+  align-items: start;
+}
+
+.quote-panel {
+  min-height: 100%;
+}
+
+.quote-actions {
+  padding-top: 4px;
+  border-top: 1px dashed color-mix(in srgb, var(--border-1) 80%, transparent 20%);
+}
+
+.quote-result-card {
+  transition: border-color var(--motion-fast) var(--ease-smooth), box-shadow var(--motion-fast) var(--ease-smooth);
+}
+
+.quote-result-card:hover {
+  border-color: color-mix(in srgb, var(--border-1) 70%, var(--text) 30%) !important;
+  box-shadow: 0 10px 22px rgba(0,0,0,calc(var(--glass-shadow-alpha) * .75)) !important;
 }
 
 .summary-box-grid {

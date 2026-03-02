@@ -190,6 +190,9 @@ const adminZh = {
     settingsSaved: '设置已保存',
     newProductDefaultPack: '{name} 默认包装（需维护）',
   },
+  modal: {
+    addHint: '仅在点击“{save}”后写入数据；点击“{cancel}”将关闭弹窗且不保存。',
+  },
 } as const
 
 export default adminZh
