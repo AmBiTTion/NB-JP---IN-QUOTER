@@ -18,7 +18,7 @@ interface Settings {
   fx_rate: number
   margin_pct: number
   quote_valid_days: number
-  ui_theme?: 'classic' | 'neon' | 'minimal'
+  ui_theme?: 'classic' | 'neon' | 'minimal' | 'paper'
   money_format: {
     rmb_decimals: number
     usd_decimals: number
@@ -26,6 +26,19 @@ interface Settings {
   pricing_formula_mode: string
   rounding_policy: string
   terms_template: string
+  user_profiles?: Array<{
+    id: string
+    name: string
+    companyName?: string
+    address?: string
+    postCode?: string
+    tel?: string
+    whatsapp?: string
+    wechat?: string
+    email?: string
+    export_from_name?: string
+  }>
+  active_user_profile_id?: string
 }
 
 interface Product {
@@ -242,6 +255,13 @@ function createEmptyData(): AppData {
       pricing_formula_mode: 'divide',
       rounding_policy: 'ceil',
       terms_template: '',
+      user_profiles: [
+        {
+          id: 'user_default',
+          name: '默认用户',
+        },
+      ],
+      active_user_profile_id: 'user_default',
     },
     products: [],
     packaging_options: [],
@@ -309,10 +329,10 @@ function nonEmptyText(value: unknown, fallback: string): string {
 
 function normalizeUiTheme(
   value: unknown,
-  fallback: 'classic' | 'neon' | 'minimal' = 'classic',
-): 'classic' | 'neon' | 'minimal' {
+  fallback: 'classic' | 'neon' | 'minimal' | 'paper' = 'classic',
+): 'classic' | 'neon' | 'minimal' | 'paper' {
   const v = String(value ?? '').trim()
-  if (v === 'classic' || v === 'neon' || v === 'minimal') return v
+  if (v === 'classic' || v === 'neon' || v === 'minimal' || v === 'paper') return v
   if (v === 'creative') return 'neon'
   return fallback
 }
@@ -589,6 +609,32 @@ function normalizeAppData(raw: AppData): AppData {
     pricing_formula_mode: nonEmptyText(raw.settings?.pricing_formula_mode, 'divide'),
     rounding_policy: nonEmptyText(raw.settings?.rounding_policy, 'ceil'),
     terms_template: nonEmptyText(raw.settings?.terms_template, ''),
+    user_profiles:
+      Array.isArray(raw.settings?.user_profiles) && raw.settings.user_profiles.length > 0
+        ? raw.settings.user_profiles
+            .map((profile) => {
+              const id = nonEmptyText((profile as any)?.id, '')
+              const name = nonEmptyText((profile as any)?.name, '')
+              if (!id || !name) return null
+              return {
+                id,
+                name,
+                companyName: nonEmptyText((profile as any)?.companyName, ''),
+                address: nonEmptyText((profile as any)?.address, ''),
+                postCode: nonEmptyText((profile as any)?.postCode, ''),
+                tel: nonEmptyText((profile as any)?.tel, ''),
+                whatsapp: nonEmptyText((profile as any)?.whatsapp, ''),
+                wechat: nonEmptyText((profile as any)?.wechat, ''),
+                email: nonEmptyText((profile as any)?.email, ''),
+                export_from_name: nonEmptyText((profile as any)?.export_from_name, ''),
+              }
+            })
+            .filter(Boolean) as NonNullable<Settings['user_profiles']>
+        : createEmptyData().settings.user_profiles,
+    active_user_profile_id: nonEmptyText(
+      raw.settings?.active_user_profile_id,
+      createEmptyData().settings.active_user_profile_id ?? 'user_default',
+    ),
   }
 
   if (!Array.isArray(raw.ports) || raw.ports.length === 0) {
@@ -635,6 +681,19 @@ function ensureAppData(raw: AppData | LegacyData | null | undefined): AppData {
 
 function getAppData(): AppData {
   return db.data as AppData
+}
+
+function appendOperationLog(action: string, details?: Record<string, unknown>) {
+  const appData = getAppData()
+  appData.history.push({
+    id: `op_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
+    timestamp: new Date().toISOString(),
+    payload: {
+      kind: 'operation_log',
+      action,
+      ...(details ?? {}),
+    },
+  })
 }
 
 async function initializeDatabase(): Promise<void> {
@@ -713,6 +772,10 @@ ipcMain.handle('replace-table', async (_event, payload: { table: EditableTableKe
 
   const appData = getAppData()
   ;(appData as unknown as Record<EditableTableKey, unknown[]>)[payload.table] = payload.records
+  appendOperationLog('replace-table', {
+    table: payload.table,
+    recordCount: Array.isArray(payload.records) ? payload.records.length : 0,
+  })
   await db.write()
   return { success: true }
 })
@@ -749,7 +812,18 @@ ipcMain.handle('update-settings', async (_event, settings: Partial<Settings>) =>
       settings?.terms_template,
       appData.settings.terms_template ?? '',
     ),
+    user_profiles:
+      Array.isArray(settings?.user_profiles) && settings.user_profiles.length > 0
+        ? settings.user_profiles
+        : appData.settings.user_profiles ?? createEmptyData().settings.user_profiles,
+    active_user_profile_id: nonEmptyText(
+      settings?.active_user_profile_id,
+      appData.settings.active_user_profile_id ??
+        createEmptyData().settings.active_user_profile_id ??
+        'user_default',
+    ),
   }
+  appendOperationLog('update-settings')
   await db.write()
   return { success: true }
 })
@@ -758,13 +832,24 @@ ipcMain.handle('get-history', () => {
   return getAppData().history
 })
 
+ipcMain.handle('get-operation-logs', () => {
+  return getAppData().history.filter((item) => {
+    const payload = item.payload as Record<string, unknown>
+    return payload?.kind === 'operation_log'
+  })
+})
+
 ipcMain.handle('save-calculation', async (_event, payload: unknown) => {
   const appData = getAppData()
   appData.history.push({
     id: `hist_${Date.now()}`,
     timestamp: new Date().toISOString(),
-    payload,
+    payload: {
+      kind: 'quote',
+      data: payload,
+    },
   })
+  appendOperationLog('calculate-quote')
   await db.write()
   return { success: true }
 })
@@ -851,6 +936,8 @@ ipcMain.handle('export-external-quotation-xlsx', async (_event, payload: Externa
     }
 
     await exportExternalQuotationExcel(payload, templatePath, outputPath)
+    appendOperationLog('export-external-quotation-xlsx', { filePath: outputPath })
+    await db.write()
     return { success: true, filePath: outputPath }
   } catch (error) {
     const code = (error as { code?: string })?.code

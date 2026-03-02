@@ -1,0 +1,204 @@
+/* Theme Token Library
+ * Add future themes here and only bind variables.
+ */
+
+:root{
+  --bg0:#0b1220;
+  --bg1:#0a1020;
+  --card:rgba(255,255,255,.04);
+  --card2:rgba(255,255,255,.06);
+  --border:rgba(255,255,255,.10);
+  --border2:rgba(255,255,255,.14);
+  --text:rgba(255,255,255,.92);
+  --muted:rgba(255,255,255,.62);
+  --muted2:rgba(255,255,255,.45);
+  --primary:#3b82f6;
+  --primaryGrad: linear-gradient(135deg,#3b82f6,#7c3aed);
+  --gridOpacity:.0;
+  --glowA:none;
+  --glowB:none;
+  --radius:16px;
+  --shadow:0 18px 50px rgba(0,0,0,.55);
+  --shadow2:0 10px 30px rgba(0,0,0,.45);
+  --surface-0: #0a0f1b;
+  --surface-1: rgba(255,255,255,.045);
+  --surface-2: rgba(255,255,255,.06);
+  --border-1: rgba(255,255,255,.12);
+  --shadow-1: 0 10px 28px rgba(0,0,0,.42);
+  --radius-1: 12px;
+  --control-h: 40px;
+  --gap-1: 8px;
+  --gap-2: 12px;
+  --text-dim: rgba(255,255,255,.62);
+  --accent-rgb: 59,130,246;
+  --accent-2-rgb: 99,102,241;
+  --focus-ring: rgba(59,130,246,.24);
+  --focus-glow: rgba(99,102,241,.16);
+  --hover-glow: rgba(59,130,246,.18);
+  --motion-fast: 160ms;
+  --motion-mid: 240ms;
+  --motion-slow: 360ms;
+  --ease-smooth: cubic-bezier(.22,.61,.36,1);
+  --state-success-bg: rgba(34,197,94,.16);
+  --state-success-border: rgba(34,197,94,.35);
+  --state-success-text: rgba(134,239,172,.98);
+  --state-warning-bg: rgba(245,158,11,.16);
+  --state-warning-border: rgba(245,158,11,.35);
+  --state-warning-text: rgba(253,224,71,.98);
+  --state-error-bg: rgba(239,68,68,.16);
+  --state-error-border: rgba(239,68,68,.38);
+  --state-error-text: rgba(254,202,202,.98);
+  --state-info-bg: rgba(59,130,246,.16);
+  --state-info-border: rgba(59,130,246,.35);
+  --state-info-text: rgba(191,219,254,.98);
+  --dropdown-bg: #0b1220;
+  --dropdown-text: #e5e7eb;
+  --text-on-primary: #ffffff;
+  --glass-blur-main: 8px;
+  --glass-blur-sub: 6px;
+  --glass-sat-main: 112%;
+  --glass-sat-sub: 108%;
+  --glass-highlight-alpha: .05;
+  --glass-shadow-alpha: .22;
+}
+
+.theme-classic{
+  --bg0:#0b1220;
+  --bg1:#0a1020;
+  --primary:#3b82f6;
+  --primaryGrad: linear-gradient(135deg,#2563eb,#3b82f6);
+  --gridOpacity:.0;
+  --glowA:none;
+  --glowB:none;
+  --accent-rgb: 59,130,246;
+  --accent-2-rgb: 37,99,235;
+  --focus-ring: rgba(59,130,246,.22);
+  --focus-glow: rgba(37,99,235,.14);
+  --hover-glow: rgba(59,130,246,.18);
+  --text-on-primary: #ffffff;
+  --glass-blur-main: 7px;
+  --glass-blur-sub: 5px;
+  --glass-sat-main: 108%;
+  --glass-sat-sub: 104%;
+  --glass-highlight-alpha: .045;
+  --glass-shadow-alpha: .20;
+}
+
+.theme-creative{
+  --bg0:#05070d;
+  --bg1:#070b14;
+  --primary:#7c3aed;
+  --primaryGrad: linear-gradient(135deg,#2d6bff 0%,#7c3aed 55%,#ec4899 100%);
+  --gridOpacity:.18;
+  --glowA: radial-gradient(600px 380px at 30% 15%, rgba(45,107,255,.35), transparent 60%);
+  --glowB: radial-gradient(520px 360px at 70% 25%, rgba(236,72,153,.26), transparent 62%);
+  --surface-0: #070b14;
+  --surface-1: rgba(255,255,255,.045);
+  --surface-2: rgba(255,255,255,.06);
+  --border-1: rgba(255,255,255,.12);
+  --radius-1: 12px;
+  --accent-rgb: 124,58,237;
+  --accent-2-rgb: 236,72,153;
+  --focus-ring: rgba(124,58,237,.25);
+  --focus-glow: rgba(236,72,153,.18);
+  --hover-glow: rgba(236,72,153,.22);
+  --text-on-primary: #ffffff;
+  --glass-blur-main: 9px;
+  --glass-blur-sub: 7px;
+  --glass-sat-main: 118%;
+  --glass-sat-sub: 112%;
+  --glass-highlight-alpha: .06;
+  --glass-shadow-alpha: .24;
+}
+
+.theme-minimal{
+  --bg0:#0b0f17;
+  --bg1:#0b0f17;
+  --card:rgba(255,255,255,.03);
+  --border:rgba(255,255,255,.08);
+  --primary:#22c55e;
+  --primaryGrad: linear-gradient(135deg,#22c55e,#14b8a6);
+  --gridOpacity:.0;
+  --glowA:none;
+  --glowB:none;
+  --surface-0: #0b0f17;
+  --surface-1: rgba(255,255,255,.035);
+  --surface-2: rgba(255,255,255,.05);
+  --border-1: rgba(255,255,255,.1);
+  --radius-1: 12px;
+  --state-success-bg: rgba(34,197,94,.12);
+  --state-warning-bg: rgba(245,158,11,.12);
+  --state-error-bg: rgba(239,68,68,.12);
+  --state-info-bg: rgba(59,130,246,.12);
+  --accent-rgb: 34,197,94;
+  --accent-2-rgb: 20,184,166;
+  --focus-ring: rgba(34,197,94,.22);
+  --focus-glow: rgba(20,184,166,.14);
+  --hover-glow: rgba(20,184,166,.18);
+  --text-on-primary: #ffffff;
+  --glass-blur-main: 6px;
+  --glass-blur-sub: 4px;
+  --glass-sat-main: 106%;
+  --glass-sat-sub: 102%;
+  --glass-highlight-alpha: .035;
+  --glass-shadow-alpha: .16;
+}
+
+.theme-paper{
+  --bg0:#efede3;
+  --bg1:#f5f3ea;
+  --card:rgba(255,255,255,.82);
+  --card2:rgba(255,255,255,.9);
+  --border:rgba(48,47,44,.14);
+  --border2:rgba(48,47,44,.2);
+  --text:#302f2c;
+  --muted:rgba(48,47,44,.68);
+  --muted2:rgba(48,47,44,.52);
+  --text-dim:rgba(48,47,44,.62);
+  --primary:#302f2c;
+  --primaryGrad: linear-gradient(135deg,#302f2c,#4a4843);
+  --gridOpacity:.0;
+  --glowA:none;
+  --glowB:none;
+  --surface-0:#efede3;
+  --surface-1:rgba(255,255,255,.88);
+  --surface-2:rgba(255,255,255,.96);
+  --border-1:rgba(48,47,44,.16);
+  --shadow:0 16px 38px rgba(48,47,44,.14);
+  --shadow2:0 8px 22px rgba(48,47,44,.1);
+  --shadow-1:0 10px 24px rgba(48,47,44,.1);
+  --accent-rgb:48,47,44;
+  --accent-2-rgb:86,83,77;
+  --focus-ring:rgba(48,47,44,.18);
+  --focus-glow:rgba(48,47,44,.1);
+  --hover-glow:rgba(48,47,44,.14);
+  --state-success-bg: rgba(34,197,94,.12);
+  --state-warning-bg: rgba(245,158,11,.14);
+  --state-error-bg: rgba(239,68,68,.12);
+  --state-info-bg: rgba(59,130,246,.12);
+  --state-success-text: #166534;
+  --state-warning-text: #92400e;
+  --state-error-text: #991b1b;
+  --state-info-text: #1e3a8a;
+  --dropdown-bg: #ffffff;
+  --dropdown-text: #302f2c;
+  --text-on-primary: #efede3;
+  --glass-blur-main: 5px;
+  --glass-blur-sub: 3px;
+  --glass-sat-main: 103%;
+  --glass-sat-sub: 101%;
+  --glass-highlight-alpha: .03;
+  --glass-shadow-alpha: .14;
+}
+
+/* Template for future user-custom themes:
+.theme-custom-foo{
+  --bg0:#xxxxxx;
+  --bg1:#xxxxxx;
+  --text:#xxxxxx;
+  --surface-1:#xxxxxx;
+  --surface-2:#xxxxxx;
+  --primary:#xxxxxx;
+  --primaryGrad: linear-gradient(135deg,#xxxxxx,#xxxxxx);
+}
+*/

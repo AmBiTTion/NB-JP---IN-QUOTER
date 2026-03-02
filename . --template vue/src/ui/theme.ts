@@ -7,7 +7,7 @@ import {
   type MantineThemeOverride,
 } from '@mantine/core'
 
-export type UiThemeKey = 'classic' | 'neon' | 'minimal'
+export type UiThemeKey = 'classic' | 'neon' | 'minimal' | 'paper'
 
 export const classicTheme = createTheme({
   primaryColor: 'blue',
@@ -125,8 +125,48 @@ export const minimalTheme = createTheme({
   },
 })
 
+export const paperTheme = createTheme({
+  primaryColor: 'dark',
+  defaultRadius: 'md',
+  fontFamily: '"Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "Segoe UI", sans-serif',
+  shadows: {
+    sm: '0 2px 8px rgba(48, 47, 44, 0.08)',
+    md: '0 8px 18px rgba(48, 47, 44, 0.12)',
+  },
+  components: {
+    Select: Select.extend({
+      defaultProps: {
+        radius: 'md',
+      },
+      styles: {
+        dropdown: {
+          borderRadius: 10,
+          boxShadow: '0 10px 22px rgba(48,47,44,.14)',
+        },
+      },
+    }),
+    NumberInput: NumberInput.extend({
+      defaultProps: {
+        radius: 'md',
+      },
+    }),
+    Button: Button.extend({
+      defaultProps: {
+        radius: 'md',
+      },
+    }),
+    Card: Card.extend({
+      defaultProps: {
+        radius: 'md',
+        withBorder: true,
+      },
+    }),
+  },
+})
+
 export const themeMap: Record<UiThemeKey, MantineThemeOverride> = {
   classic: classicTheme,
   neon: neonTheme,
   minimal: minimalTheme,
+  paper: paperTheme,
 }

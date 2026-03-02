@@ -2,6 +2,18 @@ export type Mode = 'FCL' | 'LCL'
 export type ContainerType = '20GP' | '40HQ'
 export type QtyInputType = 'bags' | 'tons'
 export type InnerPackType = 'none' | 'carton' | 'woven_bag' | 'small_box' | 'big_box'
+export interface UserProfile {
+  id: string
+  name: string
+  companyName?: string
+  address?: string
+  postCode?: string
+  tel?: string
+  whatsapp?: string
+  wechat?: string
+  email?: string
+  export_from_name?: string
+}
 
 export interface Settings {
   fx_rate: number
@@ -15,6 +27,8 @@ export interface Settings {
   pricing_formula_mode: string
   rounding_policy: string
   terms_template: string
+  user_profiles?: UserProfile[]
+  active_user_profile_id?: string
 }
 
 export interface Product {

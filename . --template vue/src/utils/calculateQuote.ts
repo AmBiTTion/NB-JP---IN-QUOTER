@@ -172,7 +172,7 @@ function resolveLclPortTotalRmb(
     findPortRule(data.port_charges_rules, 'LCL', containerType, portId) ??
     findPortRule(data.port_charges_rules, 'LCL', null, portId)
   if (!rule) {
-    warnings.push('??? LCL ??????? Admin ????')
+    warnings.push('未配置 LCL 港杂规则，请在 Admin 中维护。')
     return 0
   }
   const base = toNonNegative(rule.base_rmb, 0)
@@ -208,7 +208,7 @@ function resolveLandFreightPerTon(
     )
 
   if (!rule) {
-    warnings.push(`?? ${containerType} ? ${mode} ????????????? 0 RMB/????`)
+    warnings.push(`缺少 ${containerType} 的 ${mode} 国内段运费规则，已按默认值 0 RMB/吨计算。`)
     return 0
   }
 

@@ -8,6 +8,7 @@ import { t } from '@/i18n'
 import { useUiTheme } from '@/ui/ThemeProvider'
 import type {
   AppData,
+  CalculationHistory,
   ContainerType,
   Factory,
   FactoryProductCost,
@@ -30,14 +31,14 @@ function parseNumber(value: string): number | null {
 
 function toInputString(value: string | number | '' | null | undefined): string {
   if (value === '' || value === null || value === undefined) return ''
+  if (typeof value === 'string') return value
   if (!Number.isFinite(value)) return ''
   return String(value)
 }
 
-function toMantineNumber(value: string): number | '' {
+function toMantineNumber(value: string): string | number {
   if (value.trim() === '') return ''
-  const n = Number(value)
-  return Number.isFinite(n) ? n : ''
+  return value
 }
 
 function sourceLabel(source: 'default' | 'override' | 'custom'): string {
@@ -77,7 +78,8 @@ function AnimatedMetric(props: { value: number; format: (value: number) => strin
   return <>{format(displayValue)}</>
 }
 
-function Quoter() {
+function Quoter(props: { onOperationSaved?: () => void }) {
+  const { onOperationSaved } = props
   const [data, setData] = useState<AppData | null>(null)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
@@ -547,6 +549,19 @@ function Quoter() {
       setQuoteResult(result)
       setValidationError('')
       setExportMessage('')
+      // @ts-ignore
+      await window.ipcRenderer.invoke('save-calculation', {
+        input: {
+          productName: selectedProduct.name,
+          factoryId: selectedFactoryId,
+          packagingId: selectedPackaging.id,
+          mode,
+          containerType,
+        },
+        summary: result.summary,
+        warnings: result.warnings,
+      })
+      onOperationSaved?.()
     } catch (error) {
       setValidationError(`计算失败：${String(error)}`)
     }
@@ -576,6 +591,10 @@ function Quoter() {
         : '不装箱'
     const packagingText = `${selectedPackaging.name} | ${effectiveWeight}kg | ${cartonText} | ${INNER_PACK_LABELS[effectivePackType]}`
 
+    const activeUserProfile = data.settings.user_profiles?.find(
+      (profile) => profile.id === data.settings.active_user_profile_id,
+    )
+
     const payload = {
       quoteResult,
       input: {
@@ -598,6 +617,14 @@ function Quoter() {
       settings: {
         quote_valid_days: data.settings.quote_valid_days,
         terms_template: data.settings.terms_template,
+        companyName: activeUserProfile?.companyName,
+        address: activeUserProfile?.address,
+        postCode: activeUserProfile?.postCode,
+        tel: activeUserProfile?.tel,
+        whatsapp: activeUserProfile?.whatsapp,
+        wechat: activeUserProfile?.wechat,
+        email: activeUserProfile?.email,
+        export_from_name: activeUserProfile?.export_from_name,
       },
       meta: {
         appVersion: APP_VERSION,
@@ -670,15 +697,17 @@ function Quoter() {
 
   return (
     <div className="quote-page" style={{ padding: 24 }}>
-      <div className="quote-hero">
+      <div className="quote-hero" style={{ display: 'grid', gridTemplateColumns: '0.95fr 1.45fr', gap: 20 }}>
         <div>
           <div className="quote-hero-kicker">FOB Pricing</div>
           <h1 className="quote-hero-title">FOB Quotation Studio</h1>
           <div className="quote-hero-subtitle">Professional Internal Pricing Console</div>
         </div>
-        <Button className="btn-outline-neon" variant="outline" size="sm" onClick={() => void loadData()}>
-          {t('app.refresh')}
-        </Button>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', paddingTop: 28 }}>
+          <Button className="btn-outline-neon" variant="outline" size="sm" onClick={() => void loadData()}>
+            {t('app.refresh')}
+          </Button>
+        </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '0.95fr 1.45fr', gap: 20 }}>
@@ -785,7 +814,7 @@ function Quoter() {
         </div>
 
         <div className="panel glass-card">
-          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: 6 }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-start', gap: 10, marginBottom: 6 }}>
             <div style={{ textAlign: 'right', fontSize: 12, color: '#94a3b8' }}>{t('app.versionPrefix')}{APP_VERSION}</div>
           </div>
           <div className="kpi-row" style={{ marginTop: 8 }}>
@@ -857,6 +886,8 @@ function Quoter() {
 export default function App() {
   const { uiThemeKey } = useUiTheme()
   const [activeTab, setActiveTab] = useState<'quote' | 'admin'>('quote')
+  const [recentOperations, setRecentOperations] = useState<CalculationHistory[]>([])
+  const [recentOpen, setRecentOpen] = useState(false)
   const uiThemeClass =
     uiThemeKey === 'neon'
       ? 'theme-creative'
@@ -881,36 +912,86 @@ export default function App() {
     button.classList.add('tab-click-blue')
   }
 
+  const loadRecentOperations = async () => {
+    try {
+      // @ts-ignore
+      const list = (await window.ipcRenderer.invoke('get-operation-logs')) as CalculationHistory[]
+      setRecentOperations(Array.isArray(list) ? list.slice().reverse() : [])
+    } catch (error) {
+      console.error('Failed to load recent operations', error)
+    }
+  }
+
+  useEffect(() => {
+    void loadRecentOperations()
+  }, [])
+
   return (
     <div className={`app-root ${uiThemeClass}`} style={{ minHeight: '100vh', color: 'var(--text)', padding: 20 }}>
-      <div className="top-tab-row" style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
-        <button
-          className={`tab-btn tab-btn-split ${activeTab === 'quote' ? 'active' : ''}`}
-          onMouseDown={triggerTabRipple}
-          onAnimationEnd={(e) => {
-            e.currentTarget.classList.remove('tab-ripple-active')
-            e.currentTarget.classList.remove('tab-click-blue')
-          }}
-          onClick={() => setActiveTab('quote')}
-          style={{ flex: 1, padding: '12px 14px', border: 'none', cursor: 'pointer' }}
-        >
-          {t('app.quoteTab')}
-        </button>
-        <button
-          className={`tab-btn tab-btn-split ${activeTab === 'admin' ? 'active' : ''}`}
-          onMouseDown={triggerTabRipple}
-          onAnimationEnd={(e) => {
-            e.currentTarget.classList.remove('tab-ripple-active')
-            e.currentTarget.classList.remove('tab-click-blue')
-          }}
-          onClick={() => setActiveTab('admin')}
-          style={{ flex: 1, padding: '12px 14px', border: 'none', cursor: 'pointer' }}
-        >
-          {t('app.adminTab')}
+      <div className="top-tab-row" style={{ display: 'flex', gap: 12, marginBottom: 16, alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 12, flex: 1 }}>
+          <button
+            className={`tab-btn tab-btn-split ${activeTab === 'quote' ? 'active' : ''}`}
+            onMouseDown={triggerTabRipple}
+            onAnimationEnd={(e) => {
+              e.currentTarget.classList.remove('tab-ripple-active')
+              e.currentTarget.classList.remove('tab-click-blue')
+            }}
+            onClick={() => setActiveTab('quote')}
+            style={{ flex: 1, padding: '12px 14px', border: 'none', cursor: 'pointer' }}
+          >
+            {t('app.quoteTab')}
+          </button>
+          <button
+            className={`tab-btn tab-btn-split ${activeTab === 'admin' ? 'active' : ''}`}
+            onMouseDown={triggerTabRipple}
+            onAnimationEnd={(e) => {
+              e.currentTarget.classList.remove('tab-ripple-active')
+              e.currentTarget.classList.remove('tab-click-blue')
+            }}
+            onClick={() => setActiveTab('admin')}
+            style={{ flex: 1, padding: '12px 14px', border: 'none', cursor: 'pointer' }}
+          >
+            {t('app.adminTab')}
+          </button>
+        </div>
+        <button className="btn-outline-neon" style={{ whiteSpace: 'nowrap' }} onClick={() => { void loadRecentOperations(); setRecentOpen(true) }}>
+          操作日志
         </button>
       </div>
-      <div style={{ display: activeTab === 'quote' ? 'block' : 'none' }}><Quoter /></div>
+      <div style={{ display: activeTab === 'quote' ? 'block' : 'none' }}><Quoter onOperationSaved={() => { void loadRecentOperations() }} /></div>
       <div style={{ display: activeTab === 'admin' ? 'block' : 'none' }}><Admin /></div>
+
+      {recentOpen && (
+        <div className="modal-backdrop">
+          <div className="modal-card glass-card" style={{ width: 760, maxWidth: '92vw' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <h3 style={{ margin: 0 }}>操作日志</h3>
+              <button className="btn-outline-neon" onClick={() => setRecentOpen(false)}>关闭</button>
+            </div>
+            <div className="subpanel" style={{ maxHeight: '60vh', overflow: 'auto', padding: 10 }}>
+              {recentOperations.length === 0 ? (
+                <div style={{ color: 'var(--text-dim)' }}>暂无操作记录</div>
+              ) : (
+                <ul style={{ margin: 0, paddingLeft: 18 }}>
+                  {recentOperations.map((item) => {
+                    const payload = item.payload as Record<string, unknown>
+                    const action = String(payload?.action ?? item.id)
+                    const table = String(payload?.table ?? '')
+                    const count = payload?.recordCount !== undefined ? ` (${String(payload.recordCount)})` : ''
+                    return (
+                      <li key={item.id} style={{ marginBottom: 8 }}>
+                        <span style={{ color: 'var(--text-dim)' }}>{item.timestamp}</span>
+                        <span style={{ marginLeft: 8 }}>{action}{table ? ` / ${table}` : ''}{count}</span>
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

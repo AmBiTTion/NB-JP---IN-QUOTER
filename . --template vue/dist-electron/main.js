@@ -61998,7 +61998,14 @@ function createEmptyData() {
       },
       pricing_formula_mode: "divide",
       rounding_policy: "ceil",
-      terms_template: ""
+      terms_template: "",
+      user_profiles: [
+        {
+          id: "user_default",
+          name: "默认用户"
+        }
+      ],
+      active_user_profile_id: "user_default"
     },
     products: [],
     packaging_options: [],
@@ -62061,7 +62068,7 @@ function nonEmptyText(value, fallback2) {
 }
 function normalizeUiTheme(value, fallback2 = "classic") {
   const v = String(value ?? "").trim();
-  if (v === "classic" || v === "neon" || v === "minimal") return v;
+  if (v === "classic" || v === "neon" || v === "minimal" || v === "paper") return v;
   if (v === "creative") return "neon";
   return fallback2;
 }
@@ -62168,7 +62175,8 @@ function migrateLegacyData(raw) {
       id: `fpc_${index2 + 1}`,
       factory_id: factoryId,
       product_id: productId,
-      cost_rmb_per_ton: toNumber(legacy2.price_per_ton, 0)
+      cost_rmb_per_ton: toNumber(legacy2.price_per_ton, 0),
+      cost_unit: "ton"
     });
     containerLoadRules.push({
       id: `clr_${productId}_20gp`,
@@ -62291,7 +62299,7 @@ function isAppDataLike(raw) {
   return Array.isArray(candidate.products) && Array.isArray(candidate.packaging_options) && Array.isArray(candidate.factories) && Array.isArray(candidate.factory_product_costs) && Array.isArray(candidate.factory_packaging_overrides);
 }
 function normalizeAppData(raw) {
-  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m;
   const normalized = { ...createEmptyData(), ...raw };
   normalized.schema_version = SCHEMA_VERSION;
   normalized.settings = {
@@ -62305,7 +62313,28 @@ function normalizeAppData(raw) {
     },
     pricing_formula_mode: nonEmptyText((_i = raw.settings) == null ? void 0 : _i.pricing_formula_mode, "divide"),
     rounding_policy: nonEmptyText((_j = raw.settings) == null ? void 0 : _j.rounding_policy, "ceil"),
-    terms_template: nonEmptyText((_k = raw.settings) == null ? void 0 : _k.terms_template, "")
+    terms_template: nonEmptyText((_k = raw.settings) == null ? void 0 : _k.terms_template, ""),
+    user_profiles: Array.isArray((_l = raw.settings) == null ? void 0 : _l.user_profiles) && raw.settings.user_profiles.length > 0 ? raw.settings.user_profiles.map((profile) => {
+      const id = nonEmptyText(profile == null ? void 0 : profile.id, "");
+      const name = nonEmptyText(profile == null ? void 0 : profile.name, "");
+      if (!id || !name) return null;
+      return {
+        id,
+        name,
+        companyName: nonEmptyText(profile == null ? void 0 : profile.companyName, ""),
+        address: nonEmptyText(profile == null ? void 0 : profile.address, ""),
+        postCode: nonEmptyText(profile == null ? void 0 : profile.postCode, ""),
+        tel: nonEmptyText(profile == null ? void 0 : profile.tel, ""),
+        whatsapp: nonEmptyText(profile == null ? void 0 : profile.whatsapp, ""),
+        wechat: nonEmptyText(profile == null ? void 0 : profile.wechat, ""),
+        email: nonEmptyText(profile == null ? void 0 : profile.email, ""),
+        export_from_name: nonEmptyText(profile == null ? void 0 : profile.export_from_name, "")
+      };
+    }).filter(Boolean) : createEmptyData().settings.user_profiles,
+    active_user_profile_id: nonEmptyText(
+      (_m = raw.settings) == null ? void 0 : _m.active_user_profile_id,
+      createEmptyData().settings.active_user_profile_id ?? "user_default"
+    )
   };
   if (!Array.isArray(raw.ports) || raw.ports.length === 0) {
     normalized.ports = createEmptyData().ports;
@@ -62344,6 +62373,18 @@ function ensureAppData(raw) {
 }
 function getAppData() {
   return db.data;
+}
+function appendOperationLog(action, details) {
+  const appData = getAppData();
+  appData.history.push({
+    id: `op_${Date.now()}_${Math.floor(Math.random() * 1e4)}`,
+    timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+    payload: {
+      kind: "operation_log",
+      action,
+      ...details ?? {}
+    }
+  });
 }
 async function initializeDatabase() {
   await db.read();
@@ -62407,6 +62448,10 @@ ipcMain.handle("replace-table", async (_event, payload) => {
   }
   const appData = getAppData();
   appData[payload.table] = payload.records;
+  appendOperationLog("replace-table", {
+    table: payload.table,
+    recordCount: Array.isArray(payload.records) ? payload.records.length : 0
+  });
   await db.write();
   return { success: true };
 });
@@ -62442,21 +62487,37 @@ ipcMain.handle("update-settings", async (_event, settings) => {
     terms_template: nonEmptyText(
       settings == null ? void 0 : settings.terms_template,
       appData.settings.terms_template ?? ""
+    ),
+    user_profiles: Array.isArray(settings == null ? void 0 : settings.user_profiles) && settings.user_profiles.length > 0 ? settings.user_profiles : appData.settings.user_profiles ?? createEmptyData().settings.user_profiles,
+    active_user_profile_id: nonEmptyText(
+      settings == null ? void 0 : settings.active_user_profile_id,
+      appData.settings.active_user_profile_id ?? createEmptyData().settings.active_user_profile_id ?? "user_default"
     )
   };
+  appendOperationLog("update-settings");
   await db.write();
   return { success: true };
 });
 ipcMain.handle("get-history", () => {
   return getAppData().history;
 });
+ipcMain.handle("get-operation-logs", () => {
+  return getAppData().history.filter((item) => {
+    const payload = item.payload;
+    return (payload == null ? void 0 : payload.kind) === "operation_log";
+  });
+});
 ipcMain.handle("save-calculation", async (_event, payload) => {
   const appData = getAppData();
   appData.history.push({
     id: `hist_${Date.now()}`,
     timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-    payload
+    payload: {
+      kind: "quote",
+      data: payload
+    }
   });
+  appendOperationLog("calculate-quote");
   await db.write();
   return { success: true };
 });
@@ -62530,6 +62591,8 @@ ipcMain.handle("export-external-quotation-xlsx", async (_event, payload) => {
       }
     }
     await exportExternalQuotationExcel(payload, templatePath, outputPath);
+    appendOperationLog("export-external-quotation-xlsx", { filePath: outputPath });
+    await db.write();
     return { success: true, filePath: outputPath };
   } catch (error2) {
     const code = error2 == null ? void 0 : error2.code;

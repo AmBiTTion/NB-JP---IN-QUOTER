@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { Select as MantineSelect, Text } from '@mantine/core'
 import type {
   AppData,
+  CalculationHistory,
   ContainerLoadRule,
   EditableTableKey,
   Factory,
@@ -15,6 +16,7 @@ import type {
   Port,
   PortChargesRule,
   Product,
+  UserProfile,
 } from '@/types/domain'
 import { nextIdFromRows } from '@/utils/id'
 import { useUiTheme } from '@/ui/ThemeProvider'
@@ -144,6 +146,13 @@ export default function Admin() {
   const [settingsRoundingPolicy, setSettingsRoundingPolicy] = useState('ceil')
   const [settingsUiTheme, setSettingsUiTheme] = useState<'classic' | 'neon' | 'minimal' | 'paper'>('classic')
   const [settingsTermsTemplate, setSettingsTermsTemplate] = useState('')
+  const [settingsUserProfiles, setSettingsUserProfiles] = useState<UserProfile[]>([])
+  const [settingsActiveUserProfileId, setSettingsActiveUserProfileId] = useState('')
+  const [historyModalOpen, setHistoryModalOpen] = useState(false)
+  const [logsModalOpen, setLogsModalOpen] = useState(false)
+  const [historyItems, setHistoryItems] = useState<CalculationHistory[]>([])
+  const [operationLogs, setOperationLogs] = useState<CalculationHistory[]>([])
+  const [profileModalOpen, setProfileModalOpen] = useState(false)
   const [dirtyTables, setDirtyTables] = useState<EditableTableKey[]>([])
   const [dirtySettings, setDirtySettings] = useState(false)
   const [autoSaveState, setAutoSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
@@ -188,6 +197,9 @@ export default function Admin() {
       setSettingsFxRate(String(appData.settings.fx_rate ?? 6.9)); setSettingsMarginPct(String(appData.settings.margin_pct ?? 0.05)); setSettingsQuoteValidDays(String(appData.settings.quote_valid_days ?? 7))
       setSettingsRmbDecimals(String(appData.settings.money_format?.rmb_decimals ?? 4)); setSettingsUsdDecimals(String(appData.settings.money_format?.usd_decimals ?? 4))
       setSettingsPricingFormulaMode(appData.settings.pricing_formula_mode ?? 'divide'); setSettingsRoundingPolicy(appData.settings.rounding_policy ?? 'ceil'); const rawUiTheme = String(appData.settings.ui_theme ?? 'classic'); const loadedUiTheme = ((rawUiTheme === 'creative' ? 'neon' : rawUiTheme) as 'classic' | 'neon' | 'minimal' | 'paper' | undefined) ?? 'classic'; setSettingsUiTheme(loadedUiTheme); setUiThemeKey(loadedUiTheme); setSettingsTermsTemplate(appData.settings.terms_template ?? '')
+      const profiles = (appData.settings.user_profiles ?? [{ id: 'user_default', name: '默认用户' }]).filter((p) => p?.id && p?.name)
+      setSettingsUserProfiles(profiles)
+      setSettingsActiveUserProfileId(appData.settings.active_user_profile_id ?? profiles[0]?.id ?? 'user_default')
       suppressAutoSaveRef.current = true; setDirtyTables([]); setDirtySettings(false); setAutoSaveState('idle'); setStatus(ta('common.dataLoaded'))
     } catch (e) {
       console.error(e); setError(ta('statusText.loadFailed')); setStatus('')
@@ -397,16 +409,16 @@ export default function Admin() {
     if (!Number.isFinite(usd) || usd < 0) { setError(ta('validation.usdDecimals')); setAutoSaveState('error'); return }
     if (source === 'auto') setAutoSaveState('saving'); else setStatus(ta('statusText.savingSettings'))
     // @ts-ignore
-    const result = (await window.ipcRenderer.invoke('update-settings', { fx_rate: fx, margin_pct: margin, quote_valid_days: quoteDays, ui_theme: settingsUiTheme, money_format: { rmb_decimals: rmb, usd_decimals: usd }, pricing_formula_mode: settingsPricingFormulaMode, rounding_policy: settingsRoundingPolicy, terms_template: settingsTermsTemplate })) as { success: boolean; message?: string }
+    const result = (await window.ipcRenderer.invoke('update-settings', { fx_rate: fx, margin_pct: margin, quote_valid_days: quoteDays, ui_theme: settingsUiTheme, money_format: { rmb_decimals: rmb, usd_decimals: usd }, pricing_formula_mode: settingsPricingFormulaMode, rounding_policy: settingsRoundingPolicy, terms_template: settingsTermsTemplate, user_profiles: settingsUserProfiles, active_user_profile_id: settingsActiveUserProfileId })) as { success: boolean; message?: string }
     if (!result.success) { setError(result.message ?? ta('statusText.saveFailed')); setStatus(''); setAutoSaveState('error'); return }
     setDirtySettings(false)
     window.dispatchEvent(new CustomEvent('ui-theme-change', { detail: { uiTheme: settingsUiTheme } }))
     if (source === 'auto') setAutoSaveState('saved'); else setStatus(ta('statusText.settingsSaved'))
     if (!reload) {
-      setData((prev) => prev ? ({ ...prev, settings: { ...prev.settings, fx_rate: fx, margin_pct: margin, quote_valid_days: quoteDays, ui_theme: settingsUiTheme, money_format: { rmb_decimals: rmb, usd_decimals: usd }, pricing_formula_mode: settingsPricingFormulaMode, rounding_policy: settingsRoundingPolicy, terms_template: settingsTermsTemplate } }) : prev)
+      setData((prev) => prev ? ({ ...prev, settings: { ...prev.settings, fx_rate: fx, margin_pct: margin, quote_valid_days: quoteDays, ui_theme: settingsUiTheme, money_format: { rmb_decimals: rmb, usd_decimals: usd }, pricing_formula_mode: settingsPricingFormulaMode, rounding_policy: settingsRoundingPolicy, terms_template: settingsTermsTemplate, user_profiles: settingsUserProfiles, active_user_profile_id: settingsActiveUserProfileId } }) : prev)
     }
     if (reload) await loadData()
-  }, [settingsFxRate, settingsMarginPct, settingsQuoteValidDays, settingsRmbDecimals, settingsUsdDecimals, settingsPricingFormulaMode, settingsRoundingPolicy, settingsUiTheme, settingsTermsTemplate, loadData])
+  }, [settingsFxRate, settingsMarginPct, settingsQuoteValidDays, settingsRmbDecimals, settingsUsdDecimals, settingsPricingFormulaMode, settingsRoundingPolicy, settingsUiTheme, settingsTermsTemplate, settingsUserProfiles, settingsActiveUserProfileId, loadData])
 
   useEffect(() => {
     if (suppressAutoSaveRef.current) { suppressAutoSaveRef.current = false; return }
@@ -471,6 +483,72 @@ export default function Admin() {
     setAddDraftRow((prev) => (prev ? { ...prev, [key]: value } : prev))
   }, [])
 
+  const loadHistory = useCallback(async () => {
+    try {
+      // @ts-ignore
+      const list = (await window.ipcRenderer.invoke('get-history')) as CalculationHistory[]
+      const allItems = Array.isArray(list) ? list : []
+      setHistoryItems(
+        allItems.filter((item) => {
+          const payload = item.payload as Record<string, unknown>
+          return payload?.kind === 'quote' || payload?.kind === undefined
+        }),
+      )
+      // @ts-ignore
+      const logs = (await window.ipcRenderer.invoke('get-operation-logs')) as CalculationHistory[]
+      setOperationLogs(Array.isArray(logs) ? logs : [])
+    } catch (e) {
+      setError(`加载历史失败: ${String(e)}`)
+    }
+  }, [])
+
+  const exportHistoryJson = useCallback(() => {
+    const payload = JSON.stringify(
+      {
+        quote_history: historyItems,
+        operation_logs: operationLogs,
+      },
+      null,
+      2,
+    )
+    const blob = new Blob([payload], { type: 'application/json;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const now = new Date()
+    const stamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}-${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `quote-history-${stamp}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }, [historyItems, operationLogs])
+
+  const addUserProfile = useCallback(() => {
+    const id = `user_${Date.now()}`
+    const next = [...settingsUserProfiles, { id, name: `用户${settingsUserProfiles.length + 1}` }]
+    setSettingsUserProfiles(next)
+    setSettingsActiveUserProfileId(id)
+    setDirtySettings(true)
+    setAutoSaveState('idle')
+  }, [settingsUserProfiles])
+
+  const updateUserProfileField = useCallback((id: string, key: keyof UserProfile, value: string) => {
+    setSettingsUserProfiles((prev) => prev.map((item) => (item.id === id ? { ...item, [key]: value } : item)))
+    setDirtySettings(true)
+    setAutoSaveState('idle')
+  }, [])
+
+  const deleteUserProfile = useCallback((id: string) => {
+    setSettingsUserProfiles((prev) => {
+      const next = prev.filter((item) => item.id !== id)
+      if (settingsActiveUserProfileId === id && next.length > 0) {
+        setSettingsActiveUserProfileId(next[0].id)
+      }
+      return next.length > 0 ? next : [{ id: 'user_default', name: '默认用户' }]
+    })
+    setDirtySettings(true)
+    setAutoSaveState('idle')
+  }, [settingsActiveUserProfileId])
+
   const sectionStyle: React.CSSProperties = { padding: 14, border: '1px solid var(--border-1)', borderRadius: 12, backgroundColor: 'var(--surface-1)' }
 
   return (
@@ -488,39 +566,85 @@ export default function Admin() {
       {activeTab === 'settings' && (
         <div className="panel" style={sectionStyle}>
           <h2 style={{ marginTop: 0 }}>{ta('common.settings')}</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12 }}>
-            <div><label>{labelFor('fx_rate')}</label><input type="number" step="0.01" value={settingsFxRate} onChange={(e) => { setSettingsFxRate(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
-            <div><label>{labelFor('margin_pct')}</label><input type="number" step="0.01" value={settingsMarginPct} onChange={(e) => { setSettingsMarginPct(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
-            <div><label>{labelFor('quote_valid_days')}</label><input type="number" step="1" value={settingsQuoteValidDays} onChange={(e) => { setSettingsQuoteValidDays(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
-            <div><label>{labelFor('money_format_rmb_decimals')}</label><input type="number" step="1" value={settingsRmbDecimals} onChange={(e) => { setSettingsRmbDecimals(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
-            <div><label>{labelFor('money_format_usd_decimals')}</label><input type="number" step="1" value={settingsUsdDecimals} onChange={(e) => { setSettingsUsdDecimals(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
-            <div><label>{labelFor('pricing_formula_mode')}</label><MantineSelect className="ui-select" mt={6} value={settingsPricingFormulaMode} onChange={(value) => { setSettingsPricingFormulaMode(value ?? 'divide'); setDirtySettings(true); setAutoSaveState('idle') }} data={[{ value: 'divide', label: 'cost/(1-margin)' }]} searchable={false} allowDeselect={false} styles={{ input: inputBaseStyle, dropdown: { backgroundColor: 'var(--surface-2)' } }} /></div>
-            <div><label>{labelFor('rounding_policy')}</label><MantineSelect className="ui-select" mt={6} value={settingsRoundingPolicy} onChange={(value) => { setSettingsRoundingPolicy(value ?? 'ceil'); setDirtySettings(true); setAutoSaveState('idle') }} data={[{ value: 'ceil', label: ta('fields.rounding_policy') }]} searchable={false} allowDeselect={false} styles={{ input: inputBaseStyle, dropdown: { backgroundColor: 'var(--surface-2)' } }} /></div>
-            <div>
-              <label>{labelFor('ui_theme')}</label>
-              <MantineSelect
-                mt={6}
-                value={settingsUiTheme}
-                data={[
-                  { value: 'classic', label: ta('theme.classic') },
-                  { value: 'neon', label: ta('theme.neon') },
-                  { value: 'minimal', label: ta('theme.minimal') },
-                  { value: 'paper', label: ta('theme.paper') },
-                ]}
-                onChange={(value) => {
-                  const nextTheme = (value ?? 'classic') as 'classic' | 'neon' | 'minimal' | 'paper'
-                  setSettingsUiTheme(nextTheme)
-                  setUiThemeKey(nextTheme)
-                  setDirtySettings(true)
-                  setAutoSaveState('idle')
-                }}
-              />
-              <div style={{ marginTop: 8, display: 'flex', justifyContent: 'flex-end' }}>
-                <button className="btn-outline-neon" onClick={() => setThemeCustomOpen(true)}>{ta('fields.ui_theme')}定制</button>
+          <div style={{ display: 'grid', gap: 12 }}>
+            <div className="subpanel settings-group" style={{ padding: 14 }}>
+              <div className="section-title" style={{ marginBottom: 10 }}>基础报价参数</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 14 }}>
+                <div><label>{labelFor('fx_rate')}</label><input type="number" step="0.01" value={settingsFxRate} onChange={(e) => { setSettingsFxRate(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
+                <div><label>{labelFor('margin_pct')}</label><input type="number" step="0.01" value={settingsMarginPct} onChange={(e) => { setSettingsMarginPct(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
+                <div><label>{labelFor('quote_valid_days')}</label><input type="number" step="1" value={settingsQuoteValidDays} onChange={(e) => { setSettingsQuoteValidDays(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
+                <div><label>{labelFor('money_format_rmb_decimals')}</label><input type="number" step="1" value={settingsRmbDecimals} onChange={(e) => { setSettingsRmbDecimals(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
+                <div><label>{labelFor('money_format_usd_decimals')}</label><input type="number" step="1" value={settingsUsdDecimals} onChange={(e) => { setSettingsUsdDecimals(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
+                <div><label>{labelFor('rounding_policy')}</label><MantineSelect className="ui-select" mt={6} value={settingsRoundingPolicy} onChange={(value) => { setSettingsRoundingPolicy(value ?? 'ceil'); setDirtySettings(true); setAutoSaveState('idle') }} data={[{ value: 'ceil', label: ta('fields.rounding_policy') }]} searchable={false} allowDeselect={false} styles={{ input: inputBaseStyle, dropdown: { backgroundColor: 'var(--surface-2)' } }} /></div>
               </div>
-              <Text size="xs" c="dimmed" mt={6}>{ta('hint.theme')}</Text>
             </div>
-            <div style={{ gridColumn: '1 / span 2' }}><label>{labelFor('terms_template')}</label><textarea className="no-scroll" value={settingsTermsTemplate} onChange={(e) => { setSettingsTermsTemplate(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} rows={3} style={{ ...inputBaseStyle, marginTop: 6, minHeight: 88 }} /></div>
+
+            <div className="subpanel settings-group" style={{ padding: 14 }}>
+              <div className="section-title" style={{ marginBottom: 10 }}>定价与主题</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 14 }}>
+                <div><label>{labelFor('pricing_formula_mode')}</label><MantineSelect className="ui-select" mt={6} value={settingsPricingFormulaMode} onChange={(value) => { setSettingsPricingFormulaMode(value ?? 'divide'); setDirtySettings(true); setAutoSaveState('idle') }} data={[{ value: 'divide', label: 'cost/(1-margin)' }]} searchable={false} allowDeselect={false} styles={{ input: inputBaseStyle, dropdown: { backgroundColor: 'var(--surface-2)' } }} /></div>
+                <div>
+                  <label>{labelFor('ui_theme')}</label>
+                  <MantineSelect
+                    className="ui-select"
+                    mt={6}
+                    value={settingsUiTheme}
+                    data={[
+                      { value: 'classic', label: ta('theme.classic') },
+                      { value: 'neon', label: ta('theme.neon') },
+                      { value: 'minimal', label: ta('theme.minimal') },
+                      { value: 'paper', label: ta('theme.paper') },
+                    ]}
+                    onChange={(value) => {
+                      const nextTheme = (value ?? 'classic') as 'classic' | 'neon' | 'minimal' | 'paper'
+                      setSettingsUiTheme(nextTheme)
+                      setUiThemeKey(nextTheme)
+                      setDirtySettings(true)
+                      setAutoSaveState('idle')
+                    }}
+                    searchable={false}
+                    allowDeselect={false}
+                    styles={{ input: inputBaseStyle, dropdown: { backgroundColor: 'var(--surface-2)' } }}
+                  />
+                </div>
+                <div>
+                  <label>当前用户</label>
+                  <MantineSelect
+                    className="ui-select"
+                    mt={6}
+                    value={settingsActiveUserProfileId || null}
+                    data={settingsUserProfiles.map((item) => ({ value: item.id, label: item.name }))}
+                    onChange={(value) => {
+                      setSettingsActiveUserProfileId(value ?? '')
+                      setDirtySettings(true)
+                      setAutoSaveState('idle')
+                    }}
+                    searchable={false}
+                    allowDeselect={false}
+                    styles={{ input: inputBaseStyle, dropdown: { backgroundColor: 'var(--surface-2)' } }}
+                  />
+                </div>
+              </div>
+              <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <button className="btn-outline-neon" onClick={() => setThemeCustomOpen(true)}>主题定制</button>
+                <button className="btn-outline-neon" onClick={() => setProfileModalOpen(true)}>用户管理</button>
+              </div>
+              <Text size="xs" c="dimmed" mt={8}>{ta('hint.theme')}</Text>
+            </div>
+
+            <div className="subpanel settings-group" style={{ padding: 14 }}>
+              <div className="section-title" style={{ marginBottom: 10 }}>数据与记录</div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <button className="btn-outline-neon" onClick={() => { void loadHistory(); setHistoryModalOpen(true) }}>报价历史</button>
+                <button className="btn-outline-neon" onClick={() => { void loadHistory(); setLogsModalOpen(true) }}>操作日志</button>
+                <button className="btn-outline-neon" onClick={() => { void loadHistory(); exportHistoryJson() }}>导出JSON</button>
+              </div>
+            </div>
+
+            <div className="subpanel settings-group" style={{ padding: 14 }}>
+              <div className="section-title" style={{ marginBottom: 10 }}>{labelFor('terms_template')}</div>
+              <textarea className="no-scroll" value={settingsTermsTemplate} onChange={(e) => { setSettingsTermsTemplate(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} rows={3} style={{ ...inputBaseStyle, minHeight: 88 }} />
+            </div>
           </div>
         </div>
       )}
@@ -845,6 +969,118 @@ export default function Admin() {
         </div>
       )}
 
+      {historyModalOpen && (
+        <div className="modal-backdrop">
+          <div className="modal-card glass-card" style={{ width: 920, maxWidth: '94vw' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <h3 style={{ margin: 0 }}>报价历史</h3>
+              <button className="btn-outline-neon" onClick={() => setHistoryModalOpen(false)}>{ta('common.close')}</button>
+            </div>
+            <div className="subpanel" style={{ maxHeight: '70vh', overflow: 'auto', padding: 10 }}>
+              {historyItems.length === 0 ? (
+                <div style={{ color: 'var(--text-dim)' }}>暂无历史记录</div>
+              ) : (
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>时间</th>
+                      <th>摘要</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {historyItems.slice().reverse().map((item) => {
+                      const payload = item.payload as Record<string, unknown>
+                      const quoteData = (payload?.kind === 'quote' ? payload?.data : payload) as Record<string, unknown>
+                      const product = String((quoteData?.input as Record<string, unknown>)?.productName ?? '-')
+                      const mode = String((quoteData?.summary as Record<string, unknown>)?.mode ?? '-')
+                      return (
+                        <tr key={item.id}>
+                          <td>{item.id}</td>
+                          <td>{item.timestamp}</td>
+                          <td>{product} / {mode}</td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {logsModalOpen && (
+        <div className="modal-backdrop">
+          <div className="modal-card glass-card" style={{ width: 920, maxWidth: '94vw' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <h3 style={{ margin: 0 }}>操作日志</h3>
+              <button className="btn-outline-neon" onClick={() => setLogsModalOpen(false)}>{ta('common.close')}</button>
+            </div>
+            <div className="subpanel" style={{ maxHeight: '70vh', overflow: 'auto', padding: 10 }}>
+              {operationLogs.length === 0 ? (
+                <div style={{ color: 'var(--text-dim)' }}>暂无日志</div>
+              ) : (
+                <ul style={{ margin: 0, paddingLeft: 18 }}>
+                  {operationLogs.slice().reverse().map((item) => {
+                    const payload = item.payload as Record<string, unknown>
+                    const action = String(payload?.action ?? item.id)
+                    return (
+                      <li key={item.id} style={{ marginBottom: 8 }}>
+                        <span style={{ color: 'var(--text-dim)' }}>{item.timestamp}</span>
+                        <span style={{ marginLeft: 8 }}>{action}</span>
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {profileModalOpen && (
+        <div className="modal-backdrop">
+          <div className="modal-card glass-card" style={{ width: 1040, maxWidth: '96vw' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <h3 style={{ margin: 0 }}>用户配置</h3>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button className="btn-primary" onClick={addUserProfile}>{ta('common.add')}</button>
+                <button className="btn-outline-neon" onClick={() => setProfileModalOpen(false)}>{ta('common.close')}</button>
+              </div>
+            </div>
+            <div className="subpanel" style={{ maxHeight: '70vh', overflow: 'auto', padding: 10 }}>
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>名称</th>
+                    <th>公司名</th>
+                    <th>地址</th>
+                    <th>电话</th>
+                    <th>Email</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {settingsUserProfiles.map((profile) => (
+                    <tr key={profile.id}>
+                      <td><input style={inputBaseStyle} value={profile.id} readOnly /></td>
+                      <td><input style={inputBaseStyle} value={profile.name ?? ''} onChange={(e) => updateUserProfileField(profile.id, 'name', e.target.value)} /></td>
+                      <td><input style={inputBaseStyle} value={profile.companyName ?? ''} onChange={(e) => updateUserProfileField(profile.id, 'companyName', e.target.value)} /></td>
+                      <td><input style={inputBaseStyle} value={profile.address ?? ''} onChange={(e) => updateUserProfileField(profile.id, 'address', e.target.value)} /></td>
+                      <td><input style={inputBaseStyle} value={profile.tel ?? ''} onChange={(e) => updateUserProfileField(profile.id, 'tel', e.target.value)} /></td>
+                      <td><input style={inputBaseStyle} value={profile.email ?? ''} onChange={(e) => updateUserProfileField(profile.id, 'email', e.target.value)} /></td>
+                      <td><button className="btn-danger-soft" onClick={() => deleteUserProfile(profile.id)}>{ta('common.delete')}</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
       {themeCustomOpen && (
         <div className="modal-backdrop">
           <div className="modal-card glass-card">
@@ -863,6 +1099,23 @@ export default function Admin() {
               <div><div style={fieldLabelStyle}>主色</div><input type="color" value={themeDraft.primary} onChange={(e) => setThemeDraft((p) => ({ ...p, primary: e.target.value }))} style={inputBaseStyle} /></div>
               <div><div style={fieldLabelStyle}>强调色 1</div><input type="color" value={themeDraft.accent} onChange={(e) => setThemeDraft((p) => ({ ...p, accent: e.target.value }))} style={inputBaseStyle} /></div>
               <div><div style={fieldLabelStyle}>强调色 2</div><input type="color" value={themeDraft.accent2} onChange={(e) => setThemeDraft((p) => ({ ...p, accent2: e.target.value }))} style={inputBaseStyle} /></div>
+              <div>
+                <div style={fieldLabelStyle}>毛玻璃强度</div>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={Math.round((themeDraft.glassIntensity ?? 0.2) * 100)}
+                  onChange={(e) =>
+                    setThemeDraft((p) => ({ ...p, glassIntensity: Number(e.target.value) / 100 }))
+                  }
+                  style={{ ...inputBaseStyle, padding: '6px 10px' }}
+                />
+                <div style={{ color: 'var(--text-dim)', fontSize: 12, marginTop: 4 }}>
+                  {Math.round((themeDraft.glassIntensity ?? 0.2) * 100)}%
+                </div>
+              </div>
               <div style={{ gridColumn: 'span 2' }}>
                 <div style={fieldLabelStyle}>字体（font-family）</div>
                 <input type="text" value={themeDraft.fontFamily} onChange={(e) => setThemeDraft((p) => ({ ...p, fontFamily: e.target.value }))} style={inputBaseStyle} />

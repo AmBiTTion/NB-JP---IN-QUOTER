@@ -5,6 +5,7 @@ import {
 import { Notifications } from '@mantine/notifications'
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { themeMap, type UiThemeKey } from './theme'
+import { applyCustomThemeOverrides, clearCustomThemeOverrides, loadCustomThemeOverrides } from './customTheme'
 
 const STORAGE_KEY = 'ui_theme'
 
@@ -19,12 +20,12 @@ const ThemeContext = createContext<ThemeContextValue>({
 })
 
 function toThemeKey(value: unknown): UiThemeKey {
-  if (value === 'classic' || value === 'neon' || value === 'minimal') return value
+  if (value === 'classic' || value === 'neon' || value === 'minimal' || value === 'paper') return value
   return 'classic'
 }
 
 function toColorScheme(value: UiThemeKey): MantineColorScheme {
-  if (value === 'minimal') return 'light'
+  if (value === 'minimal' || value === 'paper') return 'light'
   return 'dark'
 }
 
@@ -43,6 +44,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       // Ignore storage failures
     }
   }, [])
+
+  useEffect(() => {
+    if (uiThemeKey === 'paper') {
+      applyCustomThemeOverrides(loadCustomThemeOverrides())
+      return
+    }
+    clearCustomThemeOverrides()
+  }, [uiThemeKey])
 
   useEffect(() => {
     const handleThemeChange = (event: Event) => {
