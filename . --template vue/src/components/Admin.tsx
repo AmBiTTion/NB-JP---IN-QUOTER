@@ -70,7 +70,7 @@ const TABS: Array<{ key: TabKey; label: string }> = [
   { key: 'container_load_rules', label: ta('tabs.container_load_rules') },
   { key: 'land_freight_rules', label: ta('tabs.land_freight_rules') },
   { key: 'factory_packaging_overrides', label: ta('tabs.factory_packaging_overrides') },
-  { key: 'customers', label: '客户' },
+  { key: 'customers', label: ta('tabs.customers') },
   { key: 'settings', label: ta('tabs.settings') },
 ]
 
@@ -91,9 +91,9 @@ const LABELS: Record<string, string> = {
   fx_rate: ta('fields.fx_rate'), margin_pct: ta('fields.margin_pct'), quote_valid_days: ta('fields.quote_valid_days'), pricing_formula_mode: ta('fields.pricing_formula_mode'),
   rounding_policy: ta('fields.rounding_policy'), terms_template: ta('fields.terms_template'), ui_theme: ta('fields.ui_theme'), money_format_rmb_decimals: ta('fields.money_format_rmb_decimals'), money_format_usd_decimals: ta('fields.money_format_usd_decimals'),
   recommended_units_per_carton: ta('fields.recommended_units_per_carton'), notes: ta('fields.notes'), carton_price_rmb_override: ta('fields.carton_price_rmb_override'), bag_price_rmb_override: ta('fields.bag_price_rmb_override'),
-  contact: '联系人',
-  default_port_id: '默认港口',
-  customer_terms_template: '默认条款',
+  contact: ta('fields.contact'),
+  default_port_id: ta('fields.default_port_id'),
+  customer_terms_template: ta('fields.customer_terms_template'),
 }
 
 const INNER_PACK_LABELS: Record<InnerPackType, string> = { none: ta('innerPack.none'), carton: ta('innerPack.carton'), woven_bag: ta('innerPack.woven_bag'), small_box: ta('innerPack.small_box'), big_box: ta('innerPack.big_box') }
@@ -207,7 +207,7 @@ export default function Admin() {
       setSettingsFxRate(String(appData.settings.fx_rate ?? 6.9)); setSettingsMarginPct(String(appData.settings.margin_pct ?? 0.05)); setSettingsQuoteValidDays(String(appData.settings.quote_valid_days ?? 7))
       setSettingsRmbDecimals(String(appData.settings.money_format?.rmb_decimals ?? 4)); setSettingsUsdDecimals(String(appData.settings.money_format?.usd_decimals ?? 4))
       setSettingsPricingFormulaMode(appData.settings.pricing_formula_mode ?? 'divide'); setSettingsRoundingPolicy(appData.settings.rounding_policy ?? 'ceil'); const rawUiTheme = String(appData.settings.ui_theme ?? 'classic'); const loadedUiTheme = ((rawUiTheme === 'creative' ? 'neon' : rawUiTheme) as 'classic' | 'neon' | 'minimal' | 'paper' | undefined) ?? 'classic'; setSettingsUiTheme(loadedUiTheme); setUiThemeKey(loadedUiTheme); setSettingsTermsTemplate(appData.settings.terms_template ?? '')
-      const profiles = (appData.settings.user_profiles ?? [{ id: 'user_default', name: '默认用户' }]).filter((p) => p?.id && p?.name)
+      const profiles = (appData.settings.user_profiles ?? [{ id: 'user_default', name: ta('user.defaultName') }]).filter((p) => p?.id && p?.name)
       setSettingsUserProfiles(profiles)
       setSettingsActiveUserProfileId(appData.settings.active_user_profile_id ?? profiles[0]?.id ?? 'user_default')
       suppressAutoSaveRef.current = true; setDirtyTables([]); setDirtySettings(false); setAutoSaveState('idle'); setStatus(ta('common.dataLoaded'))
@@ -476,7 +476,7 @@ export default function Admin() {
         { key: 'factory_id', label: ta('fields.factory_id'), type: 'select', options: factorySelect },
         { key: 'product_id', label: ta('fields.product_id'), type: 'select', options: productSelect },
         { key: 'cost_rmb_per_ton', label: ta('fields.cost_rmb_per_ton'), type: 'number' },
-        { key: 'cost_unit', label: ta('fields.cost_unit'), type: 'select', options: [{ value: 'ton', label: '吨' }, { value: 'bag', label: '包' }, { value: 'piece', label: '个' }, { value: 'carton', label: '箱' }] },
+        { key: 'cost_unit', label: ta('fields.cost_unit'), type: 'select', options: [{ value: 'ton', label: ta('unit.ton') }, { value: 'bag', label: ta('unit.bag') }, { value: 'piece', label: ta('unit.piece') }, { value: 'carton', label: ta('unit.carton') }] },
       ] as Array<Column<FactoryProductCost>>,
       ports: [{ key: 'id', label: ta('fields.id'), type: 'text', readOnly: true, width: 140 }, { key: 'name', label: ta('fields.name'), type: 'text', width: 200 }, { key: 'code', label: ta('fields.code'), type: 'text', width: 120 }, { key: 'country', label: ta('fields.country'), type: 'text', width: 160 }] as Array<Column<Port>>,
       port_charges_rules: [{ key: 'id', label: ta('fields.id'), type: 'text', readOnly: true, width: 140 }, { key: 'port_id', label: ta('fields.port_id'), type: 'select', options: portSelect }, { key: 'mode', label: ta('fields.mode'), type: 'select', options: [{ value: 'FCL', label: 'FCL' }, { value: 'LCL', label: 'LCL' }] }, { key: 'container_type', label: ta('fields.container_type'), type: 'select', options: [{ value: '', label: 'N/A' }, { value: '20GP', label: '20GP' }, { value: '40HQ', label: '40HQ' }] }, { key: 'base_rmb', label: ta('fields.base_rmb'), type: 'number' }, { key: 'extra_rmb_per_ton', label: ta('fields.extra_rmb_per_ton'), type: 'number' }] as Array<Column<PortChargesRule>>,
@@ -511,7 +511,7 @@ export default function Admin() {
       const logs = (await window.ipcRenderer.invoke('get-operation-logs')) as CalculationHistory[]
       setOperationLogs(Array.isArray(logs) ? logs : [])
     } catch (e) {
-      setError(`加载历史失败: ${String(e)}`)
+      setError(`${ta('log.loadFailed')}: ${String(e)}`)
     }
   }, [])
 
@@ -537,7 +537,7 @@ export default function Admin() {
 
   const addUserProfile = useCallback(() => {
     const id = `user_${Date.now()}`
-    const next = [...settingsUserProfiles, { id, name: `用户${settingsUserProfiles.length + 1}` }]
+    const next = [...settingsUserProfiles, { id, name: `${ta('user.namePrefix')}${settingsUserProfiles.length + 1}` }]
     setSettingsUserProfiles(next)
     setSettingsActiveUserProfileId(id)
     setDirtySettings(true)
@@ -556,7 +556,7 @@ export default function Admin() {
       if (settingsActiveUserProfileId === id && next.length > 0) {
         setSettingsActiveUserProfileId(next[0].id)
       }
-      return next.length > 0 ? next : [{ id: 'user_default', name: '默认用户' }]
+      return next.length > 0 ? next : [{ id: 'user_default', name: ta('user.defaultName') }]
     })
     setDirtySettings(true)
     setAutoSaveState('idle')
@@ -569,7 +569,7 @@ export default function Admin() {
       const action = String(payload?.action ?? '').trim()
       if (action) actions.add(action)
     })
-    return [{ value: 'all', label: '全部操作' }, ...Array.from(actions).map((action) => ({ value: action, label: action }))]
+    return [{ value: 'all', label: ta('common.allActions') }, ...Array.from(actions).map((action) => ({ value: action, label: action }))]
   }, [operationLogs])
 
   const filteredOperationLogs = useMemo(() => {
@@ -604,7 +604,7 @@ export default function Admin() {
           <h2 style={{ marginTop: 0 }}>{ta('common.settings')}</h2>
           <div style={{ display: 'grid', gap: 12 }}>
             <div className="subpanel settings-group" style={{ padding: 14 }}>
-              <div className="section-title" style={{ marginBottom: 10 }}>基础报价参数</div>
+              <div className="section-title" style={{ marginBottom: 10 }}>{ta('settingsSection.basic')}</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 14 }}>
                 <div><label>{labelFor('fx_rate')}</label><input type="number" step="0.01" value={settingsFxRate} onChange={(e) => { setSettingsFxRate(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
                 <div><label>{labelFor('margin_pct')}</label><input type="number" step="0.01" value={settingsMarginPct} onChange={(e) => { setSettingsMarginPct(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
@@ -616,7 +616,7 @@ export default function Admin() {
             </div>
 
             <div className="subpanel settings-group" style={{ padding: 14 }}>
-              <div className="section-title" style={{ marginBottom: 10 }}>定价与主题</div>
+              <div className="section-title" style={{ marginBottom: 10 }}>{ta('settingsSection.pricingTheme')}</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 14 }}>
                 <div><label>{labelFor('pricing_formula_mode')}</label><MantineSelect className="ui-select" mt={6} value={settingsPricingFormulaMode} onChange={(value) => { setSettingsPricingFormulaMode(value ?? 'divide'); setDirtySettings(true); setAutoSaveState('idle') }} data={[{ value: 'divide', label: 'cost/(1-margin)' }]} searchable={false} allowDeselect={false} styles={{ input: inputBaseStyle, dropdown: { backgroundColor: 'var(--surface-2)' } }} /></div>
                 <div>
@@ -644,7 +644,7 @@ export default function Admin() {
                   />
                 </div>
                 <div>
-                  <label>当前用户</label>
+                  <label>{ta('settingsSection.currentUser')}</label>
                   <MantineSelect
                     className="ui-select"
                     mt={6}
@@ -662,18 +662,18 @@ export default function Admin() {
                 </div>
               </div>
               <div className="settings-action-row" style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <button className="btn-outline-neon settings-action-btn" onClick={() => setThemeCustomOpen(true)}>主题定制</button>
-                <button className="btn-primary settings-action-btn" onClick={() => setProfileModalOpen(true)}>用户管理</button>
+                <button className="btn-outline-neon settings-action-btn" onClick={() => setThemeCustomOpen(true)}>{ta('settingsSection.themeCustomize')}</button>
+                <button className="btn-primary settings-action-btn" onClick={() => setProfileModalOpen(true)}>{ta('settingsSection.userManage')}</button>
               </div>
               <Text size="xs" c="dimmed" mt={8}>{ta('hint.theme')}</Text>
             </div>
 
             <div className="subpanel settings-group" style={{ padding: 14 }}>
-              <div className="section-title" style={{ marginBottom: 10 }}>数据与记录</div>
+              <div className="section-title" style={{ marginBottom: 10 }}>{ta('settingsSection.dataRecords')}</div>
               <div className="settings-action-row" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <button className="btn-outline-neon settings-action-btn" onClick={() => { void loadHistory(); setHistoryModalOpen(true) }}>报价历史</button>
-                <button className="btn-outline-neon settings-action-btn" onClick={() => { void loadHistory(); setLogsModalOpen(true) }}>操作日志</button>
-                <button className="btn-primary settings-action-btn" onClick={() => { void loadHistory(); exportHistoryJson() }}>导出JSON</button>
+                <button className="btn-outline-neon settings-action-btn" onClick={() => { void loadHistory(); setHistoryModalOpen(true) }}>{ta('common.quoteHistory')}</button>
+                <button className="btn-outline-neon settings-action-btn" onClick={() => { void loadHistory(); setLogsModalOpen(true) }}>{ta('common.operationLogs')}</button>
+                <button className="btn-primary settings-action-btn" onClick={() => { void loadHistory(); exportHistoryJson() }}>{ta('common.exportJson')}</button>
               </div>
             </div>
 
@@ -1010,19 +1010,19 @@ export default function Admin() {
         <div className="modal-backdrop">
           <div className="modal-card glass-card" style={{ width: 920, maxWidth: '94vw' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <h3 style={{ margin: 0 }}>报价历史</h3>
+              <h3 style={{ margin: 0 }}>{ta('common.quoteHistory')}</h3>
               <button className="btn-outline-neon" onClick={() => setHistoryModalOpen(false)}>{ta('common.close')}</button>
             </div>
             <div className="subpanel" style={{ maxHeight: '70vh', overflow: 'auto', padding: 10 }}>
               {historyItems.length === 0 ? (
-                <div style={{ color: 'var(--text-dim)' }}>暂无历史记录</div>
+                <div style={{ color: 'var(--text-dim)' }}>{ta('common.noHistory')}</div>
               ) : (
                 <table className="admin-table">
                   <thead>
                     <tr>
                       <th>ID</th>
-                      <th>时间</th>
-                      <th>摘要</th>
+                      <th>{ta('log.time')}</th>
+                      <th>{ta('log.summary')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1053,7 +1053,7 @@ export default function Admin() {
         <div className="modal-backdrop">
           <div className="modal-card glass-card" style={{ width: 920, maxWidth: '94vw' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <h3 style={{ margin: 0 }}>操作日志</h3>
+              <h3 style={{ margin: 0 }}>{ta('common.operationLogs')}</h3>
               <button className="btn-outline-neon" onClick={() => setLogsModalOpen(false)}>{ta('common.close')}</button>
             </div>
             <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 10 }}>
@@ -1069,12 +1069,12 @@ export default function Admin() {
                 />
               </div>
               <button className="btn-outline-neon" onClick={() => setLogSortOrder((p) => (p === 'desc' ? 'asc' : 'desc'))}>
-                {logSortOrder === 'desc' ? '时间：新到旧' : '时间：旧到新'}
+                {logSortOrder === 'desc' ? ta('log.newest') : ta('log.oldest')}
               </button>
             </div>
             <div className="subpanel" style={{ maxHeight: '70vh', overflow: 'auto', padding: 10 }}>
               {filteredOperationLogs.length === 0 ? (
-                <div style={{ color: 'var(--text-dim)' }}>暂无日志</div>
+                <div style={{ color: 'var(--text-dim)' }}>{ta('common.noLogs')}</div>
               ) : (
                 <ul style={{ margin: 0, paddingLeft: 18 }}>
                   {filteredOperationLogs.map((item) => {
@@ -1098,7 +1098,7 @@ export default function Admin() {
         <div className="modal-backdrop">
           <div className="modal-card glass-card" style={{ width: 1040, maxWidth: '96vw' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <h3 style={{ margin: 0 }}>用户配置</h3>
+              <h3 style={{ margin: 0 }}>{ta('user.title')}</h3>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button className="btn-primary" onClick={addUserProfile}>{ta('common.add')}</button>
                 <button className="btn-outline-neon" onClick={() => setProfileModalOpen(false)}>{ta('common.close')}</button>
@@ -1109,13 +1109,13 @@ export default function Admin() {
                 <thead>
                   <tr>
                     <th>ID</th>
-                    <th>名称</th>
-                    <th>角色</th>
-                    <th>公司名</th>
-                    <th>地址</th>
-                    <th>电话</th>
+                    <th>{ta('user.name')}</th>
+                    <th>{ta('user.role')}</th>
+                    <th>{ta('user.company')}</th>
+                    <th>{ta('user.address')}</th>
+                    <th>{ta('user.tel')}</th>
                     <th>Email</th>
-                    <th>操作</th>
+                    <th>{ta('common.action')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1129,9 +1129,9 @@ export default function Admin() {
                           value={(profile.role ?? 'sales') as UserRole}
                           onChange={(value) => updateUserProfileField(profile.id, 'role', (value ?? 'sales') as UserRole)}
                           data={[
-                            { value: 'admin', label: '管理员' },
-                            { value: 'sales', label: '报价员' },
-                            { value: 'audit', label: '审计' },
+                            { value: 'admin', label: ta('user.admin') },
+                            { value: 'sales', label: ta('user.sales') },
+                            { value: 'audit', label: ta('user.audit') },
                           ]}
                           searchable={false}
                           allowDeselect={false}
@@ -1156,22 +1156,22 @@ export default function Admin() {
         <div className="modal-backdrop">
           <div className="modal-card glass-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <h3 style={{ margin: 0 }}>主题定制</h3>
+              <h3 style={{ margin: 0 }}>{ta('themeCustom.title')}</h3>
               <button className="btn-outline-neon" onClick={() => setThemeCustomOpen(false)}>{ta('common.close')}</button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }}>
-              <div><div style={fieldLabelStyle}>背景色 A</div><input type="color" value={themeDraft.bg0} onChange={(e) => setThemeDraft((p) => ({ ...p, bg0: e.target.value }))} style={inputBaseStyle} /></div>
-              <div><div style={fieldLabelStyle}>背景色 B</div><input type="color" value={themeDraft.bg1} onChange={(e) => setThemeDraft((p) => ({ ...p, bg1: e.target.value }))} style={inputBaseStyle} /></div>
-              <div><div style={fieldLabelStyle}>主文字色</div><input type="color" value={themeDraft.text} onChange={(e) => setThemeDraft((p) => ({ ...p, text: e.target.value }))} style={inputBaseStyle} /></div>
-              <div><div style={fieldLabelStyle}>弱文字色</div><input type="color" value={themeDraft.textDim} onChange={(e) => setThemeDraft((p) => ({ ...p, textDim: e.target.value }))} style={inputBaseStyle} /></div>
-              <div><div style={fieldLabelStyle}>面板色 1</div><input type="color" value={themeDraft.surface1} onChange={(e) => setThemeDraft((p) => ({ ...p, surface1: e.target.value }))} style={inputBaseStyle} /></div>
-              <div><div style={fieldLabelStyle}>面板色 2</div><input type="color" value={themeDraft.surface2} onChange={(e) => setThemeDraft((p) => ({ ...p, surface2: e.target.value }))} style={inputBaseStyle} /></div>
-              <div><div style={fieldLabelStyle}>边框色</div><input type="color" value={themeDraft.border1} onChange={(e) => setThemeDraft((p) => ({ ...p, border1: e.target.value }))} style={inputBaseStyle} /></div>
-              <div><div style={fieldLabelStyle}>主色</div><input type="color" value={themeDraft.primary} onChange={(e) => setThemeDraft((p) => ({ ...p, primary: e.target.value }))} style={inputBaseStyle} /></div>
-              <div><div style={fieldLabelStyle}>强调色 1</div><input type="color" value={themeDraft.accent} onChange={(e) => setThemeDraft((p) => ({ ...p, accent: e.target.value }))} style={inputBaseStyle} /></div>
-              <div><div style={fieldLabelStyle}>强调色 2</div><input type="color" value={themeDraft.accent2} onChange={(e) => setThemeDraft((p) => ({ ...p, accent2: e.target.value }))} style={inputBaseStyle} /></div>
+              <div><div style={fieldLabelStyle}>{ta('themeCustom.bgA')}</div><input type="color" value={themeDraft.bg0} onChange={(e) => setThemeDraft((p) => ({ ...p, bg0: e.target.value }))} style={inputBaseStyle} /></div>
+              <div><div style={fieldLabelStyle}>{ta('themeCustom.bgB')}</div><input type="color" value={themeDraft.bg1} onChange={(e) => setThemeDraft((p) => ({ ...p, bg1: e.target.value }))} style={inputBaseStyle} /></div>
+              <div><div style={fieldLabelStyle}>{ta('themeCustom.text')}</div><input type="color" value={themeDraft.text} onChange={(e) => setThemeDraft((p) => ({ ...p, text: e.target.value }))} style={inputBaseStyle} /></div>
+              <div><div style={fieldLabelStyle}>{ta('themeCustom.textDim')}</div><input type="color" value={themeDraft.textDim} onChange={(e) => setThemeDraft((p) => ({ ...p, textDim: e.target.value }))} style={inputBaseStyle} /></div>
+              <div><div style={fieldLabelStyle}>{ta('themeCustom.surface1')}</div><input type="color" value={themeDraft.surface1} onChange={(e) => setThemeDraft((p) => ({ ...p, surface1: e.target.value }))} style={inputBaseStyle} /></div>
+              <div><div style={fieldLabelStyle}>{ta('themeCustom.surface2')}</div><input type="color" value={themeDraft.surface2} onChange={(e) => setThemeDraft((p) => ({ ...p, surface2: e.target.value }))} style={inputBaseStyle} /></div>
+              <div><div style={fieldLabelStyle}>{ta('themeCustom.border')}</div><input type="color" value={themeDraft.border1} onChange={(e) => setThemeDraft((p) => ({ ...p, border1: e.target.value }))} style={inputBaseStyle} /></div>
+              <div><div style={fieldLabelStyle}>{ta('themeCustom.primary')}</div><input type="color" value={themeDraft.primary} onChange={(e) => setThemeDraft((p) => ({ ...p, primary: e.target.value }))} style={inputBaseStyle} /></div>
+              <div><div style={fieldLabelStyle}>{ta('themeCustom.accent1')}</div><input type="color" value={themeDraft.accent} onChange={(e) => setThemeDraft((p) => ({ ...p, accent: e.target.value }))} style={inputBaseStyle} /></div>
+              <div><div style={fieldLabelStyle}>{ta('themeCustom.accent2')}</div><input type="color" value={themeDraft.accent2} onChange={(e) => setThemeDraft((p) => ({ ...p, accent2: e.target.value }))} style={inputBaseStyle} /></div>
               <div>
-                <div style={fieldLabelStyle}>毛玻璃强度</div>
+                <div style={fieldLabelStyle}>{ta('themeCustom.glassIntensity')}</div>
                 <input
                   type="range"
                   min={0}
@@ -1188,11 +1188,11 @@ export default function Admin() {
                 </div>
               </div>
               <div style={{ gridColumn: 'span 2' }}>
-                <div style={fieldLabelStyle}>字体（font-family）</div>
+                <div style={fieldLabelStyle}>{ta('themeCustom.fontFamily')}</div>
                 <input type="text" value={themeDraft.fontFamily} onChange={(e) => setThemeDraft((p) => ({ ...p, fontFamily: e.target.value }))} style={inputBaseStyle} />
               </div>
               <div>
-                <div style={fieldLabelStyle}>背景图上传</div>
+                <div style={fieldLabelStyle}>{ta('themeCustom.bgUpload')}</div>
                 <input
                   type="file"
                   accept="image/*"
@@ -1208,10 +1208,10 @@ export default function Admin() {
               </div>
             </div>
             <div style={{ marginTop: 14, display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-              <button className="btn-danger-soft" onClick={() => setThemeDraft((p) => ({ ...p, backgroundImage: '' }))}>清除背景图</button>
+              <button className="btn-danger-soft" onClick={() => setThemeDraft((p) => ({ ...p, backgroundImage: '' }))}>{ta('themeCustom.clearBg')}</button>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button className="btn-outline-neon" onClick={() => { setThemeDraft(defaultCustomThemeOverrides); applyCustomThemeOverrides(defaultCustomThemeOverrides); saveCustomThemeOverrides(defaultCustomThemeOverrides) }}>重置</button>
-                <button className="btn-primary" onClick={() => { applyCustomThemeOverrides(themeDraft); saveCustomThemeOverrides(themeDraft); setSettingsUiTheme('paper'); setUiThemeKey('paper'); setDirtySettings(true); setThemeCustomOpen(false) }}>应用并保存</button>
+                <button className="btn-outline-neon" onClick={() => { setThemeDraft(defaultCustomThemeOverrides); applyCustomThemeOverrides(defaultCustomThemeOverrides); saveCustomThemeOverrides(defaultCustomThemeOverrides) }}>{ta('themeCustom.reset')}</button>
+                <button className="btn-primary" onClick={() => { applyCustomThemeOverrides(themeDraft); saveCustomThemeOverrides(themeDraft); setSettingsUiTheme('paper'); setUiThemeKey('paper'); setDirtySettings(true); setThemeCustomOpen(false) }}>{ta('themeCustom.applySave')}</button>
               </div>
             </div>
           </div>

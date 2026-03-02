@@ -391,7 +391,9 @@ function Quoter(props: { onOperationSaved?: () => void }) {
     () =>
       packagingOptions.map((item) => {
         const cartonText =
-          item.units_per_carton && item.units_per_carton > 0 ? `每箱${item.units_per_carton}袋` : '不装箱'
+          item.units_per_carton && item.units_per_carton > 0
+            ? `${item.units_per_carton}${t('quote.unit.bagsPerCarton')}`
+            : t('quote.noCarton')
         return {
           value: item.id,
           label: `${item.name} | ${item.unit_weight_kg}kg | ${cartonText} | ${INNER_PACK_LABELS[item.inner_pack_type]}`,
@@ -477,11 +479,11 @@ function Quoter(props: { onOperationSaved?: () => void }) {
       return
     }
 
-    const unitsText = unitsValue && unitsValue > 0 ? `${unitsValue}袋/箱` : '不装箱'
+    const unitsText = unitsValue && unitsValue > 0 ? `${unitsValue}${t('quote.unit.bagsPerCarton')}` : t('quote.noCarton')
     const newOption: PackagingOption = {
       id: nextIdFromRows('pack', data.packaging_options),
       product_id: selectedProduct.id,
-      name: `袋装${weight}kg（${unitsText}）`,
+      name: `${t('quote.customPack')}${weight}kg（${unitsText}）`,
       unit_weight_kg: weight,
       units_per_carton: unitsValue && unitsValue > 0 ? unitsValue : null,
       carton_price_rmb: cartonPrice,
@@ -510,7 +512,7 @@ function Quoter(props: { onOperationSaved?: () => void }) {
       setShowCustomPackaging(false)
       setValidationError('')
     } catch (error) {
-      setValidationError(`保存失败：${String(error)}`)
+      setValidationError(`${t('common.saveFailed')}: ${String(error)}`)
     }
   }
 
@@ -585,7 +587,7 @@ function Quoter(props: { onOperationSaved?: () => void }) {
       })
       onOperationSaved?.()
     } catch (error) {
-      setValidationError(`计算失败：${String(error)}`)
+      setValidationError(`${t('common.calcFailed')}: ${String(error)}`)
     }
   }
 
@@ -609,8 +611,8 @@ function Quoter(props: { onOperationSaved?: () => void }) {
       : selectedPackaging.inner_pack_type
     const cartonText =
       effectiveUnitsPerCarton && effectiveUnitsPerCarton > 0
-        ? `每箱${effectiveUnitsPerCarton}袋`
-        : '不装箱'
+        ? `${effectiveUnitsPerCarton}${t('quote.unit.bagsPerCarton')}`
+        : t('quote.noCarton')
     const packagingText = `${selectedPackaging.name} | ${effectiveWeight}kg | ${cartonText} | ${INNER_PACK_LABELS[effectivePackType]}`
 
     const activeUserProfile = data.settings.user_profiles?.find(
@@ -675,9 +677,9 @@ function Quoter(props: { onOperationSaved?: () => void }) {
         setExportMessage(result.message ?? t('common.exportFailed'))
         return
       }
-      setExportMessage(`已导出：${result.filePath ?? ''}`)
+      setExportMessage(`${t('quote.exportDone')}: ${result.filePath ?? ''}`)
     } catch (error) {
-      setExportMessage(`导出失败：${String(error)}`)
+      setExportMessage(`${t('common.exportFailed')}: ${String(error)}`)
     }
   }
 
@@ -739,28 +741,28 @@ function Quoter(props: { onOperationSaved?: () => void }) {
           <Select className="ui-select" value={selectedProductId || null} onChange={(value) => setSelectedProductId(value ?? '')} data={productSelectData} placeholder={t('quote.selectProduct')} searchable={false} />
           <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 140px', gap: 10 }}>
             <div>
-              <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>客户名称</div>
+              <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{t('quote.customerName')}</div>
               <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr', gap: 8 }}>
                 <Select
                   className="ui-select"
                   value={selectedCustomerId || null}
                   onChange={(value) => setSelectedCustomerId(value ?? '')}
                   data={customerSelectData}
-                  placeholder="选择客户"
+                  placeholder={t('quote.selectCustomer')}
                   searchable={false}
                 />
                 <input
                   type="text"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
-                  placeholder="用于历史和导出"
+                  placeholder={t('quote.customerHint')}
                   className="ui-input"
                   style={{ width: '100%' }}
                 />
               </div>
             </div>
             <div>
-              <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>报价版本</div>
+              <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>{t('quote.versionTag')}</div>
               <input
                 type="text"
                 value={quoteVersionTag}
@@ -791,7 +793,14 @@ function Quoter(props: { onOperationSaved?: () => void }) {
             <div style={{ color: '#93c5fd', marginTop: 6 }}>
               {t('quote.costPerTon')}{formatRmb(selectedFactoryCostPerTonUsed, 2)}
               <span style={{ marginLeft: 8, color: '#9ca3af' }}>
-                ({formatRmb(selectedFactoryCost, 2)}/{selectedFactoryCostUnit === 'ton' ? '吨' : selectedFactoryCostUnit === 'bag' ? '包' : selectedFactoryCostUnit === 'piece' ? '个' : '箱'})
+                ({formatRmb(selectedFactoryCost, 2)}/
+                {selectedFactoryCostUnit === 'ton'
+                  ? t('quote.unit.ton')
+                  : selectedFactoryCostUnit === 'bag'
+                    ? t('quote.unit.bagShort')
+                    : selectedFactoryCostUnit === 'piece'
+                      ? t('quote.unit.piece')
+                      : t('quote.unit.carton')})
               </span>
             </div>
           )}
@@ -1027,13 +1036,13 @@ export default function App() {
               setActiveTab('admin')
             }}
             style={{ flex: 1, padding: '12px 14px', border: 'none', cursor: currentUserRole === 'sales' ? 'not-allowed' : 'pointer', opacity: currentUserRole === 'sales' ? 0.55 : 1 }}
-            title={currentUserRole === 'sales' ? '当前角色无管理权限' : undefined}
+            title={currentUserRole === 'sales' ? t('app.noAdminPermission') : undefined}
           >
             {t('app.adminTab')}
           </button>
         </div>
         <button className="btn-outline-neon" style={{ whiteSpace: 'nowrap' }} onClick={() => { void loadRecentOperations(); setRecentOpen(true) }}>
-          操作日志
+          {t('app.operationLogs')}
         </button>
       </div>
       <div style={{ display: activeTab === 'quote' ? 'block' : 'none' }}><Quoter onOperationSaved={() => { void loadRecentOperations() }} /></div>
@@ -1043,12 +1052,12 @@ export default function App() {
         <div className="modal-backdrop">
           <div className="modal-card glass-card" style={{ width: 760, maxWidth: '92vw' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <h3 style={{ margin: 0 }}>操作日志</h3>
-              <button className="btn-outline-neon" onClick={() => setRecentOpen(false)}>关闭</button>
+              <h3 style={{ margin: 0 }}>{t('app.operationLogs')}</h3>
+              <button className="btn-outline-neon" onClick={() => setRecentOpen(false)}>{t('app.close')}</button>
             </div>
             <div className="subpanel" style={{ maxHeight: '60vh', overflow: 'auto', padding: 10 }}>
               {recentOperations.length === 0 ? (
-                <div style={{ color: 'var(--text-dim)' }}>暂无操作记录</div>
+                <div style={{ color: 'var(--text-dim)' }}>{t('app.noOperations')}</div>
               ) : (
                 <ul style={{ margin: 0, paddingLeft: 18 }}>
                   {recentOperations.map((item) => {
