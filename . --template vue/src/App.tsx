@@ -20,7 +20,7 @@ import type {
   Product,
 } from '@/types/domain'
 
-const APP_VERSION = '2.7.6'
+const APP_VERSION = '2.8.4'
 const dimTextStyle: CSSProperties = { color: 'var(--text-dim)' }
 const sectionTitleStyle: CSSProperties = { marginBottom: 8, fontSize: 13, color: 'var(--text-dim)' }
 const fieldLabelStyle: CSSProperties = { fontSize: 12, color: 'var(--text-dim)', marginBottom: 6 }
@@ -54,8 +54,8 @@ function displayContainerType(type: ContainerType): string {
   return type === '20GP' ? '20FT' : type
 }
 
-function AnimatedMetric(props: { value: number; format: (value: number) => string }) {
-  const { value, format } = props
+function AnimatedMetric(props: { value: number; format: (value: number) => string; delayMs?: number }) {
+  const { value, format, delayMs = 0 } = props
   const [displayValue, setDisplayValue] = useState(value)
 
   useEffect(() => {
@@ -67,20 +67,28 @@ function AnimatedMetric(props: { value: number; format: (value: number) => strin
     }
     if (Math.abs(target - start) < 1e-8) return
 
-    const duration = 460
-    const begin = performance.now()
+    const duration = 680
+    let begin = 0
     let frame = 0
+    let timer: ReturnType<typeof setTimeout> | null = null
 
     const tick = (now: number) => {
+      if (!begin) begin = now
       const p = Math.min(1, (now - begin) / duration)
       const eased = 1 - (1 - p) * (1 - p) * (1 - p)
       setDisplayValue(start + (target - start) * eased)
       if (p < 1) frame = requestAnimationFrame(tick)
     }
 
-    frame = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(frame)
-  }, [value])
+    timer = setTimeout(() => {
+      frame = requestAnimationFrame(tick)
+    }, Math.max(0, delayMs))
+
+    return () => {
+      if (timer) clearTimeout(timer)
+      cancelAnimationFrame(frame)
+    }
+  }, [value, delayMs])
 
   return <>{format(displayValue)}</>
 }
@@ -117,6 +125,7 @@ function Quoter(props: { onOperationSaved?: () => void }) {
   const [exportMessage, setExportMessage] = useState('')
   const [quoteResult, setQuoteResult] = useState<CalculateQuoteResult | null>(null)
   const [autoContainerPlanText, setAutoContainerPlanText] = useState('')
+  const [resultRevealActive, setResultRevealActive] = useState(false)
 
   const loadData = async () => {
     setLoading(true)
@@ -210,6 +219,7 @@ function Quoter(props: { onOperationSaved?: () => void }) {
     setShowCustomPackaging(false)
     setValidationError('')
     setExportMessage('')
+    setResultRevealActive(false)
     setFclTonsHint('')
     setFclBagsHint('')
     setLandFreightOverridePerTon('')
@@ -689,7 +699,9 @@ function Quoter(props: { onOperationSaved?: () => void }) {
           landFreightOverridePerTon.trim() === '' ? undefined : Number(landFreightOverridePerTon),
       })
 
+      const shouldRunReveal = !quoteResult
       setQuoteResult(result)
+      setResultRevealActive(shouldRunReveal)
       setValidationError('')
       setExportMessage('')
       // @ts-ignore
@@ -851,21 +863,31 @@ function Quoter(props: { onOperationSaved?: () => void }) {
   const criticalWarnings: string[] = (() => {
     if (!quoteResult) return []
     const elevatedWarnings = quoteResult.warnings.filter(
-      (warning) => warning.includes('FCL') && warning.includes('0 RMB'),
+      (warning) =>
+        warning.includes('国内段运费规则') &&
+        warning.includes('0 RMB/吨'),
     )
     const autoSwitchedToLcl = mode === 'FCL' && quoteResult.summary.mode === 'LCL'
     if (autoSwitchedToLcl && quoteResult.breakdown.land_rmb_per_ton_used <= 0) {
       return [
-        'System auto-switched to LCL, but current land freight is 0 RMB/ton. Please maintain rules or enter override.',
+        '系统已自动切换为 LCL，但当前国内段运费为 0 RMB/吨。请在 Admin 维护规则或输入覆盖值。',
         ...elevatedWarnings,
       ]
     }
     return elevatedWarnings
   })()
 
+  const criticalWarningSet = new Set(criticalWarnings)
   const displayWarnings: string[] = quoteResult
     ? quoteResult.warnings.filter(
-        (warning) => !(warning.includes('FCL') && warning.includes('0 RMB')),
+        (warning) =>
+          !criticalWarningSet.has(warning) &&
+          !(
+            mode === 'FCL' &&
+            quoteResult.summary.mode === 'LCL' &&
+            quoteResult.breakdown.land_rmb_per_ton_used <= 0 &&
+            warning.includes('自动切换为 LCL')
+          ),
       )
     : []
 
@@ -1043,7 +1065,7 @@ function Quoter(props: { onOperationSaved?: () => void }) {
             {kpiCards.map((card) => (
               <div key={card.title} className="kpi-card">
                 <div className="kpi-title">{card.title}</div>
-                <div className="kpi-value"><AnimatedMetric value={card.value} format={card.format} /></div>
+                <div className="kpi-value"><AnimatedMetric value={card.value} format={card.format} delayMs={0} /></div>
                 <div className="kpi-unit">{card.unit}</div>
               </div>
             ))}
@@ -1052,7 +1074,7 @@ function Quoter(props: { onOperationSaved?: () => void }) {
           <div className="subpanel glass-card quote-result-card" style={{ padding: 12, marginTop: 12 }}>
             <div style={{ fontWeight: 700, marginBottom: 8 }}>{t('quote.result.summary')}</div>
             {quoteResult ? (
-              <div className="summary-box-grid">
+              <div className={`summary-box-grid ${resultRevealActive ? 'result-reveal-summary' : ''}`}>
                 <div className="summary-box-item"><div className="summary-box-label">{t('quote.result.mode')}</div><div className="summary-box-value">{quoteResult.summary.mode}</div></div>
                 <div className="summary-box-item"><div className="summary-box-label">{t('quote.result.container')}</div><div className="summary-box-value">{displayContainerType(quoteResult.summary.container_type)}</div></div>
                 <div className="summary-box-item"><div className="summary-box-label">柜数量</div><div className="summary-box-value">{quoteResult.summary.container_count}</div></div>
@@ -1073,12 +1095,18 @@ function Quoter(props: { onOperationSaved?: () => void }) {
             <div style={{ fontWeight: 700, marginBottom: 8 }}>{t('quote.result.breakdown')}</div>
             {quoteResult ? (
               <>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginBottom: 10 }}>
+                <div
+                  className={resultRevealActive ? 'result-reveal-breakdown-cards' : ''}
+                  style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginBottom: 10 }}
+                >
                   <div className="summary-box-item"><div className="summary-box-label">原料（RMB/袋）</div><div className="summary-box-value">{formatRmb(quoteResult.breakdown.raw_rmb_per_bag)}</div></div>
                   <div className="summary-box-item"><div className="summary-box-label">国内总成本（RMB/袋）</div><div className="summary-box-value">{formatRmb(quoteResult.breakdown.domestic_total_rmb_per_bag)}</div></div>
                   <div className="summary-box-item"><div className="summary-box-label">国内段运费（总额）</div><div className="summary-box-value">{formatRmb(quoteResult.breakdown.land_total_rmb, 2)}</div></div>
                 </div>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <table
+                  className={resultRevealActive ? 'result-reveal-breakdown-table' : ''}
+                  style={{ width: '100%', borderCollapse: 'collapse' }}
+                >
                   <tbody>
                     <tr><td>{t('quote.result.raw')}</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.raw_rmb_per_bag)}</td></tr>
                     <tr><td>{t('quote.result.bagMat')}</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.bag_mat_rmb_per_bag)}</td></tr>
@@ -1097,23 +1125,23 @@ function Quoter(props: { onOperationSaved?: () => void }) {
             )}
           </div>
 
-          {criticalWarnings.length > 0 && (
-            <div className="status-box status-error" style={{ marginTop: 12 }}>
-              <div style={{ fontWeight: 700, marginBottom: 6 }}>Critical Risk Alert</div>
-              <ul style={{ margin: 0, paddingLeft: 18 }}>
-                {criticalWarnings.map((warning, index) => (
-                  <li key={`critical-${index}`} style={{ marginBottom: 4 }}>{warning}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
           {quoteResult && displayWarnings.length > 0 && (
             <div className="status-box status-warning" style={{ marginTop: 12 }}>
               <div style={{ fontWeight: 700, marginBottom: 6 }}>{t('quote.result.warnings')}</div>
               <ul style={{ margin: 0, paddingLeft: 18 }}>
                 {displayWarnings.map((warning, index) => (
                   <li key={`${warning}-${index}`} style={{ marginBottom: 4 }}>{warning}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {criticalWarnings.length > 0 && (
+            <div className="status-box status-error" style={{ marginTop: 12 }}>
+              <div style={{ fontWeight: 700, marginBottom: 6 }}>关键风险提示</div>
+              <ul style={{ margin: 0, paddingLeft: 18 }}>
+                {criticalWarnings.map((warning, index) => (
+                  <li key={`critical-${index}`} style={{ marginBottom: 4 }}>{warning}</li>
                 ))}
               </ul>
             </div>

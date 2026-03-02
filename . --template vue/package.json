@@ -1,7 +1,7 @@
 {
   "name": "electron-react-app",
   "private": true,
-  "version": "2.7.6",
+  "version": "2.8.4",
   "type": "module",
   "scripts": {
     "dev": "set ELECTRON_RUN_AS_NODE=&& vite",

@@ -53,6 +53,8 @@ export interface ExternalQuotationPayload {
   }
 }
 
+const DEFAULT_EXPORT_EMAIL = 'ivvepet@phoebetai.com'
+
 function formatDateDDMMYYYY(date: Date): string {
   const dd = String(date.getDate()).padStart(2, '0')
   const mm = String(date.getMonth() + 1).padStart(2, '0')
@@ -144,9 +146,10 @@ export async function exportExternalQuotationExcel(
   const tel = payload.settings?.tel?.trim()
   const whatsapp = payload.settings?.whatsapp?.trim()
   const wechat = payload.settings?.wechat?.trim()
-  const email = payload.settings?.email?.trim()
+  const emailRaw = payload.settings?.email?.trim()
+  const email = emailRaw && emailRaw !== '' ? emailRaw : DEFAULT_EXPORT_EMAIL
+  const telMobLine = tel ? `TEL : ${tel}    Mob : ${tel}` : ''
   const contactItems: string[] = []
-  if (tel) contactItems.push(`Mob: ${tel}`)
   if (whatsapp) contactItems.push(`WhatsApp: ${whatsapp}`)
   if (wechat) contactItems.push(`Wechat: ${wechat}`)
   if (email) contactItems.push(`Email: ${email}`)
@@ -160,11 +163,11 @@ export async function exportExternalQuotationExcel(
   if (isNonEmptyText(payload.settings?.postCode)) {
     sheet.getCell('C3').value = payload.settings.postCode.trim()
   }
-  if (isNonEmptyText(payload.settings?.tel)) {
-    sheet.getCell('C4').value = payload.settings.tel.trim()
+  if (telMobLine) {
+    sheet.getCell('C4').value = telMobLine
   }
   if (contactItems.length > 0) {
-    sheet.getCell('C5').value = contactItems.join(' | ')
+    sheet.getCell('C5').value = contactItems.join('    ')
   }
 
   if (isNonEmptyText(payload.input?.customerName)) {

@@ -344,6 +344,15 @@ html,body{
   background: var(--surface-2) !important;
 }
 
+.app-root .quote-page .mantine-Select-root.ui-select,
+.app-root .quote-page .mantine-NumberInput-root.ui-input {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  width: 100% !important;
+}
+
 .app-root .quote-page .mantine-Select-input:focus,
 .app-root .quote-page .mantine-NumberInput-input:focus,
 .app-root .quote-page .mantine-Input-input:focus {
@@ -360,6 +369,40 @@ html,body{
 .admin-page .panel,
 .admin-page .subpanel {
   transition: background-color var(--motion-mid) var(--ease-smooth), border-color var(--motion-mid) var(--ease-smooth), box-shadow var(--motion-mid) var(--ease-smooth), transform var(--motion-mid) var(--ease-smooth);
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.admin-page {
+  --admin-gap-xs: 8px;
+  --admin-gap-sm: 12px;
+  --admin-gap-md: 16px;
+  --admin-gap-lg: 20px;
+}
+
+.admin-page .panel {
+  background: color-mix(in srgb, var(--surface-1) 90%, transparent 10%) !important;
+  border: 1px solid var(--border-1) !important;
+  border-radius: var(--radius-1) !important;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, calc(var(--glass-shadow-alpha) * .82)) !important;
+}
+
+.admin-page .subpanel {
+  background: color-mix(in srgb, var(--surface-2) 92%, transparent 8%) !important;
+  border: 1px solid var(--border-1) !important;
+  border-radius: var(--radius-1) !important;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, calc(var(--glass-shadow-alpha) * .68)) !important;
+}
+
+.admin-page .admin-card {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.admin-page .section-title,
+.admin-page h2,
+.admin-page h3 {
+  letter-spacing: .1px;
 }
 
 .settings-group {
@@ -384,6 +427,35 @@ html,body{
 .settings-action-btn {
   min-width: 112px;
   letter-spacing: .2px;
+  min-height: var(--control-h);
+  border-radius: var(--radius-1) !important;
+}
+
+/* Settings area: unify button palette and border system */
+.admin-page .settings-action-row .btn-outline-neon {
+  background: var(--surface-2) !important;
+  border: 1px solid rgba(var(--accent-rgb), .42) !important;
+  color: var(--text) !important;
+  box-shadow: 0 0 0 1px rgba(var(--accent-rgb), .14) inset !important;
+}
+
+.admin-page .settings-action-row .btn-outline-neon:hover {
+  box-shadow:
+    0 0 0 1px rgba(var(--accent-rgb), .2) inset,
+    0 0 16px rgba(var(--accent-rgb), .18) !important;
+}
+
+.admin-page .settings-action-row .btn-primary {
+  background: var(--surface-2) !important;
+  border: 1px solid rgba(var(--accent-rgb), .42) !important;
+  color: var(--text) !important;
+  box-shadow: 0 0 0 1px rgba(var(--accent-rgb), .14) inset !important;
+}
+
+.admin-page .settings-action-row .btn-primary:hover {
+  box-shadow:
+    0 0 0 1px rgba(var(--accent-rgb), .2) inset,
+    0 0 16px rgba(var(--accent-rgb), .18) !important;
 }
 
 .settings-group:nth-of-type(2) { animation-delay: 40ms; }
@@ -422,9 +494,31 @@ html,body{
   padding: 0 !important;
 }
 
+/* Admin: force all field controls to the same visual surface */
+.admin-page .mantine-Select-input,
+.admin-page .mantine-Input-input,
+.admin-page .mantine-NumberInput-input,
+.admin-page .admin-input,
+.admin-page input[type='text'].admin-input,
+.admin-page input[type='number'].admin-input {
+  background: var(--surface-2) !important;
+  border: 1px solid var(--border-1) !important;
+  color: var(--text) !important;
+  border-radius: var(--radius-1) !important;
+}
+
+.admin-page label {
+  display: block;
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
 .admin-page .panel:hover,
 .admin-page .subpanel:hover {
-  transform: translateY(-1px);
+  transform: none;
+  filter: none;
+  box-shadow: 0 10px 20px rgba(0,0,0,calc(var(--glass-shadow-alpha) * .62));
 }
 
 .admin-page .admin-card {
@@ -434,6 +528,12 @@ html,body{
   box-shadow: 0 8px 18px rgba(0,0,0,calc(var(--glass-shadow-alpha) * .75));
 }
 
+.admin-page .admin-card:hover {
+  transform: none;
+  filter: none;
+  box-shadow: 0 10px 20px rgba(0,0,0,calc(var(--glass-shadow-alpha) * .62));
+}
+
 .admin-page .admin-card-header {
   padding-bottom: 8px;
   border-bottom: 1px dashed color-mix(in srgb, var(--border-1) 80%, transparent 20%);
@@ -441,6 +541,7 @@ html,body{
 
 .admin-page .admin-card-grid {
   row-gap: 12px !important;
+  column-gap: 12px !important;
 }
 
 .admin-page .admin-card-grid > div {
@@ -472,6 +573,27 @@ html,body{
   min-height: 40px;
   border-radius: var(--radius-1) !important;
   font-size: 14px;
+  color: var(--text) !important;
+}
+
+.admin-page .admin-input {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-1);
+  background: var(--surface-2);
+  color: var(--text);
+  padding: 8px 10px;
+}
+
+.admin-page .admin-input-tight {
+  margin-top: 6px;
+}
+
+.admin-page .admin-std-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(180px, 1fr));
+  gap: 10px 12px;
 }
 
 .admin-page button,
@@ -487,6 +609,27 @@ html,body{
 .admin-page .btn-primary:active,
 .admin-page .btn-outline-neon:active {
   transform: translateY(1px) scale(.995);
+}
+
+.admin-tabs-row {
+  padding-bottom: var(--admin-gap-sm);
+  border-bottom: 1px dashed color-mix(in srgb, var(--border-1) 82%, transparent 18%);
+}
+
+.admin-toolbar {
+  margin-bottom: var(--admin-gap-lg) !important;
+  padding-bottom: var(--admin-gap-sm);
+  border-bottom: 1px dashed color-mix(in srgb, var(--border-1) 82%, transparent 18%);
+}
+
+.admin-toolbar h2 {
+  font-size: 20px;
+  font-weight: 740;
+}
+
+.admin-page .status-pill {
+  min-height: 28px;
+  align-items: center;
 }
 
 .modal-backdrop {
@@ -512,6 +655,46 @@ html,body{
   background: rgba(10, 16, 30, 0.92);
   box-shadow: 0 24px 60px rgba(0,0,0,.48);
   animation: slideUpLinear var(--motion-mid) var(--ease-smooth);
+}
+
+.admin-page .modal-card > div:first-child {
+  padding-bottom: var(--admin-gap-sm);
+  border-bottom: 1px dashed color-mix(in srgb, var(--border-1) 82%, transparent 18%);
+}
+
+.user-profile-modal {
+  border: 1px solid color-mix(in srgb, var(--border-1) 92%, transparent 8%) !important;
+  box-shadow: 0 18px 46px rgba(0, 0, 0, calc(var(--glass-shadow-alpha) * 1.2)) !important;
+}
+
+.user-profile-body {
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--surface-2) 93%, transparent 7%),
+    color-mix(in srgb, var(--surface-1) 92%, transparent 8%)
+  ) !important;
+  border: 1px solid color-mix(in srgb, var(--border-1) 82%, transparent 18%) !important;
+  border-radius: var(--radius-1) !important;
+}
+
+.user-profile-list {
+  gap: 14px !important;
+}
+
+.user-profile-card {
+  background: color-mix(in srgb, var(--surface-2) 86%, transparent 14%) !important;
+  border: 1px solid color-mix(in srgb, var(--border-1) 82%, transparent 18%) !important;
+  border-radius: calc(var(--radius-1) + 2px) !important;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, calc(var(--glass-shadow-alpha) * 0.85)) !important;
+}
+
+.user-profile-grid {
+  gap: 12px 14px !important;
+}
+
+.user-profile-card .btn-danger-soft {
+  min-width: 96px;
+  min-height: var(--control-h);
 }
 
 .theme-paper .modal-card {
@@ -550,7 +733,7 @@ html,body{
 .admin-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 900px;
+  min-width: 980px;
   border: 1px solid var(--border-1);
   border-radius: 12px;
   overflow: hidden;
@@ -562,17 +745,19 @@ html,body{
 }
 
 .admin-table th {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: .2px;
   color: var(--text-dim);
-  padding: 10px 8px;
+  padding: 11px 10px;
   border-bottom: 1px solid var(--border-1);
+  text-transform: none;
 }
 
 .admin-table td {
-  padding: 12px 10px;
+  padding: 10px 10px;
   border-top: 1px solid var(--border-1);
+  vertical-align: middle;
 }
 
 .admin-table input[type='text'],
@@ -585,9 +770,36 @@ html,body{
   min-width: 92px;
 }
 
-.admin-toolbar h2 {
-  margin: 0;
-  line-height: 40px;
+.admin-tabs-row .admin-tab-btn {
+  white-space: nowrap !important;
+  word-break: keep-all;
+  line-height: 1.1;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.admin-tabs-row .admin-tab-btn.admin-tab-btn-compact {
+  font-size: 15px;
+}
+
+.admin-page .admin-table tr:hover td {
+  background: color-mix(in srgb, var(--surface-2) 78%, rgba(var(--accent-rgb), .08) 22%);
+}
+
+.admin-tab-content {
+  animation: adminTabContentIn calc(var(--motion-mid) + 60ms) var(--ease-smooth);
+}
+
+.admin-tab-content > * {
+  animation: adminTabChildIn calc(var(--motion-mid) + 20ms) var(--ease-smooth);
+}
+
+.admin-page .empty-hint {
+  color: var(--text-dim);
+  padding: 12px 10px;
+  border: 1px dashed var(--border-1);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface-2) 90%, transparent 10%);
 }
 
 .admin-add-btn {
@@ -679,6 +891,22 @@ html,body{
 
 .quote-panel {
   min-height: 100%;
+}
+
+.quote-form-root {
+  padding: 2px 0;
+}
+
+.quote-info-strip {
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-1);
+  background: color-mix(in srgb, var(--surface-2) 82%, transparent 18%);
+}
+
+.quote-inline-editor {
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-1);
+  background: color-mix(in srgb, var(--surface-2) 84%, transparent 16%);
 }
 
 .quote-transport-block {
@@ -783,6 +1011,67 @@ select option:checked{
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes adminTabContentIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes adminTabChildIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes resultRevealIn {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+    filter: blur(3px);
+  }
+  70% {
+    opacity: 0.92;
+    transform: translateY(1px);
+    filter: blur(0.6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.result-reveal-summary .summary-box-item,
+.result-reveal-breakdown-cards .summary-box-item,
+.result-reveal-breakdown-table tbody tr {
+  opacity: 0;
+  animation: resultRevealIn 540ms var(--ease-smooth) forwards;
+  will-change: transform, opacity, filter;
+}
+
+.result-reveal-summary .summary-box-item:nth-child(1) { animation-delay: 0ms; }
+.result-reveal-summary .summary-box-item:nth-child(2) { animation-delay: 120ms; }
+.result-reveal-summary .summary-box-item:nth-child(3) { animation-delay: 240ms; }
+.result-reveal-summary .summary-box-item:nth-child(4) { animation-delay: 360ms; }
+.result-reveal-summary .summary-box-item:nth-child(5) { animation-delay: 480ms; }
+.result-reveal-summary .summary-box-item:nth-child(6) { animation-delay: 600ms; }
+.result-reveal-summary .summary-box-item:nth-child(7) { animation-delay: 720ms; }
+.result-reveal-summary .summary-box-item:nth-child(8) { animation-delay: 840ms; }
+.result-reveal-summary .summary-box-item:nth-child(9) { animation-delay: 960ms; }
+.result-reveal-summary .summary-box-item:nth-child(10) { animation-delay: 1080ms; }
+
+.result-reveal-breakdown-cards .summary-box-item:nth-child(1) { animation-delay: 1660ms; }
+.result-reveal-breakdown-cards .summary-box-item:nth-child(2) { animation-delay: 1780ms; }
+.result-reveal-breakdown-cards .summary-box-item:nth-child(3) { animation-delay: 1900ms; }
+
+.result-reveal-breakdown-table tbody tr:nth-child(1) { animation-delay: 2020ms; }
+.result-reveal-breakdown-table tbody tr:nth-child(2) { animation-delay: 2125ms; }
+.result-reveal-breakdown-table tbody tr:nth-child(3) { animation-delay: 2230ms; }
+.result-reveal-breakdown-table tbody tr:nth-child(4) { animation-delay: 2335ms; }
+.result-reveal-breakdown-table tbody tr:nth-child(5) { animation-delay: 2440ms; }
+.result-reveal-breakdown-table tbody tr:nth-child(6) { animation-delay: 2545ms; }
+.result-reveal-breakdown-table tbody tr:nth-child(7) { animation-delay: 2650ms; }
+.result-reveal-breakdown-table tbody tr:nth-child(8) { animation-delay: 2755ms; }
+.result-reveal-breakdown-table tbody tr:nth-child(9) { animation-delay: 2860ms; }
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 1ms !important;
@@ -792,7 +1081,15 @@ select option:checked{
   }
   .app-root .panel,
   .app-root .subpanel,
-  .status-box {
+  .status-box,
+  .admin-tab-content,
+  .admin-tab-content > *,
+  .result-reveal-summary .summary-box-item,
+  .result-reveal-breakdown-cards .summary-box-item,
+  .result-reveal-breakdown-table tbody tr {
     animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
   }
 }
