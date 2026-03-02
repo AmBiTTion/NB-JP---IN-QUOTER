@@ -419,6 +419,22 @@ html,body{
   transform: translateY(-1px);
 }
 
+.admin-page .admin-card {
+  border-radius: var(--radius-1) !important;
+  border: 1px solid var(--border-1) !important;
+  background: var(--surface-2) !important;
+  box-shadow: 0 8px 18px rgba(0,0,0,calc(var(--glass-shadow-alpha) * .75));
+}
+
+.admin-page .admin-card-header {
+  padding-bottom: 8px;
+  border-bottom: 1px dashed color-mix(in srgb, var(--border-1) 80%, transparent 20%);
+}
+
+.admin-page .admin-card-grid {
+  row-gap: 12px !important;
+}
+
 .admin-page input,
 .admin-page textarea,
 .admin-page .mantine-Input-input,
@@ -525,7 +541,7 @@ html,body{
 }
 
 .admin-table td {
-  padding: 10px 8px;
+  padding: 12px 10px;
   border-top: 1px solid var(--border-1);
 }
 

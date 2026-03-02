@@ -585,7 +585,7 @@ export default function Admin() {
     })
   }, [operationLogs, logActionFilter, logSortOrder])
 
-  const sectionStyle: React.CSSProperties = { padding: 14, border: '1px solid var(--border-1)', borderRadius: 12, backgroundColor: 'var(--surface-1)' }
+  const sectionStyle: React.CSSProperties = { padding: 14 }
 
   return (
     <div className="admin-page" style={{ minHeight: '100vh', backgroundColor: 'transparent', color: 'var(--text)', padding: 20 }}>
@@ -694,12 +694,12 @@ export default function Admin() {
             </div>
           </div>
 
-          {activeTab === 'products' && <div>{tables.products.map((row) => <div key={row.id} className="subpanel" style={{ padding: 16, marginBottom: 20 }}>
-            <div style={{ marginBottom: 12, color: '#e2e8f0', fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {activeTab === 'products' && <div>{tables.products.map((row) => <div key={row.id} className="subpanel admin-card" style={{ padding: 16, marginBottom: 24 }}>
+            <div className="admin-card-header" style={{ marginBottom: 12, color: 'var(--text)', fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span>Product: {row.id}</span>
               <button className="btn-danger-soft" onClick={() => deleteRow('products', row.id)} style={{ cursor: 'pointer' }}>{ta('common.delete')}</button>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr 1.2fr 0.8fr 0.8fr 0.8fr 1fr', gap: 8, marginBottom: 12 }}>
+            <div className="admin-card-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr 1.2fr 0.8fr 0.8fr 0.8fr 1fr', gap: 10, marginBottom: 14 }}>
               <div>
                 <div style={fieldLabelStyle}>ID</div>
                 <input type="text" value={row.id} readOnly style={inputBaseStyle} />
@@ -725,9 +725,9 @@ export default function Admin() {
                 <input type="number" value={formatNumberInput(row.invoice_tax_point)} onChange={(e) => updateRow('products', row.id, 'invoice_tax_point', parseNumberInput(e.target.value, false))} style={inputBaseStyle} />
               </div>
               <div>
-                <div style={fieldLabelStyle}>{ta('fields.pol_port_id')}</div>
-                <MantineSelect className="ui-select" value={row.pol_port_id ?? ''} onChange={(value) => updateRow('products', row.id, 'pol_port_id', value ?? '')} data={portOptions} searchable={false} allowDeselect={false} styles={{ input: inputBaseStyle, dropdown: { backgroundColor: 'var(--surface-2)' } }} />
-              </div>
+                  <div style={fieldLabelStyle}>{ta('fields.pol_port_id')}</div>
+                  <MantineSelect className="ui-select" value={row.pol_port_id ?? ''} onChange={(value) => updateRow('products', row.id, 'pol_port_id', value ?? '')} data={portOptions} searchable={false} allowDeselect={false} styles={{ input: inputBaseStyle, dropdown: { backgroundColor: 'var(--surface-2)' } }} />
+                </div>
             </div>
             <div>
               <div style={fieldLabelStyle}>Description (EN)</div>
@@ -743,12 +743,9 @@ export default function Admin() {
           {activeTab === 'packaging_options' && (
             <div>
               {tables.packaging_options.map((pack) => (
-                <div
-                  key={pack.id}
-                  className="subpanel"
-                  style={{ padding: 16, marginBottom: 20 }}
-                >
+                <div key={pack.id} className="subpanel admin-card" style={{ padding: 16, marginBottom: 24 }}>
                   <div
+                    className="admin-card-header"
                     style={{
                       display: 'flex',
                       justifyContent: 'space-between',
@@ -756,7 +753,7 @@ export default function Admin() {
                       marginBottom: 12,
                     }}
                   >
-                    <div style={{ color: '#e2e8f0', fontWeight: 700 }}>Packaging: {pack.id}</div>
+                    <div style={{ color: 'var(--text)', fontWeight: 700 }}>Packaging: {pack.id}</div>
                     <button
                       className="btn-danger-soft"
                       onClick={() => deleteRow('packaging_options', pack.id)}
@@ -770,7 +767,7 @@ export default function Admin() {
                     style={{
                       display: 'grid',
                       gridTemplateColumns: '1fr 1.2fr 1.2fr',
-                      gap: 8,
+                      gap: 10,
                       marginBottom: 12,
                     }}
                   >
@@ -812,7 +809,7 @@ export default function Admin() {
                     style={{
                       display: 'grid',
                       gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr 0.7fr',
-                      gap: 8,
+                      gap: 10,
                     }}
                   >
                     <div>
