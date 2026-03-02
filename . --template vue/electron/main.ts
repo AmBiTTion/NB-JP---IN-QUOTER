@@ -12,7 +12,7 @@ import {
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 type Mode = 'FCL' | 'LCL'
-type ContainerType = '20GP' | '40HQ'
+type ContainerType = '20GP' | '40HQ' | '40FT'
 
 interface Settings {
   fx_rate: number
@@ -25,6 +25,9 @@ interface Settings {
   }
   pricing_formula_mode: string
   rounding_policy: string
+  load_basis_default?: 'tons' | 'cbm'
+  overflow_strategy?: 'upgrade_then_split' | 'split_same_type' | 'best_fit'
+  container_planning_sequence?: ContainerType[]
   terms_template: string
   user_profiles?: Array<{
     id: string
@@ -110,6 +113,7 @@ interface ContainerLoadRule {
   product_id: string
   container_type: ContainerType
   max_tons: number
+  max_cbm?: number | null
 }
 
 interface LandFreightRule {
@@ -266,15 +270,19 @@ function createEmptyData(): AppData {
       },
       pricing_formula_mode: 'divide',
       rounding_policy: 'ceil',
+      load_basis_default: 'tons',
+      overflow_strategy: 'upgrade_then_split',
+      container_planning_sequence: ['20GP', '40HQ', '40FT'],
       terms_template: '',
       user_profiles: [
         {
-          id: 'user_default',
-          name: '默认用户',
+          id: 'user_1',
+          name: 'FROM',
           role: 'admin',
+          export_from_name: 'FROM',
         },
       ],
-      active_user_profile_id: 'user_default',
+      active_user_profile_id: 'user_1',
     },
     products: [],
     packaging_options: [],
@@ -349,6 +357,36 @@ function normalizeUiTheme(
   if (v === 'classic' || v === 'neon' || v === 'minimal' || v === 'paper') return v
   if (v === 'creative') return 'neon'
   return fallback
+}
+
+function normalizeLoadBasis(
+  value: unknown,
+  fallback: 'tons' | 'cbm' = 'tons',
+): 'tons' | 'cbm' {
+  const v = String(value ?? '').trim()
+  return v === 'cbm' ? 'cbm' : fallback
+}
+
+function normalizeOverflowStrategy(
+  value: unknown,
+  fallback: 'upgrade_then_split' | 'split_same_type' | 'best_fit' = 'upgrade_then_split',
+): 'upgrade_then_split' | 'split_same_type' | 'best_fit' {
+  const v = String(value ?? '').trim()
+  if (v === 'split_same_type' || v === 'best_fit' || v === 'upgrade_then_split') return v
+  return fallback
+}
+
+function normalizeContainerPlanningSequence(value: unknown): ContainerType[] {
+  if (!Array.isArray(value)) return ['20GP', '40HQ', '40FT']
+  const allowed: ContainerType[] = ['20GP', '40HQ', '40FT']
+  const result: ContainerType[] = []
+  value.forEach((item) => {
+    const candidate = String(item ?? '').trim() as ContainerType
+    if (allowed.includes(candidate) && !result.includes(candidate)) {
+      result.push(candidate)
+    }
+  })
+  return result.length > 0 ? result : ['20GP', '40HQ', '40FT']
 }
 
 function toHistory(input: unknown[], fallbackTimestamp: string): CalculationHistory[] {
@@ -555,6 +593,9 @@ function migrateLegacyData(raw: LegacyData): AppData {
       },
       pricing_formula_mode: 'divide',
       rounding_policy: 'ceil',
+      load_basis_default: 'tons',
+      overflow_strategy: 'upgrade_then_split',
+      container_planning_sequence: ['20GP', '40HQ', '40FT'],
       terms_template: '',
     },
     products,
@@ -623,6 +664,14 @@ function normalizeAppData(raw: AppData): AppData {
     },
     pricing_formula_mode: nonEmptyText(raw.settings?.pricing_formula_mode, 'divide'),
     rounding_policy: nonEmptyText(raw.settings?.rounding_policy, 'ceil'),
+    load_basis_default: normalizeLoadBasis(raw.settings?.load_basis_default, 'tons'),
+    overflow_strategy: normalizeOverflowStrategy(
+      raw.settings?.overflow_strategy,
+      'upgrade_then_split',
+    ),
+    container_planning_sequence: normalizeContainerPlanningSequence(
+      raw.settings?.container_planning_sequence,
+    ),
     terms_template: nonEmptyText(raw.settings?.terms_template, ''),
     user_profiles:
       Array.isArray(raw.settings?.user_profiles) && raw.settings.user_profiles.length > 0
@@ -649,7 +698,7 @@ function normalizeAppData(raw: AppData): AppData {
         : createEmptyData().settings.user_profiles,
     active_user_profile_id: nonEmptyText(
       raw.settings?.active_user_profile_id,
-      createEmptyData().settings.active_user_profile_id ?? 'user_default',
+      createEmptyData().settings.active_user_profile_id ?? 'user_1',
     ),
   }
 
@@ -828,6 +877,19 @@ ipcMain.handle('update-settings', async (_event, settings: Partial<Settings>) =>
       settings?.rounding_policy,
       appData.settings.rounding_policy ?? 'ceil',
     ),
+    load_basis_default: normalizeLoadBasis(
+      settings?.load_basis_default,
+      appData.settings.load_basis_default ?? 'tons',
+    ),
+    overflow_strategy: normalizeOverflowStrategy(
+      settings?.overflow_strategy,
+      appData.settings.overflow_strategy ?? 'upgrade_then_split',
+    ),
+    container_planning_sequence: normalizeContainerPlanningSequence(
+      settings?.container_planning_sequence ??
+        appData.settings.container_planning_sequence ??
+        ['20GP', '40HQ', '40FT'],
+    ),
     terms_template: nonEmptyText(
       settings?.terms_template,
       appData.settings.terms_template ?? '',
@@ -840,7 +902,7 @@ ipcMain.handle('update-settings', async (_event, settings: Partial<Settings>) =>
       settings?.active_user_profile_id,
       appData.settings.active_user_profile_id ??
         createEmptyData().settings.active_user_profile_id ??
-        'user_default',
+        'user_1',
     ),
   }
   appendOperationLog('update-settings')

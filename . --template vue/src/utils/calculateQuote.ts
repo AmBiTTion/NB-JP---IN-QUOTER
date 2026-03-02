@@ -1,4 +1,3 @@
-
 import type {
   AppData,
   ContainerType,
@@ -6,7 +5,6 @@ import type {
   LandFreightRule,
   Mode,
   PackagingOption,
-  PortChargesRule,
   Product,
   QtyInputType,
 } from '@/types/domain'
@@ -28,6 +26,7 @@ export interface CalculateQuoteInput {
   override_carton_price_rmb?: number
   override_inner_pack_type?: string
   land_fee_override_rmb_per_ton?: number
+  container_count?: number
 }
 
 export interface QuoteBreakdown {
@@ -46,6 +45,7 @@ export interface QuoteBreakdown {
 export interface QuoteSummary {
   mode: Mode
   container_type: ContainerType
+  container_count: number
   tons: number
   bags: number
   bags_int: number
@@ -70,29 +70,50 @@ export interface CalculateQuoteResult {
 const FALLBACK_FCL_PORT: Record<ContainerType, number> = {
   '20GP': 3500,
   '40HQ': 4200,
+  '40FT': 4200,
 }
 
-function ensurePositive(value: number, fieldName: string): void {
-  if (!Number.isFinite(value) || value <= 0) {
-    throw new Error(`${fieldName} must be greater than 0`)
+function assertFinite(value: number, field: string): void {
+  if (!Number.isFinite(value)) {
+    throw new Error(`${field} must be finite`)
   }
+}
+
+function assertPositive(value: number, field: string): void {
+  assertFinite(value, field)
+  if (value <= 0) {
+    throw new Error(`${field} must be > 0`)
+  }
+}
+
+function safeNonNegative(value: unknown, fallback = 0): number {
+  const num = Number(value)
+  return Number.isFinite(num) && num >= 0 ? num : fallback
+}
+
+function safeDiv(numerator: number, denominator: number, label: string): number {
+  assertFinite(numerator, `${label}.numerator`)
+  assertPositive(denominator, `${label}.denominator`)
+  const value = numerator / denominator
+  assertFinite(value, label)
+  return value
 }
 
 function findProduct(data: AppData, productId: string): Product {
   const product = data.products.find((item) => item.id === productId)
-  if (!product) throw new Error('Product not found')
+  if (!product) throw new Error(`Product not found: ${productId}`)
   return product
 }
 
 function findPackagingOption(data: AppData, packagingOptionId: string): PackagingOption {
   const option = data.packaging_options.find((item) => item.id === packagingOptionId)
-  if (!option) throw new Error('Packaging option not found')
+  if (!option) throw new Error(`Packaging option not found: ${packagingOptionId}`)
   return option
 }
 
 function findFactory(data: AppData, factoryId: string): Factory {
   const factory = data.factories.find((item) => item.id === factoryId)
-  if (!factory) throw new Error('Factory not found')
+  if (!factory) throw new Error(`Factory not found: ${factoryId}`)
   return factory
 }
 
@@ -100,11 +121,10 @@ function findCostPerTon(data: AppData, productId: string, factoryId: string): nu
   const cost = data.factory_product_costs.find(
     (item) => item.product_id === productId && item.factory_id === factoryId,
   )
-  if (!cost) {
-    throw new Error('Missing factory product cost')
-  }
-  ensurePositive(cost.cost_rmb_per_ton, 'cost_rmb_per_ton')
-  return cost.cost_rmb_per_ton
+  if (!cost) throw new Error('Missing factory product cost')
+  const value = Number(cost.cost_rmb_per_ton)
+  assertPositive(value, 'cost_rmb_per_ton')
+  return value
 }
 
 function resolveContainerMaxTons(
@@ -120,45 +140,38 @@ function resolveContainerMaxTons(
     warnings.push(`缺少该产品 ${containerType} 的装柜规则，已按默认值 20 吨计算。`)
     return 20
   }
-  if (!Number.isFinite(rule.max_tons) || rule.max_tons <= 0) {
-    warnings.push(`该产品 ${containerType} 的最大装柜吨数未维护或无效，已按默认值 20 吨计算。`)
+  const tons = Number(rule.max_tons)
+  if (!Number.isFinite(tons) || tons <= 0) {
+    warnings.push(`该产品 ${containerType} 的装柜吨数未维护或无效，已按默认值 20 吨计算。`)
     return 20
   }
-  return rule.max_tons
+  return tons
 }
 
-function findPortRule(
-  rules: PortChargesRule[],
-  mode: Mode,
-  containerType: ContainerType | null,
-  portId: string,
-): PortChargesRule | undefined {
-  return (
-    rules.find(
-      (item) =>
-        item.mode === mode && item.container_type === containerType && item.port_id === portId,
-    ) ??
-    rules.find(
-      (item) =>
-        item.mode === mode &&
-        item.container_type === containerType &&
-        (item.port_id === null || item.port_id === ''),
-    )
-  )
-}
-
-function resolveFclPortTotalRmb(
+function resolveFclPortSingleRmb(
   data: AppData,
   portId: string,
   containerType: ContainerType,
   warnings: string[],
 ): number {
-  const rule = findPortRule(data.port_charges_rules, 'FCL', containerType, portId)
-  if (!rule) {
-    warnings.push(`缺少 ${containerType} 的 FCL 港杂规则，已按默认值 ${FALLBACK_FCL_PORT[containerType]} RMB 计算。`)
-    return FALLBACK_FCL_PORT[containerType]
-  }
-  return rule.base_rmb
+  const direct = data.port_charges_rules.find(
+    (item) =>
+      item.mode === 'FCL' &&
+      item.container_type === containerType &&
+      item.port_id === portId,
+  )
+  if (direct) return safeNonNegative(direct.base_rmb, FALLBACK_FCL_PORT[containerType])
+
+  const global = data.port_charges_rules.find(
+    (item) =>
+      item.mode === 'FCL' &&
+      item.container_type === containerType &&
+      (item.port_id === null || item.port_id === ''),
+  )
+  if (global) return safeNonNegative(global.base_rmb, FALLBACK_FCL_PORT[containerType])
+
+  warnings.push(`缺少 ${containerType} 的 FCL 港杂规则，已按默认值 ${FALLBACK_FCL_PORT[containerType]} RMB 计算。`)
+  return FALLBACK_FCL_PORT[containerType]
 }
 
 function resolveLclPortTotalRmb(
@@ -168,20 +181,28 @@ function resolveLclPortTotalRmb(
   tons: number,
   warnings: string[],
 ): number {
-  const rule =
-    findPortRule(data.port_charges_rules, 'LCL', containerType, portId) ??
-    findPortRule(data.port_charges_rules, 'LCL', null, portId)
+  const direct = data.port_charges_rules.find(
+    (item) =>
+      item.mode === 'LCL' &&
+      item.port_id === portId &&
+      (item.container_type === null || item.container_type === containerType),
+  )
+  const global = data.port_charges_rules.find(
+    (item) =>
+      item.mode === 'LCL' &&
+      (item.port_id === null || item.port_id === '') &&
+      (item.container_type === null || item.container_type === containerType),
+  )
+  const rule = direct ?? global
   if (!rule) {
     warnings.push('未配置 LCL 港杂规则，请在 Admin 中维护。')
     return 0
   }
-  const base = toNonNegative(rule.base_rmb, 0)
-  const extraPerTon = toNonNegative(rule.extra_rmb_per_ton, 0)
+  const base = safeNonNegative(rule.base_rmb, 0)
+  const extra = safeNonNegative(rule.extra_rmb_per_ton, 0)
   const extraTons = Math.max(0, tons - 1)
-  const extraFee = Math.ceil(extraTons) * extraPerTon
-  return base + extraFee
+  return base + Math.ceil(extraTons) * extra
 }
-
 
 function resolveLandFreightPerTon(
   rules: LandFreightRule[],
@@ -194,7 +215,6 @@ function resolveLandFreightPerTon(
   if (overrideValue !== undefined && Number.isFinite(overrideValue) && overrideValue >= 0) {
     return overrideValue
   }
-
   const rule =
     rules.find(
       (item) =>
@@ -205,19 +225,14 @@ function resolveLandFreightPerTon(
         item.mode === mode &&
         item.container_type === containerType &&
         (item.factory_id === null || item.factory_id === ''),
-    )
+    ) ??
+    rules.find((item) => item.mode === mode && item.container_type === containerType)
 
   if (!rule) {
     warnings.push(`缺少 ${containerType} 的 ${mode} 国内段运费规则，已按默认值 0 RMB/吨计算。`)
     return 0
   }
-
-  return rule.default_rmb_per_ton
-}
-
-
-function toNonNegative(value: number, fallback: number): number {
-  return Number.isFinite(value) && value >= 0 ? value : fallback
+  return safeNonNegative(rule.default_rmb_per_ton, 0)
 }
 
 function resolvePackagingOverrides(data: AppData, factoryId: string, packagingOptionId: string) {
@@ -229,28 +244,29 @@ function resolvePackagingOverrides(data: AppData, factoryId: string, packagingOp
     bag_price_rmb_override: override?.bag_price_rmb_override ?? null,
   }
 }
+
 export function calculateQuote(input: CalculateQuoteInput): CalculateQuoteResult {
   const warnings: string[] = []
   const { data } = input
 
-  ensurePositive(input.fx_rate, 'fx_rate')
-  if (!Number.isFinite(input.margin_pct) || input.margin_pct < 0 || input.margin_pct >= 1) {
-    throw new Error('margin_pct must be in [0, 1)')
+  assertPositive(input.fx_rate, 'fx_rate')
+  assertFinite(input.margin_pct, 'margin_pct')
+  if (input.margin_pct < 0 || input.margin_pct >= 1) {
+    throw new Error('margin_pct must be in [0,1)')
   }
 
   const product = findProduct(data, input.product_id)
   const packagingOption = findPackagingOption(data, input.packaging_option_id)
   const factory = findFactory(data, input.factory_id)
-
   if (packagingOption.product_id !== product.id) {
     throw new Error('packaging option does not belong to selected product')
   }
 
-  const unitWeightKg = toNonNegative(
+  const unitWeightKg = safeNonNegative(
     input.override_unit_weight_kg ?? packagingOption.unit_weight_kg,
     packagingOption.unit_weight_kg,
   )
-  ensurePositive(unitWeightKg, 'unit_weight_kg')
+  assertPositive(unitWeightKg, 'unit_weight_kg')
 
   const unitsPerCartonRaw =
     input.override_units_per_carton !== undefined
@@ -259,25 +275,18 @@ export function calculateQuote(input: CalculateQuoteInput): CalculateQuoteResult
   const unitsPerCarton =
     unitsPerCartonRaw === null || unitsPerCartonRaw === 0
       ? null
-      : Math.max(1, Math.round(unitsPerCartonRaw))
+      : Math.max(1, Math.round(Number(unitsPerCartonRaw)))
 
-  const bagsPerTon = 1000 / unitWeightKg
-  ensurePositive(bagsPerTon, 'bags_per_ton')
-
+  const bagsPerTon = safeDiv(1000, unitWeightKg, 'bags_per_ton')
   const maxTons = resolveContainerMaxTons(data, product.id, input.container_type, warnings)
-  let mode: Mode = input.mode
 
+  let mode: Mode = input.mode
   let inputTons: number | null = null
-  if (
-    input.qty_input_value !== undefined &&
-    Number.isFinite(input.qty_input_value) &&
-    input.qty_input_value > 0
-  ) {
-    if (input.qty_input_type === 'bags') {
-      inputTons = (input.qty_input_value * unitWeightKg) / 1000
-    } else {
-      inputTons = input.qty_input_value
-    }
+  if (input.qty_input_value !== undefined && Number.isFinite(input.qty_input_value) && input.qty_input_value > 0) {
+    inputTons =
+      input.qty_input_type === 'bags'
+        ? (input.qty_input_value * unitWeightKg) / 1000
+        : input.qty_input_value
   }
 
   if (mode === 'FCL' && inputTons !== null && inputTons < maxTons) {
@@ -288,31 +297,38 @@ export function calculateQuote(input: CalculateQuoteInput): CalculateQuoteResult
   }
 
   let tons = 0
-  let bags = 0
-
+  let bagsRaw = 0
   if (mode === 'FCL') {
-    tons = maxTons
-    bags = Math.ceil(tons * bagsPerTon)
+    tons = inputTons !== null && inputTons > 0 ? inputTons : maxTons
+    bagsRaw = tons * bagsPerTon
   } else {
     if (!input.qty_input_type || !input.qty_input_value || input.qty_input_value <= 0) {
       throw new Error('LCL mode requires qty_input_type and qty_input_value')
     }
     if (input.qty_input_type === 'bags') {
-      bags = Math.ceil(input.qty_input_value)
-      tons = (bags * unitWeightKg) / 1000
+      bagsRaw = input.qty_input_value
+      tons = (bagsRaw * unitWeightKg) / 1000
     } else {
       tons = input.qty_input_value
-      bags = Math.ceil(tons * bagsPerTon)
+      bagsRaw = tons * bagsPerTon
     }
   }
 
-  ensurePositive(tons, 'tons')
-  ensurePositive(bags, 'bags')
-  const bagsInt = Math.ceil(bags)
+  assertPositive(tons, 'tons')
+  assertPositive(bagsRaw, 'bags')
+  const bagsInt = Math.ceil(bagsRaw)
+  const containerCount = Math.max(
+    1,
+    Math.ceil(
+      Number.isFinite(input.container_count ?? Number.NaN)
+        ? (input.container_count as number)
+        : tons / maxTons,
+    ),
+  )
 
   const costRmbPerTon = findCostPerTon(data, product.id, factory.id)
-
   const packagingOverride = resolvePackagingOverrides(data, factory.id, packagingOption.id)
+
   const bagPriceSource: QuoteSummary['bag_price_source'] =
     input.override_bag_price_rmb !== undefined
       ? 'custom'
@@ -328,23 +344,26 @@ export function calculateQuote(input: CalculateQuoteInput): CalculateQuoteResult
         ? 'override'
         : 'default'
 
-  const effectiveBagPrice =
+  const effectiveBagPrice = safeNonNegative(
     input.override_bag_price_rmb ??
-    packagingOverride.bag_price_rmb_override ??
-    packagingOption.bag_price_rmb
-  const effectiveCartonPrice =
+      packagingOverride.bag_price_rmb_override ??
+      packagingOption.bag_price_rmb,
+    0,
+  )
+  const effectiveCartonPrice = safeNonNegative(
     input.override_carton_price_rmb ??
-    packagingOverride.carton_price_rmb_override ??
-    packagingOption.carton_price_rmb
+      packagingOverride.carton_price_rmb_override ??
+      packagingOption.carton_price_rmb,
+    0,
+  )
 
-  const cartonsInt =
-    unitsPerCarton && unitsPerCarton > 0 ? Math.ceil(bagsInt / unitsPerCarton) : 0
+  const cartonsInt = unitsPerCarton && unitsPerCarton > 0 ? Math.ceil(bagsInt / unitsPerCarton) : 0
 
-  const rawRmbPerBag = (costRmbPerTon * (1 + product.invoice_tax_point) * tons) / bagsInt
-  const bagMatRmbPerBag = toNonNegative(effectiveBagPrice, 0)
+  const rawRmbPerBag = safeDiv(costRmbPerTon * (1 + product.invoice_tax_point) * tons, bagsInt, 'raw_rmb_per_bag')
+  const bagMatRmbPerBag = effectiveBagPrice
   const cartonRmbPerBag =
     unitsPerCarton && unitsPerCarton > 0 && cartonsInt > 0
-      ? (cartonsInt * toNonNegative(effectiveCartonPrice, 0)) / bagsInt
+      ? safeDiv(cartonsInt * effectiveCartonPrice, bagsInt, 'carton_rmb_per_bag')
       : 0
 
   const landFreightPerTon = resolveLandFreightPerTon(
@@ -356,26 +375,20 @@ export function calculateQuote(input: CalculateQuoteInput): CalculateQuoteResult
     warnings,
   )
   const landFreightTotal = landFreightPerTon * tons
-  const landRmbPerBag = landFreightTotal / bagsInt
+  const landRmbPerBag = safeDiv(landFreightTotal, bagsInt, 'land_rmb_per_bag')
 
-  const fclPortTotalRmb = resolveFclPortTotalRmb(
-    data,
-    product.pol_port_id,
-    input.container_type,
-    warnings,
-  )
+  const fclPortTotalRmb =
+    resolveFclPortSingleRmb(data, product.pol_port_id, input.container_type, warnings) * containerCount
   const lclPortTotalRmb =
     mode === 'LCL'
       ? resolveLclPortTotalRmb(data, product.pol_port_id, input.container_type, tons, warnings)
       : null
   const portTotalRmb = mode === 'FCL' ? fclPortTotalRmb : lclPortTotalRmb ?? 0
-  const portRmbPerBag = portTotalRmb / bagsInt
+  const portRmbPerBag = safeDiv(portTotalRmb, bagsInt, 'port_rmb_per_bag')
 
   if (mode === 'LCL' && lclPortTotalRmb !== null && lclPortTotalRmb > fclPortTotalRmb) {
     warnings.push(
-      `当前 LCL 港杂约为 ${lclPortTotalRmb.toFixed(2)} RMB，已高于同吨数的 FCL 港杂 ${fclPortTotalRmb.toFixed(
-          2,
-        )} RMB，建议选择 FCL。`,
+      `当前 LCL 港杂约为 ${lclPortTotalRmb.toFixed(2)} RMB，已高于同吨数的 FCL 港杂 ${fclPortTotalRmb.toFixed(2)} RMB，建议选择 FCL。`,
     )
   }
 
@@ -384,8 +397,8 @@ export function calculateQuote(input: CalculateQuoteInput): CalculateQuoteResult
   const rebateRmbPerBag = rawRmbPerBag * product.refund_rate
   const netRmbPerBag = domesticTotalRmbPerBag - rebateRmbPerBag
 
-  const costUsdPerBag = netRmbPerBag / input.fx_rate
-  const sellUsdPerBag = costUsdPerBag / (1 - input.margin_pct)
+  const costUsdPerBag = safeDiv(netRmbPerBag, input.fx_rate, 'cost_usd_per_bag')
+  const sellUsdPerBag = safeDiv(costUsdPerBag, 1 - input.margin_pct, 'sell_usd_per_bag')
   const sellRmbPerBag = sellUsdPerBag * input.fx_rate
   const gpRmbPerBag = sellRmbPerBag - netRmbPerBag
   const gpRmbTotal = gpRmbPerBag * bagsInt
@@ -394,6 +407,7 @@ export function calculateQuote(input: CalculateQuoteInput): CalculateQuoteResult
     summary: {
       mode,
       container_type: input.container_type,
+      container_count: containerCount,
       tons,
       bags: bagsInt,
       bags_int: bagsInt,
@@ -430,5 +444,6 @@ export function formatCurrency(
   decimals = 4,
 ): string {
   const symbol = currency === 'USD' ? '$' : '¥'
-  return `${symbol}${amount.toFixed(decimals)}`
+  const safe = Number.isFinite(amount) ? amount : 0
+  return `${symbol}${safe.toFixed(decimals)}`
 }

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type CSSProperties, type MouseEvent } from 'react'
-import { Button, Card, NumberInput, Select } from '@mantine/core'
+import { Button, NumberInput, Select } from '@mantine/core'
 import Admin from '@/components/Admin'
 import { calculateQuote, formatCurrency, type CalculateQuoteResult } from '@/utils/calculateQuote'
 import { INNER_PACK_LABELS } from '@/utils/fieldLabels'
@@ -18,7 +18,6 @@ import type {
   PackagingOption,
   Port,
   Product,
-  QtyInputType,
 } from '@/types/domain'
 
 const APP_VERSION = '2.7.6'
@@ -49,6 +48,10 @@ function sourceLabel(source: 'default' | 'override' | 'custom'): string {
   if (source === 'override') return t('quote.result.sourceOverride')
   if (source === 'custom') return t('quote.result.sourceCustom')
   return t('quote.result.sourceDefault')
+}
+
+function displayContainerType(type: ContainerType): string {
+  return type === '20GP' ? '20FT' : type
 }
 
 function AnimatedMetric(props: { value: number; format: (value: number) => string }) {
@@ -89,6 +92,7 @@ function Quoter(props: { onOperationSaved?: () => void }) {
   const [loadError, setLoadError] = useState('')
   const [selectedProductId, setSelectedProductId] = useState('')
   const [selectedCustomerId, setSelectedCustomerId] = useState('')
+  const [customerSearch, setCustomerSearch] = useState('')
   const [customerName, setCustomerName] = useState('')
   const [quoteVersionTag, setQuoteVersionTag] = useState('V1')
   const [selectedPackagingId, setSelectedPackagingId] = useState('')
@@ -98,8 +102,6 @@ function Quoter(props: { onOperationSaved?: () => void }) {
   const [fclTonsHint, setFclTonsHint] = useState('')
   const [fclBagsHint, setFclBagsHint] = useState('')
   const [fclLastEdited, setFclLastEdited] = useState<'tons' | 'bags' | null>(null)
-  const [lclInputType, setLclInputType] = useState<QtyInputType>('tons')
-  const [lclInputValue, setLclInputValue] = useState('')
   const [showCustomPackaging, setShowCustomPackaging] = useState(false)
   const [customUnitWeightKg, setCustomUnitWeightKg] = useState('')
   const [customUnitsPerCarton, setCustomUnitsPerCarton] = useState('')
@@ -114,6 +116,7 @@ function Quoter(props: { onOperationSaved?: () => void }) {
   const [validationError, setValidationError] = useState('')
   const [exportMessage, setExportMessage] = useState('')
   const [quoteResult, setQuoteResult] = useState<CalculateQuoteResult | null>(null)
+  const [autoContainerPlanText, setAutoContainerPlanText] = useState('')
 
   const loadData = async () => {
     setLoading(true)
@@ -209,7 +212,6 @@ function Quoter(props: { onOperationSaved?: () => void }) {
     setExportMessage('')
     setFclTonsHint('')
     setFclBagsHint('')
-    setLclInputValue('')
     setLandFreightOverridePerTon('')
     setQuoteVersionTag('V1')
   }, [selectedProductId, defaultPackagingId, factories, factoryCostByFactoryId, preferredFactoryId])
@@ -295,34 +297,82 @@ function Quoter(props: { onOperationSaved?: () => void }) {
     }
     return base
   }, [selectedFactoryCost, selectedFactoryCostUnit, bagsPerTon, effectiveUnitsPerCartonForCost])
-  const lclTonsValue = useMemo(() => {
-    if (!bagsPerTon) return null
-    const input = parseNumber(lclInputValue)
-    if (input === null) return null
-    return lclInputType === 'tons' ? input : input / bagsPerTon
-  }, [bagsPerTon, lclInputType, lclInputValue])
+  const manualTons = useMemo(() => parseNumber(fclTonsHint), [fclTonsHint])
+  const manualBags = useMemo(() => parseNumber(fclBagsHint), [fclBagsHint])
 
-  const lclBagsValue = useMemo(() => {
-    if (!bagsPerTon) return null
-    const input = parseNumber(lclInputValue)
-    if (input === null) return null
-    return lclInputType === 'bags' ? input : input * bagsPerTon
-  }, [bagsPerTon, lclInputType, lclInputValue])
+  const demandForPlanning = useMemo(() => {
+    const loadBasis = data?.settings.load_basis_default ?? 'tons'
+    const tonsByInput = manualTons ?? (manualBags && effectiveUnitWeight ? (manualBags * effectiveUnitWeight) / 1000 : null)
+    if (loadBasis === 'tons') {
+      return { basis: 'tons' as const, demand: tonsByInput }
+    }
+    const unitCbm = showCustomPackaging
+      ? parseNumber((selectedPackaging?.unit_cbm ?? '').toString()) ?? selectedPackaging?.unit_cbm ?? null
+      : selectedPackaging?.unit_cbm ?? null
+    const bagsByInput = manualBags ?? (manualTons && bagsPerTon ? manualTons * bagsPerTon : null)
+    if (!unitCbm || unitCbm <= 0 || !bagsByInput) {
+      return { basis: 'cbm' as const, demand: null }
+    }
+    return { basis: 'cbm' as const, demand: bagsByInput * unitCbm }
+  }, [data?.settings.load_basis_default, manualTons, manualBags, effectiveUnitWeight, showCustomPackaging, selectedPackaging, bagsPerTon])
 
-  const handleLclInputTypeChange = (nextType: QtyInputType) => {
-    if (nextType === lclInputType) return
-    if (nextType === 'tons') {
-      if (lclTonsValue !== null) {
-        setLclInputValue(String(lclTonsValue))
+  const autoContainerPlan = useMemo(() => {
+    if (!selectedProductId || !data) return null
+
+    const sequence = data.settings.container_planning_sequence?.length
+      ? data.settings.container_planning_sequence
+      : (['20GP', '40HQ', '40FT'] as ContainerType[])
+    const fallbackCapTons: Record<ContainerType, number> = { '20GP': 20, '40HQ': 26, '40FT': 26 }
+    const fallbackCapCbm: Record<ContainerType, number> = { '20GP': 28, '40HQ': 68, '40FT': 58 }
+    const loadBasis = data.settings.load_basis_default ?? 'tons'
+    const strategy = data.settings.overflow_strategy ?? 'upgrade_then_split'
+    const demand = demandForPlanning.demand
+    if (!demand || demand <= 0) return null
+
+    const getCapacity = (type: ContainerType) => {
+      const rule = data.container_load_rules.find(
+        (item) => item.product_id === selectedProductId && item.container_type === type,
+      )
+      if (loadBasis === 'cbm') {
+        const fromRule = rule?.max_cbm ?? null
+        return fromRule && fromRule > 0 ? fromRule : fallbackCapCbm[type]
       }
-      setLclInputType('tons')
-      return
+      const fromRule = rule?.max_tons ?? null
+      return fromRule && fromRule > 0 ? fromRule : fallbackCapTons[type]
     }
-    if (lclBagsValue !== null) {
-      setLclInputValue(String(lclBagsValue))
+
+    const sorted = [...sequence]
+    const base = sorted.includes(containerType) ? containerType : sorted[0]
+    const baseCap = getCapacity(base)
+    let resolvedType: ContainerType = base
+    let resolvedCap = baseCap
+
+    if (strategy === 'upgrade_then_split' || strategy === 'best_fit') {
+      const fit = sorted.find((type) => getCapacity(type) >= demand)
+      if (fit) {
+        resolvedType = fit
+        resolvedCap = getCapacity(fit)
+      } else {
+        const byCap = sorted.map((type) => ({ type, cap: getCapacity(type) })).sort((a, b) => b.cap - a.cap)
+        resolvedType = byCap[0]?.type ?? base
+        resolvedCap = byCap[0]?.cap ?? baseCap
+      }
     }
-    setLclInputType('bags')
-  }
+
+    if (strategy === 'split_same_type') {
+      resolvedType = base
+      resolvedCap = baseCap
+    }
+
+    const containerCount = Math.max(1, Math.ceil(demand / resolvedCap))
+    return {
+      type: resolvedType,
+      count: containerCount,
+      basis: loadBasis,
+      demand,
+      capacity: resolvedCap,
+    }
+  }, [selectedProductId, data, demandForPlanning.demand, containerType])
 
   const packagingRecommendations = data?.packaging_recommendations ?? []
   const matchedRecommendation = useMemo(() => {
@@ -409,8 +459,15 @@ function Quoter(props: { onOperationSaved?: () => void }) {
     [factories],
   )
   const customerSelectData = useMemo(
-    () => customers.map((customer) => ({ value: customer.id, label: customer.name })),
-    [customers],
+    () => {
+      const base = customers.map((customer) => ({ value: customer.id, label: customer.name }))
+      const typed = customerSearch.trim()
+      if (!typed) return base
+      const exists = customers.some((item) => item.name.trim().toLowerCase() === typed.toLowerCase())
+      if (exists) return base
+      return [{ value: '__create__', label: `+ 新建客户：${typed}` }, ...base]
+    },
+    [customers, customerSearch],
   )
 
   useEffect(() => {
@@ -420,6 +477,17 @@ function Quoter(props: { onOperationSaved?: () => void }) {
       setCustomerName(selected.name)
     }
   }, [selectedCustomerId, customers])
+
+  useEffect(() => {
+    if (!autoContainerPlan) {
+      setAutoContainerPlanText('')
+      return
+    }
+    const unit = autoContainerPlan.basis === 'cbm' ? 'CBM' : '吨'
+    setAutoContainerPlanText(
+      `${mode} 自动配柜：${autoContainerPlan.count} x ${displayContainerType(autoContainerPlan.type)}（需求 ${autoContainerPlan.demand.toFixed(2)} ${unit}，单柜容量 ${autoContainerPlan.capacity.toFixed(2)} ${unit}）`,
+    )
+  }, [mode, autoContainerPlan])
 
   const disableReason = useMemo(() => {
     if (!data) return t('quote.dataNotReady')
@@ -433,9 +501,18 @@ function Quoter(props: { onOperationSaved?: () => void }) {
     if (!fx || fx <= 0) return t('quote.fxMustPositive')
     const margin = parseNumber(marginPct)
     if (margin === null || margin < 0 || margin >= 1) return t('quote.marginRange')
-    if (mode === 'LCL') {
-      const input = parseNumber(lclInputValue)
-      if (!input || input <= 0) return t('quote.lclQtyRequired')
+    const inputTons = parseNumber(fclTonsHint)
+    const inputBags = parseNumber(fclBagsHint)
+    if (mode === 'LCL' && (!inputTons || inputTons <= 0) && (!inputBags || inputBags <= 0)) {
+      return t('quote.lclQtyRequired')
+    }
+    if ((data.settings.load_basis_default ?? 'tons') === 'cbm') {
+      const unitCbm = showCustomPackaging
+        ? parseNumber((selectedPackaging?.unit_cbm ?? '').toString()) ?? selectedPackaging?.unit_cbm ?? null
+        : selectedPackaging?.unit_cbm ?? null
+      if (!unitCbm || unitCbm <= 0) {
+        return '当前按方数配柜，但包装方案未维护 unit_cbm（每袋方数）'
+      }
     }
     return ''
   }, [
@@ -447,7 +524,8 @@ function Quoter(props: { onOperationSaved?: () => void }) {
     fxRate,
     marginPct,
     mode,
-    lclInputValue,
+    fclTonsHint,
+    fclBagsHint,
   ])
 
   const handleSaveDerivedPackaging = async () => {
@@ -518,6 +596,42 @@ function Quoter(props: { onOperationSaved?: () => void }) {
     }
   }
 
+  const ensureCustomer = async (): Promise<{ id: string | null; name: string }> => {
+    if (!data) return { id: null, name: customerName.trim() }
+    const typedName = customerName.trim()
+    if (!typedName) return { id: selectedCustomerId || null, name: '' }
+
+    const existing = data.customers.find(
+      (item) => item.name.trim().toLowerCase() === typedName.toLowerCase(),
+    )
+    if (existing) {
+      if (selectedCustomerId !== existing.id) setSelectedCustomerId(existing.id)
+      return { id: existing.id, name: existing.name }
+    }
+
+    const created: Customer = {
+      id: nextIdFromRows('cus', data.customers),
+      name: typedName,
+      contact: '',
+      default_port_id: null,
+      terms_template: '',
+    }
+    const nextCustomers = [...data.customers, created]
+    // @ts-ignore
+    const saveResult = (await window.ipcRenderer.invoke('replace-table', {
+      table: 'customers',
+      records: nextCustomers,
+    })) as { success: boolean; message?: string }
+
+    if (!saveResult.success) {
+      throw new Error(saveResult.message ?? '保存客户失败')
+    }
+
+    setData({ ...data, customers: nextCustomers })
+    setSelectedCustomerId(created.id)
+    return { id: created.id, name: created.name }
+  }
+
   const handleCalculate = async () => {
     if (disableReason) {
       setValidationError(disableReason)
@@ -529,11 +643,16 @@ function Quoter(props: { onOperationSaved?: () => void }) {
       const fx = Number(fxRate)
       const margin = Number(marginPct)
       const fclTons = parseNumber(fclTonsHint)
-      const lclQty = parseNumber(lclInputValue)
+      const fclBags = parseNumber(fclBagsHint)
       if (!selectedFactoryCostPerTonUsed || selectedFactoryCostPerTonUsed <= 0) {
         setValidationError(t('quote.factoryCostRequired'))
         return
       }
+      const customer = await ensureCustomer()
+      const resolvedContainerType = autoContainerPlan ? autoContainerPlan.type : containerType
+      const resolvedContainerCount = autoContainerPlan ? autoContainerPlan.count : undefined
+      const resolvedQtyType = fclTons && fclTons > 0 ? 'tons' : fclBags && fclBags > 0 ? 'bags' : undefined
+      const resolvedQtyValue = fclTons && fclTons > 0 ? fclTons : fclBags ?? undefined
       const dataForCalc: AppData = {
         ...data,
         factory_product_costs: data.factory_product_costs.map((item) =>
@@ -548,11 +667,12 @@ function Quoter(props: { onOperationSaved?: () => void }) {
         packaging_option_id: selectedPackaging.id,
         factory_id: selectedFactoryId,
         mode,
-        container_type: containerType,
+        container_type: resolvedContainerType,
         fx_rate: fx,
         margin_pct: margin,
-        qty_input_type: mode === 'LCL' ? lclInputType : fclTons ? 'tons' : undefined,
-        qty_input_value: mode === 'LCL' ? lclQty ?? undefined : fclTons ?? undefined,
+        qty_input_type: resolvedQtyType,
+        qty_input_value: resolvedQtyValue,
+        container_count: resolvedContainerCount,
         override_unit_weight_kg: showCustomPackaging ? parseNumber(customUnitWeightKg) ?? undefined : undefined,
         override_units_per_carton:
           showCustomPackaging && customUnitsPerCarton.trim() !== ''
@@ -575,13 +695,14 @@ function Quoter(props: { onOperationSaved?: () => void }) {
       // @ts-ignore
       await window.ipcRenderer.invoke('save-calculation', {
         input: {
-          customerId: selectedCustomerId || undefined,
-          customerName,
+          customerId: customer.id ?? undefined,
+          customerName: customer.name,
           productName: selectedProduct.name,
           factoryId: selectedFactoryId,
           packagingId: selectedPackaging.id,
           mode,
-          containerType,
+          containerType: resolvedContainerType,
+          containerCount: resolvedContainerCount ?? 1,
         },
         version_tag: quoteVersionTag || 'V1',
         summary: result.summary,
@@ -617,8 +738,11 @@ function Quoter(props: { onOperationSaved?: () => void }) {
         : t('quote.noCarton')
     const packagingText = `${selectedPackaging.name} | ${effectiveWeight}kg | ${cartonText} | ${INNER_PACK_LABELS[effectivePackType]}`
 
-    const activeUserProfile = data.settings.user_profiles?.find(
-      (profile) => profile.id === data.settings.active_user_profile_id,
+    // @ts-ignore
+    const latestAppData = (await window.ipcRenderer.invoke('get-app-data')) as AppData
+    const latestSettings = latestAppData?.settings ?? data.settings
+    const activeUserProfile = latestSettings.user_profiles?.find(
+      (profile) => profile.id === latestSettings.active_user_profile_id,
     )
 
     const payload = {
@@ -632,7 +756,8 @@ function Quoter(props: { onOperationSaved?: () => void }) {
         description: `${selectedProduct.name} ${packagingText}`,
         packagingText,
         quantityBagsInt: quoteResult.summary.bags_int,
-        containerType,
+        containerType: quoteResult.summary.container_type,
+        containerCount: quoteResult.summary.container_count,
         polPortName,
         mode: quoteResult.summary.mode,
         tons: quoteResult.summary.tons,
@@ -642,8 +767,8 @@ function Quoter(props: { onOperationSaved?: () => void }) {
         customerName: customerName.trim() || undefined,
       },
       settings: {
-        quote_valid_days: data.settings.quote_valid_days,
-        terms_template: data.settings.terms_template,
+        quote_valid_days: latestSettings.quote_valid_days,
+        terms_template: latestSettings.terms_template,
         companyName: activeUserProfile?.companyName,
         address: activeUserProfile?.address,
         postCode: activeUserProfile?.postCode,
@@ -652,6 +777,7 @@ function Quoter(props: { onOperationSaved?: () => void }) {
         wechat: activeUserProfile?.wechat,
         email: activeUserProfile?.email,
         export_from_name: activeUserProfile?.export_from_name,
+        user_name: activeUserProfile?.name,
       },
       meta: {
         appVersion: APP_VERSION,
@@ -722,12 +848,32 @@ function Quoter(props: { onOperationSaved?: () => void }) {
     },
   ]
 
+  const criticalWarnings: string[] = (() => {
+    if (!quoteResult) return []
+    const elevatedWarnings = quoteResult.warnings.filter(
+      (warning) => warning.includes('FCL') && warning.includes('0 RMB'),
+    )
+    const autoSwitchedToLcl = mode === 'FCL' && quoteResult.summary.mode === 'LCL'
+    if (autoSwitchedToLcl && quoteResult.breakdown.land_rmb_per_ton_used <= 0) {
+      return [
+        'System auto-switched to LCL, but current land freight is 0 RMB/ton. Please maintain rules or enter override.',
+        ...elevatedWarnings,
+      ]
+    }
+    return elevatedWarnings
+  })()
+
+  const displayWarnings: string[] = quoteResult
+    ? quoteResult.warnings.filter(
+        (warning) => !(warning.includes('FCL') && warning.includes('0 RMB')),
+      )
+    : []
+
   return (
     <div className="quote-page" style={{ padding: 24 }}>
       <div className="quote-hero quote-layout" style={{ display: 'grid', gridTemplateColumns: '0.95fr 1.45fr', gap: 20 }}>
         <div>
-          <div className="quote-hero-kicker">FOB Pricing</div>
-          <h1 className="quote-hero-title">FOB Quotation Studio</h1>
+          <h1 className="quote-hero-title">Quotation Studio</h1>
           <div className="quote-hero-subtitle">Professional Internal Pricing Console</div>
         </div>
         <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', paddingTop: 28 }}>
@@ -749,9 +895,16 @@ function Quoter(props: { onOperationSaved?: () => void }) {
                 value={selectedCustomerId || null}
                 onChange={(value) => {
                   const nextId = value ?? ''
+                  if (nextId === '__create__') {
+                    const typed = customerSearch.trim()
+                    if (typed) {
+                      setCustomerName(typed)
+                      setSelectedCustomerId('')
+                    }
+                    return
+                  }
                   setSelectedCustomerId(nextId)
                   if (!nextId) {
-                    setCustomerName('')
                     return
                   }
                   const matched = customers.find((item) => item.id === nextId)
@@ -759,8 +912,20 @@ function Quoter(props: { onOperationSaved?: () => void }) {
                 }}
                 data={customerSelectData}
                 placeholder={t('quote.selectCustomer')}
-                searchable={false}
+                searchable
+                searchValue={customerSearch}
+                onSearchChange={(value) => {
+                  setCustomerSearch(value)
+                  setCustomerName(value)
+                  setSelectedCustomerId('')
+                }}
+                onBlur={() => {
+                  void ensureCustomer().catch((error) => {
+                    setValidationError(`保存客户失败: ${String(error)}`)
+                  })
+                }}
               />
+
             </div>
             <div>
               <div style={fieldLabelStyle}>{t('quote.versionTag')}</div>
@@ -775,14 +940,14 @@ function Quoter(props: { onOperationSaved?: () => void }) {
           </div>
 
           {selectedProduct && (
-            <Card className="subpanel" style={{ marginTop: 12, padding: 12 }}>
+            <div className="quote-info-strip" style={{ marginTop: 12, padding: 12 }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 10 }}>
                 <div style={{ textAlign: 'center' }}><div style={{ fontSize: 12, color: 'var(--text-dim)' }}>POL</div><div style={{ fontSize: 16, fontWeight: 700 }}>{polPortName}</div></div>
                 <div style={{ textAlign: 'center' }}><div style={{ fontSize: 12, color: 'var(--text-dim)' }}>{t('quote.productInfo.rebate')}</div><div style={{ fontSize: 16, fontWeight: 700 }}>{(selectedProduct.refund_rate * 100).toFixed(2)}%</div></div>
                 <div style={{ textAlign: 'center' }}><div style={{ fontSize: 12, color: 'var(--text-dim)' }}>{t('quote.productInfo.purchaseVat')}</div><div style={{ fontSize: 16, fontWeight: 700 }}>{(selectedProduct.purchase_vat_rate * 100).toFixed(2)}%</div></div>
                 <div style={{ textAlign: 'center' }}><div style={{ fontSize: 12, color: 'var(--text-dim)' }}>{t('quote.productInfo.invoiceTax')}</div><div style={{ fontSize: 16, fontWeight: 700 }}>{(selectedProduct.invoice_tax_point * 100).toFixed(2)}%</div></div>
               </div>
-            </Card>
+            </div>
           )}
 
           <div style={{ ...sectionTitleStyle, marginTop: 12 }}>{t('quote.sectionFactory')}</div>
@@ -815,7 +980,7 @@ function Quoter(props: { onOperationSaved?: () => void }) {
           </div>
 
           {selectedPackaging && showCustomPackaging && (
-            <div className="subpanel glass-card" style={{ marginTop: 10, padding: 10 }}>
+            <div className="quote-inline-editor" style={{ marginTop: 10, padding: 10 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <strong style={{ fontSize: 13 }}>{t('quote.customPackTitle')}</strong>
                 <Button className="btn-outline-neon" variant="outline" size="xs" onClick={() => setShowCustomPackaging(false)}>{t('quote.collapse')}</Button>
@@ -838,31 +1003,19 @@ function Quoter(props: { onOperationSaved?: () => void }) {
             </div>
           )}
 
-          {mode === 'FCL' && (
-            <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              <div><div style={fieldLabelStyle}>{t('quote.fclHint')}</div><NumberInput className="ui-input" value={toMantineNumber(fclTonsHint)} onChange={(value) => handleFclTonsChange(toInputString(value))} hideControls /></div>
-              <div><div style={fieldLabelStyle}>{t('quote.bags')}</div><NumberInput className="ui-input" value={toMantineNumber(fclBagsHint)} onChange={(value) => handleFclBagsChange(toInputString(value))} hideControls /></div>
-            </div>
-          )}
-
-          {mode === 'LCL' && (
-            <div style={{ marginTop: 10 }}>
-              <div style={{ display: 'flex', gap: 14, alignItems: 'center', marginBottom: 8, flexWrap: 'wrap' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}><input type="radio" checked={lclInputType === 'tons'} onChange={() => handleLclInputTypeChange('tons')} />{t('quote.inputTons')}</label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}><input type="radio" checked={lclInputType === 'bags'} onChange={() => handleLclInputTypeChange('bags')} />{t('quote.inputBags')}</label>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <div><div style={fieldLabelStyle}>{lclInputType === 'tons' ? t('quote.tons') : t('quote.bags')}</div><NumberInput className="ui-input" value={toMantineNumber(lclInputValue)} onChange={(value) => setLclInputValue(toInputString(value))} hideControls /></div>
-                <div><div style={fieldLabelStyle}>{lclInputType === 'tons' ? t('quote.convertedBags') : t('quote.convertedTons')}</div><NumberInput className="ui-input" value={toMantineNumber(lclInputType === 'tons' ? toInputString(lclBagsValue) : toInputString(lclTonsValue))} readOnly hideControls /></div>
-              </div>
-            </div>
+          <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div><div style={fieldLabelStyle}>{mode === 'FCL' ? t('quote.fclHint') : t('quote.tons')}</div><NumberInput className="ui-input" value={toMantineNumber(fclTonsHint)} onChange={(value) => handleFclTonsChange(toInputString(value))} hideControls /></div>
+            <div><div style={fieldLabelStyle}>{t('quote.bags')}</div><NumberInput className="ui-input" value={toMantineNumber(fclBagsHint)} onChange={(value) => handleFclBagsChange(toInputString(value))} hideControls /></div>
+          </div>
+          {autoContainerPlanText && (
+            <div className="status-box status-info" style={{ marginTop: 8 }}>{autoContainerPlanText}</div>
           )}
 
           <div className="quote-transport-block" style={{ marginTop: 16, paddingTop: 12 }}>
             <div style={{ ...sectionTitleStyle, marginBottom: 10 }}>{t('quote.sectionTransport')}</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               <div><div style={fieldLabelStyle}>{t('quote.mode')}</div><Select className="ui-select" value={mode} onChange={(value) => setMode((value as Mode | null) ?? 'FCL')} data={[{ value: 'FCL', label: 'FCL' }, { value: 'LCL', label: 'LCL' }]} searchable={false} /></div>
-              <div><div style={fieldLabelStyle}>{t('quote.container')}</div><Select className="ui-select" value={containerType} onChange={(value) => setContainerType((value as ContainerType | null) ?? '20GP')} data={[{ value: '20GP', label: '20GP' }, { value: '40HQ', label: '40HQ' }]} searchable={false} /></div>
+              <div><div style={fieldLabelStyle}>{t('quote.container')}</div><Select className="ui-select" value={containerType} onChange={(value) => setContainerType((value as ContainerType | null) ?? '20GP')} data={[{ value: '20GP', label: '20FT' }, { value: '40HQ', label: '40HQ' }, { value: '40FT', label: '40FT' }]} searchable={false} /></div>
               <div><div style={fieldLabelStyle}>{t('quote.fxRate')}</div><NumberInput className="ui-input" value={toMantineNumber(fxRate)} onChange={(value) => setFxRate(toInputString(value))} hideControls /></div>
               <div><div style={fieldLabelStyle}>{t('quote.margin')}</div><NumberInput className="ui-input" value={toMantineNumber(marginPct)} onChange={(value) => setMarginPct(toInputString(value))} hideControls /></div>
             </div>
@@ -901,7 +1054,9 @@ function Quoter(props: { onOperationSaved?: () => void }) {
             {quoteResult ? (
               <div className="summary-box-grid">
                 <div className="summary-box-item"><div className="summary-box-label">{t('quote.result.mode')}</div><div className="summary-box-value">{quoteResult.summary.mode}</div></div>
-                <div className="summary-box-item"><div className="summary-box-label">{t('quote.result.container')}</div><div className="summary-box-value">{quoteResult.summary.container_type}</div></div>
+                <div className="summary-box-item"><div className="summary-box-label">{t('quote.result.container')}</div><div className="summary-box-value">{displayContainerType(quoteResult.summary.container_type)}</div></div>
+                <div className="summary-box-item"><div className="summary-box-label">柜数量</div><div className="summary-box-value">{quoteResult.summary.container_count}</div></div>
+                <div className="summary-box-item"><div className="summary-box-label">自动配柜明细</div><div className="summary-box-value">{`${quoteResult.summary.container_count} x ${displayContainerType(quoteResult.summary.container_type)}`}</div></div>
                 <div className="summary-box-item"><div className="summary-box-label">{t('quote.result.tons')}</div><div className="summary-box-value">{quoteResult.summary.tons.toFixed(4)}</div></div>
                 <div className="summary-box-item"><div className="summary-box-label">{t('quote.result.bags')}</div><div className="summary-box-value">{quoteResult.summary.bags_int}</div></div>
                 <div className="summary-box-item"><div className="summary-box-label">{t('quote.result.cartons')}</div><div className="summary-box-value">{quoteResult.summary.cartons_int}</div></div>
@@ -917,30 +1072,47 @@ function Quoter(props: { onOperationSaved?: () => void }) {
           <div className="subpanel glass-card quote-result-card" style={{ padding: 12, marginTop: 12 }}>
             <div style={{ fontWeight: 700, marginBottom: 8 }}>{t('quote.result.breakdown')}</div>
             {quoteResult ? (
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <tbody>
-                  <tr><td>{t('quote.result.raw')}</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.raw_rmb_per_bag)}</td></tr>
-                  <tr><td>{t('quote.result.bagMat')}</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.bag_mat_rmb_per_bag)}</td></tr>
-                  <tr><td>{t('quote.result.carton')}</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.carton_rmb_per_bag)}</td></tr>
-                  <tr><td>{t('quote.result.landPerBag')}</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.land_rmb_per_bag)}</td></tr>
-                  <tr><td>{t('quote.result.landPerTon')}</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.land_rmb_per_ton_used, 2)}</td></tr>
-                  <tr><td>{t('quote.result.landTotal')}</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.land_total_rmb, 2)}</td></tr>
-                  <tr><td>{t('quote.result.port')}</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.port_rmb_per_bag)}</td></tr>
-                  <tr><td>{t('quote.result.domestic')}</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.domestic_total_rmb_per_bag)}</td></tr>
-                  <tr><td>{t('quote.result.rebate')}</td><td style={{ textAlign: 'right' }}>-{formatRmb(quoteResult.breakdown.rebate_rmb_per_bag)}</td></tr>
-                  <tr><td>{t('quote.result.net')}</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.net_rmb_per_bag)}</td></tr>
-                </tbody>
-              </table>
+              <>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginBottom: 10 }}>
+                  <div className="summary-box-item"><div className="summary-box-label">原料（RMB/袋）</div><div className="summary-box-value">{formatRmb(quoteResult.breakdown.raw_rmb_per_bag)}</div></div>
+                  <div className="summary-box-item"><div className="summary-box-label">国内总成本（RMB/袋）</div><div className="summary-box-value">{formatRmb(quoteResult.breakdown.domestic_total_rmb_per_bag)}</div></div>
+                  <div className="summary-box-item"><div className="summary-box-label">国内段运费（总额）</div><div className="summary-box-value">{formatRmb(quoteResult.breakdown.land_total_rmb, 2)}</div></div>
+                </div>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <tbody>
+                    <tr><td>{t('quote.result.raw')}</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.raw_rmb_per_bag)}</td></tr>
+                    <tr><td>{t('quote.result.bagMat')}</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.bag_mat_rmb_per_bag)}</td></tr>
+                    <tr><td>{t('quote.result.carton')}</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.carton_rmb_per_bag)}</td></tr>
+                    <tr><td>国内段运费（每吨）</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.land_rmb_per_ton_used, 2)}</td></tr>
+                    <tr><td>国内段运费（每袋）</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.land_rmb_per_bag)}</td></tr>
+                    <tr><td>{t('quote.result.port')}</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.port_rmb_per_bag)}</td></tr>
+                    <tr><td>{t('quote.result.domestic')}</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.domestic_total_rmb_per_bag)}</td></tr>
+                    <tr><td>{t('quote.result.rebate')}</td><td style={{ textAlign: 'right' }}>-{formatRmb(quoteResult.breakdown.rebate_rmb_per_bag)}</td></tr>
+                    <tr><td>{t('quote.result.net')}</td><td style={{ textAlign: 'right' }}>{formatRmb(quoteResult.breakdown.net_rmb_per_bag)}</td></tr>
+                  </tbody>
+                </table>
+              </>
             ) : (
               <div style={dimTextStyle}>{t('common.noResult')}</div>
             )}
           </div>
 
-          {quoteResult && quoteResult.warnings.length > 0 && (
+          {criticalWarnings.length > 0 && (
+            <div className="status-box status-error" style={{ marginTop: 12 }}>
+              <div style={{ fontWeight: 700, marginBottom: 6 }}>Critical Risk Alert</div>
+              <ul style={{ margin: 0, paddingLeft: 18 }}>
+                {criticalWarnings.map((warning, index) => (
+                  <li key={`critical-${index}`} style={{ marginBottom: 4 }}>{warning}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {quoteResult && displayWarnings.length > 0 && (
             <div className="status-box status-warning" style={{ marginTop: 12 }}>
               <div style={{ fontWeight: 700, marginBottom: 6 }}>{t('quote.result.warnings')}</div>
               <ul style={{ margin: 0, paddingLeft: 18 }}>
-                {quoteResult.warnings.map((warning, index) => (
+                {displayWarnings.map((warning, index) => (
                   <li key={`${warning}-${index}`} style={{ marginBottom: 4 }}>{warning}</li>
                 ))}
               </ul>

@@ -79,6 +79,32 @@ const ID_PREFIX: Record<EditableTableKey, string> = {
   land_freight_rules: 'lfr', factory_packaging_overrides: 'fpo', customers: 'cus',
 }
 
+function nextUserIdFromProfiles(profiles: UserProfile[]): string {
+  const max = profiles.reduce((acc, item) => {
+    const m = /^user_(\d+)$/.exec(String(item.id ?? ''))
+    if (!m) return acc
+    const n = Number(m[1])
+    return Number.isFinite(n) ? Math.max(acc, n) : acc
+  }, 0)
+  return `user_${max + 1}`
+}
+
+function normalizeUserProfilesForDisplay(input: UserProfile[]): UserProfile[] {
+  const list = Array.isArray(input) ? input : []
+  return list.map((profile, index) => {
+    const normalizedId = `user_${index + 1}`
+    const rawName = String(profile?.name ?? '').trim()
+    const normalizedName = index === 0 ? 'FROM' : rawName || `FROM_${index + 1}`
+    const rawFrom = String(profile?.export_from_name ?? '').trim()
+    return {
+      ...profile,
+      id: normalizedId,
+      name: normalizedName,
+      export_from_name: rawFrom || normalizedName,
+    }
+  })
+}
+
 const LABELS: Record<string, string> = {
   id: ta('fields.id'), name: ta('fields.name'), product_id: ta('fields.product_id'), factory_id: ta('fields.factory_id'), packaging_option_id: ta('fields.packaging_option_id'),
   refund_rate: ta('fields.refund_rate'), purchase_vat_rate: ta('fields.purchase_vat_rate'), invoice_tax_point: ta('fields.invoice_tax_point'), pol_port_id: ta('fields.pol_port_id'),
@@ -97,14 +123,6 @@ const LABELS: Record<string, string> = {
 
 const INNER_PACK_LABELS: Record<InnerPackType, string> = { none: ta('innerPack.none'), carton: ta('innerPack.carton'), woven_bag: ta('innerPack.woven_bag'), small_box: ta('innerPack.small_box'), big_box: ta('innerPack.big_box') }
 
-const inputBaseStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '8px 10px',
-  borderRadius: 12,
-  border: '1px solid var(--border-1)',
-  backgroundColor: 'var(--surface-2)',
-  color: 'var(--text)',
-}
 const fieldLabelStyle: React.CSSProperties = { color: 'var(--text-dim)', fontSize: 12, marginBottom: 6 }
 
 const labelFor = (k: string, fb?: string) => LABELS[k] ?? fb ?? k
@@ -131,9 +149,9 @@ function EditableTable<T extends { id: string }>(props: {
         <tbody>{rows.map((row) => <tr key={row.id}>{columns.map((c) => {
           const raw = row[c.key] as unknown
           if (c.type === 'checkbox') return <td key={String(c.key)}><input type="checkbox" checked={Boolean(raw)} disabled={c.readOnly} onChange={(e) => onChange(row.id, c.key, e.target.checked)} /></td>
-          if (c.type === 'select') return <td key={String(c.key)}><MantineSelect className="ui-select" value={((raw ?? '') as string) || ''} disabled={c.readOnly} onChange={(value) => onChange(row.id, c.key, value ?? '')} data={c.options ?? []} searchable={false} allowDeselect={false} styles={{ input: inputBaseStyle, dropdown: { backgroundColor: 'var(--surface-2)' } }} /></td>
-          if (c.type === 'number') return <td key={String(c.key)}><input type="number" step={c.step ?? '0.01'} value={formatNumberInput(raw)} readOnly={c.readOnly} onChange={(e) => onChange(row.id, c.key, parseNumberInput(e.target.value, Boolean(c.nullable)))} style={{ ...inputBaseStyle, backgroundColor: 'var(--surface-2)' }} /></td>
-          return <td key={String(c.key)}><input type="text" value={(raw ?? '') as string} readOnly={c.readOnly} onChange={(e) => onChange(row.id, c.key, e.target.value)} style={{ ...inputBaseStyle, backgroundColor: 'var(--surface-2)' }} /></td>
+          if (c.type === 'select') return <td key={String(c.key)}><MantineSelect className="ui-select" value={((raw ?? '') as string) || ''} disabled={c.readOnly} onChange={(value) => onChange(row.id, c.key, value ?? '')} data={c.options ?? []} searchable={false} allowDeselect={false} /></td>
+          if (c.type === 'number') return <td key={String(c.key)}><input type="number" step={c.step ?? '0.01'} value={formatNumberInput(raw)} readOnly={c.readOnly} onChange={(e) => onChange(row.id, c.key, parseNumberInput(e.target.value, Boolean(c.nullable)))} className="admin-input" /></td>
+          return <td key={String(c.key)}><input type="text" value={(raw ?? '') as string} readOnly={c.readOnly} onChange={(e) => onChange(row.id, c.key, e.target.value)} className="admin-input" /></td>
         })}<td>{renderActions && <span style={{ marginRight: 8 }}>{renderActions(row)}</span>}<button className="btn-danger-soft" onClick={() => onDelete(row.id)}>{ta('common.delete')}</button></td></tr>)}</tbody>
       </table>
     </div>
@@ -151,6 +169,9 @@ export default function Admin() {
   const [settingsUsdDecimals, setSettingsUsdDecimals] = useState('4')
   const [settingsPricingFormulaMode, setSettingsPricingFormulaMode] = useState('divide')
   const [settingsRoundingPolicy, setSettingsRoundingPolicy] = useState('ceil')
+  const [settingsLoadBasis, setSettingsLoadBasis] = useState<'tons' | 'cbm'>('tons')
+  const [settingsOverflowStrategy, setSettingsOverflowStrategy] = useState<'upgrade_then_split' | 'split_same_type' | 'best_fit'>('upgrade_then_split')
+  const [settingsContainerSequence, setSettingsContainerSequence] = useState('20GP,40HQ,40FT')
   const [settingsUiTheme, setSettingsUiTheme] = useState<'classic' | 'neon' | 'minimal' | 'paper'>('classic')
   const [settingsTermsTemplate, setSettingsTermsTemplate] = useState('')
   const [settingsUserProfiles, setSettingsUserProfiles] = useState<UserProfile[]>([])
@@ -205,10 +226,14 @@ export default function Admin() {
       })
       setSettingsFxRate(String(appData.settings.fx_rate ?? 6.9)); setSettingsMarginPct(String(appData.settings.margin_pct ?? 0.05)); setSettingsQuoteValidDays(String(appData.settings.quote_valid_days ?? 7))
       setSettingsRmbDecimals(String(appData.settings.money_format?.rmb_decimals ?? 4)); setSettingsUsdDecimals(String(appData.settings.money_format?.usd_decimals ?? 4))
+      setSettingsLoadBasis((appData.settings.load_basis_default ?? 'tons') === 'cbm' ? 'cbm' : 'tons')
+      setSettingsOverflowStrategy((appData.settings.overflow_strategy ?? 'upgrade_then_split') as 'upgrade_then_split' | 'split_same_type' | 'best_fit')
+      setSettingsContainerSequence((appData.settings.container_planning_sequence ?? ['20GP', '40HQ', '40FT']).join(','))
       setSettingsPricingFormulaMode(appData.settings.pricing_formula_mode ?? 'divide'); setSettingsRoundingPolicy(appData.settings.rounding_policy ?? 'ceil'); const rawUiTheme = String(appData.settings.ui_theme ?? 'classic'); const loadedUiTheme = ((rawUiTheme === 'creative' ? 'neon' : rawUiTheme) as 'classic' | 'neon' | 'minimal' | 'paper' | undefined) ?? 'classic'; setSettingsUiTheme(loadedUiTheme); setUiThemeKey(loadedUiTheme); setSettingsTermsTemplate(appData.settings.terms_template ?? '')
-      const profiles = (appData.settings.user_profiles ?? [{ id: 'user_default', name: ta('user.defaultName') }]).filter((p) => p?.id && p?.name)
+      const rawProfiles = (appData.settings.user_profiles ?? [{ id: 'user_1', name: 'FROM', export_from_name: 'FROM' }]).filter((p) => p?.id)
+      const profiles = normalizeUserProfilesForDisplay(rawProfiles)
       setSettingsUserProfiles(profiles)
-      setSettingsActiveUserProfileId(appData.settings.active_user_profile_id ?? profiles[0]?.id ?? 'user_default')
+      setSettingsActiveUserProfileId(profiles[0]?.id ?? 'user_1')
       suppressAutoSaveRef.current = true; setDirtyTables([]); setDirtySettings(false); setAutoSaveState('idle'); setStatus(ta('common.dataLoaded'))
     } catch (e) {
       console.error(e); setError(ta('statusText.loadFailed')); setStatus('')
@@ -371,7 +396,7 @@ export default function Admin() {
           touched.add('factory_product_costs')
         }
       })
-      ;(['20GP', '40HQ'] as Array<ContainerLoadRule['container_type']>).forEach((c) => {
+      ;(['20GP', '40HQ', '40FT'] as Array<ContainerLoadRule['container_type']>).forEach((c) => {
         if (!nextContainers.some((x) => x.product_id === p.id && x.container_type === c)) {
           nextContainers.push({ id: nextIdFromRows(ID_PREFIX.container_load_rules, nextContainers), product_id: p.id, container_type: c, max_tons: 0 })
           touched.add('container_load_rules')
@@ -418,18 +443,23 @@ export default function Admin() {
     if (!Number.isFinite(quoteDays) || quoteDays <= 0) { setError(ta('validation.quoteDaysPositive')); setAutoSaveState('error'); return }
     if (!Number.isFinite(rmb) || rmb < 0) { setError(ta('validation.rmbDecimals')); setAutoSaveState('error'); return }
     if (!Number.isFinite(usd) || usd < 0) { setError(ta('validation.usdDecimals')); setAutoSaveState('error'); return }
+    const sequence = settingsContainerSequence
+      .split(',')
+      .map((item) => item.trim().toUpperCase())
+      .filter((item): item is '20GP' | '40HQ' | '40FT' => item === '20GP' || item === '40HQ' || item === '40FT')
+    if (sequence.length === 0) { setError('配柜顺序不能为空，示例：20GP,40HQ,40FT'); setAutoSaveState('error'); return }
     if (source === 'auto') setAutoSaveState('saving'); else setStatus(ta('statusText.savingSettings'))
     // @ts-ignore
-    const result = (await window.ipcRenderer.invoke('update-settings', { fx_rate: fx, margin_pct: margin, quote_valid_days: quoteDays, ui_theme: settingsUiTheme, money_format: { rmb_decimals: rmb, usd_decimals: usd }, pricing_formula_mode: settingsPricingFormulaMode, rounding_policy: settingsRoundingPolicy, terms_template: settingsTermsTemplate, user_profiles: settingsUserProfiles, active_user_profile_id: settingsActiveUserProfileId })) as { success: boolean; message?: string }
+    const result = (await window.ipcRenderer.invoke('update-settings', { fx_rate: fx, margin_pct: margin, quote_valid_days: quoteDays, ui_theme: settingsUiTheme, money_format: { rmb_decimals: rmb, usd_decimals: usd }, pricing_formula_mode: settingsPricingFormulaMode, rounding_policy: settingsRoundingPolicy, load_basis_default: settingsLoadBasis, overflow_strategy: settingsOverflowStrategy, container_planning_sequence: sequence, terms_template: settingsTermsTemplate, user_profiles: settingsUserProfiles, active_user_profile_id: settingsActiveUserProfileId })) as { success: boolean; message?: string }
     if (!result.success) { setError(result.message ?? ta('statusText.saveFailed')); setStatus(''); setAutoSaveState('error'); return }
     setDirtySettings(false)
     window.dispatchEvent(new CustomEvent('ui-theme-change', { detail: { uiTheme: settingsUiTheme } }))
     if (source === 'auto') setAutoSaveState('saved'); else setStatus(ta('statusText.settingsSaved'))
     if (!reload) {
-      setData((prev) => prev ? ({ ...prev, settings: { ...prev.settings, fx_rate: fx, margin_pct: margin, quote_valid_days: quoteDays, ui_theme: settingsUiTheme, money_format: { rmb_decimals: rmb, usd_decimals: usd }, pricing_formula_mode: settingsPricingFormulaMode, rounding_policy: settingsRoundingPolicy, terms_template: settingsTermsTemplate, user_profiles: settingsUserProfiles, active_user_profile_id: settingsActiveUserProfileId } }) : prev)
+      setData((prev) => prev ? ({ ...prev, settings: { ...prev.settings, fx_rate: fx, margin_pct: margin, quote_valid_days: quoteDays, ui_theme: settingsUiTheme, money_format: { rmb_decimals: rmb, usd_decimals: usd }, pricing_formula_mode: settingsPricingFormulaMode, rounding_policy: settingsRoundingPolicy, load_basis_default: settingsLoadBasis, overflow_strategy: settingsOverflowStrategy, container_planning_sequence: sequence, terms_template: settingsTermsTemplate, user_profiles: settingsUserProfiles, active_user_profile_id: settingsActiveUserProfileId } }) : prev)
     }
     if (reload) await loadData()
-  }, [settingsFxRate, settingsMarginPct, settingsQuoteValidDays, settingsRmbDecimals, settingsUsdDecimals, settingsPricingFormulaMode, settingsRoundingPolicy, settingsUiTheme, settingsTermsTemplate, settingsUserProfiles, settingsActiveUserProfileId, loadData])
+  }, [settingsFxRate, settingsMarginPct, settingsQuoteValidDays, settingsRmbDecimals, settingsUsdDecimals, settingsPricingFormulaMode, settingsRoundingPolicy, settingsLoadBasis, settingsOverflowStrategy, settingsContainerSequence, settingsUiTheme, settingsTermsTemplate, settingsUserProfiles, settingsActiveUserProfileId, loadData])
 
   useEffect(() => {
     if (suppressAutoSaveRef.current) { suppressAutoSaveRef.current = false; return }
@@ -466,21 +496,21 @@ export default function Admin() {
         { key: 'bag_price_rmb', label: labelFor('bag_price_rmb'), type: 'number' }, { key: 'inner_pack_type', label: labelFor('inner_pack_type'), type: 'select', options: innerPackOptions }, { key: 'default_selected', label: ta('common.defaultMark'), type: 'checkbox' },
       ] as Array<Column<PackagingOption>>,
       packaging_recommendations: [
-        { key: 'id', label: ta('fields.id'), type: 'text', readOnly: true, width: 140 }, { key: 'product_id', label: ta('fields.product_id'), type: 'select', options: productSelect }, { key: 'inner_pack_type', label: ta('fields.inner_pack_type'), type: 'select', options: innerPackSelect },
-        { key: 'unit_weight_kg', label: ta('fields.unit_weight_kg'), type: 'number', step: '0.01' }, { key: 'recommended_units_per_carton', label: ta('fields.recommended_units_per_carton'), type: 'number', step: '1' }, { key: 'notes', label: ta('fields.notes'), type: 'text', width: 220 },
+        { key: 'id', label: ta('fields.id'), type: 'text', readOnly: true, width: 140 }, { key: 'product_id', label: ta('fields.product_id'), type: 'select', options: productSelect, width: 220 }, { key: 'inner_pack_type', label: ta('fields.inner_pack_type'), type: 'select', options: innerPackSelect, width: 200 },
+        { key: 'unit_weight_kg', label: ta('fields.unit_weight_kg'), type: 'number', step: '0.01', width: 180 }, { key: 'recommended_units_per_carton', label: ta('fields.recommended_units_per_carton'), type: 'number', step: '1', width: 180 }, { key: 'notes', label: ta('fields.notes'), type: 'text', width: 240 },
       ] as Array<Column<PackagingRecommendation>>,
-      factories: [{ key: 'id', label: ta('fields.id'), type: 'text', readOnly: true, width: 140 }, { key: 'name', label: ta('fields.name'), type: 'text', width: 220 }, { key: 'default_port_id', label: ta('fields.default_port_id'), type: 'select', options: portSelect }] as Array<Column<Factory>>,
+      factories: [{ key: 'id', label: ta('fields.id'), type: 'text', readOnly: true, width: 140 }, { key: 'name', label: ta('fields.name'), type: 'text', width: 220 }, { key: 'default_port_id', label: ta('fields.default_port_id'), type: 'select', options: portSelect, width: 220 }] as Array<Column<Factory>>,
       factory_product_costs: [
         { key: 'id', label: ta('fields.id'), type: 'text', readOnly: true, width: 140 },
-        { key: 'factory_id', label: ta('fields.factory_id'), type: 'select', options: factorySelect },
-        { key: 'product_id', label: ta('fields.product_id'), type: 'select', options: productSelect },
-        { key: 'cost_rmb_per_ton', label: ta('fields.cost_rmb_per_ton'), type: 'number' },
-        { key: 'cost_unit', label: ta('fields.cost_unit'), type: 'select', options: [{ value: 'ton', label: ta('unit.ton') }, { value: 'bag', label: ta('unit.bag') }, { value: 'piece', label: ta('unit.piece') }, { value: 'carton', label: ta('unit.carton') }] },
+        { key: 'factory_id', label: ta('fields.factory_id'), type: 'select', options: factorySelect, width: 220 },
+        { key: 'product_id', label: ta('fields.product_id'), type: 'select', options: productSelect, width: 220 },
+        { key: 'cost_rmb_per_ton', label: ta('fields.cost_rmb_per_ton'), type: 'number', width: 180 },
+        { key: 'cost_unit', label: ta('fields.cost_unit'), type: 'select', options: [{ value: 'ton', label: ta('unit.ton') }, { value: 'bag', label: ta('unit.bag') }, { value: 'piece', label: ta('unit.piece') }, { value: 'carton', label: ta('unit.carton') }], width: 180 },
       ] as Array<Column<FactoryProductCost>>,
       ports: [{ key: 'id', label: ta('fields.id'), type: 'text', readOnly: true, width: 140 }, { key: 'name', label: ta('fields.name'), type: 'text', width: 200 }, { key: 'code', label: ta('fields.code'), type: 'text', width: 120 }, { key: 'country', label: ta('fields.country'), type: 'text', width: 160 }] as Array<Column<Port>>,
-      port_charges_rules: [{ key: 'id', label: ta('fields.id'), type: 'text', readOnly: true, width: 140 }, { key: 'port_id', label: ta('fields.port_id'), type: 'select', options: portSelect }, { key: 'mode', label: ta('fields.mode'), type: 'select', options: [{ value: 'FCL', label: 'FCL' }, { value: 'LCL', label: 'LCL' }] }, { key: 'container_type', label: ta('fields.container_type'), type: 'select', options: [{ value: '', label: 'N/A' }, { value: '20GP', label: '20GP' }, { value: '40HQ', label: '40HQ' }] }, { key: 'base_rmb', label: ta('fields.base_rmb'), type: 'number' }, { key: 'extra_rmb_per_ton', label: ta('fields.extra_rmb_per_ton'), type: 'number' }] as Array<Column<PortChargesRule>>,
-      container_load_rules: [{ key: 'id', label: ta('fields.id'), type: 'text', readOnly: true, width: 140 }, { key: 'product_id', label: ta('fields.product_id'), type: 'select', options: productSelect }, { key: 'container_type', label: ta('fields.container_type'), type: 'select', options: [{ value: '20GP', label: '20GP' }, { value: '40HQ', label: '40HQ' }] }, { key: 'max_tons', label: ta('fields.max_tons'), type: 'number' }] as Array<Column<ContainerLoadRule>>,
-      land_freight_rules: [{ key: 'id', label: ta('fields.id'), type: 'text', readOnly: true, width: 140 }, { key: 'mode', label: ta('fields.mode'), type: 'select', options: [{ value: 'FCL', label: 'FCL' }, { value: 'LCL', label: 'LCL' }] }, { key: 'factory_id', label: ta('fields.factory_id'), type: 'select', options: factorySelect }, { key: 'container_type', label: ta('fields.container_type'), type: 'select', options: [{ value: '20GP', label: '20GP' }, { value: '40HQ', label: '40HQ' }] }, { key: 'min_rmb_per_ton', label: ta('fields.min_rmb_per_ton'), type: 'number' }, { key: 'max_rmb_per_ton', label: ta('fields.max_rmb_per_ton'), type: 'number' }, { key: 'default_rmb_per_ton', label: ta('fields.default_rmb_per_ton'), type: 'number' }] as Array<Column<LandFreightRule>>,
+      port_charges_rules: [{ key: 'id', label: ta('fields.id'), type: 'text', readOnly: true, width: 140 }, { key: 'port_id', label: ta('fields.port_id'), type: 'select', options: portSelect }, { key: 'mode', label: ta('fields.mode'), type: 'select', options: [{ value: 'FCL', label: 'FCL' }, { value: 'LCL', label: 'LCL' }] }, { key: 'container_type', label: ta('fields.container_type'), type: 'select', options: [{ value: '', label: 'N/A' }, { value: '20GP', label: '20FT' }, { value: '40HQ', label: '40HQ' }, { value: '40FT', label: '40FT' }] }, { key: 'base_rmb', label: ta('fields.base_rmb'), type: 'number' }, { key: 'extra_rmb_per_ton', label: ta('fields.extra_rmb_per_ton'), type: 'number' }] as Array<Column<PortChargesRule>>,
+      container_load_rules: [{ key: 'id', label: ta('fields.id'), type: 'text', readOnly: true, width: 140 }, { key: 'product_id', label: ta('fields.product_id'), type: 'select', options: productSelect }, { key: 'container_type', label: ta('fields.container_type'), type: 'select', options: [{ value: '20GP', label: '20FT' }, { value: '40HQ', label: '40HQ' }, { value: '40FT', label: '40FT' }] }, { key: 'max_tons', label: ta('fields.max_tons'), type: 'number' }] as Array<Column<ContainerLoadRule>>,
+      land_freight_rules: [{ key: 'id', label: ta('fields.id'), type: 'text', readOnly: true, width: 140 }, { key: 'mode', label: ta('fields.mode'), type: 'select', options: [{ value: 'FCL', label: 'FCL' }, { value: 'LCL', label: 'LCL' }] }, { key: 'factory_id', label: ta('fields.factory_id'), type: 'select', options: factorySelect }, { key: 'container_type', label: ta('fields.container_type'), type: 'select', options: [{ value: '20GP', label: '20FT' }, { value: '40HQ', label: '40HQ' }, { value: '40FT', label: '40FT' }] }, { key: 'min_rmb_per_ton', label: ta('fields.min_rmb_per_ton'), type: 'number' }, { key: 'max_rmb_per_ton', label: ta('fields.max_rmb_per_ton'), type: 'number' }, { key: 'default_rmb_per_ton', label: ta('fields.default_rmb_per_ton'), type: 'number' }] as Array<Column<LandFreightRule>>,
       factory_packaging_overrides: [{ key: 'id', label: ta('fields.id'), type: 'text', readOnly: true, width: 140 }, { key: 'factory_id', label: ta('fields.factory_id'), type: 'select', options: factorySelect }, { key: 'packaging_option_id', label: ta('fields.packaging_option_id'), type: 'select', options: packagingSelect }, { key: 'carton_price_rmb_override', label: ta('fields.carton_price_rmb_override'), type: 'number', nullable: true }, { key: 'bag_price_rmb_override', label: ta('fields.bag_price_rmb_override'), type: 'number', nullable: true }] as Array<Column<FactoryPackagingOverride>>,
       customers: [{ key: 'id', label: ta('fields.id'), type: 'text', readOnly: true, width: 140 }, { key: 'name', label: ta('fields.name'), type: 'text', width: 220 }, { key: 'contact', label: labelFor('contact'), type: 'text', width: 220 }, { key: 'default_port_id', label: labelFor('default_port_id'), type: 'select', options: portSelect }, { key: 'terms_template', label: labelFor('customer_terms_template'), type: 'text', width: 260 }] as Array<Column<Customer>>,
     }
@@ -535,8 +565,20 @@ export default function Admin() {
   }, [historyItems, operationLogs])
 
   const addUserProfile = useCallback(() => {
-    const id = `user_${Date.now()}`
-    const next = [...settingsUserProfiles, { id, name: `${ta('user.namePrefix')}${settingsUserProfiles.length + 1}` }]
+    const id = nextUserIdFromProfiles(settingsUserProfiles)
+    const idNum = Number(id.replace('user_', ''))
+    const baseName = idNum === 1 ? 'FROM' : `FROM_${idNum}`
+    const next = [
+      ...settingsUserProfiles,
+      {
+        id,
+        name: baseName,
+        export_from_name: baseName,
+        whatsapp: '',
+        wechat: '',
+        email: '',
+      },
+    ]
     setSettingsUserProfiles(next)
     setSettingsActiveUserProfileId(id)
     setDirtySettings(true)
@@ -549,13 +591,34 @@ export default function Admin() {
     setAutoSaveState('idle')
   }, [])
 
+  const handleUploadProductImage = useCallback(async (productId: string) => {
+    try {
+      // @ts-ignore
+      const result = (await window.ipcRenderer.invoke('select-product-image', { productId })) as {
+        success: boolean
+        canceled?: boolean
+        filePath?: string
+        message?: string
+      }
+      if (!result.success) {
+        if (!result.canceled && result.message) setError(result.message)
+        return
+      }
+      if (!result.filePath) return
+      updateRow('products', productId, 'image_path', result.filePath)
+      setStatus('图片已更新')
+    } catch (error) {
+      setError(error instanceof Error ? error.message : String(error))
+    }
+  }, [updateRow])
+
   const deleteUserProfile = useCallback((id: string) => {
     setSettingsUserProfiles((prev) => {
       const next = prev.filter((item) => item.id !== id)
       if (settingsActiveUserProfileId === id && next.length > 0) {
         setSettingsActiveUserProfileId(next[0].id)
       }
-      return next.length > 0 ? next : [{ id: 'user_default', name: ta('user.defaultName') }]
+      return next.length > 0 ? next : [{ id: 'user_1', name: 'FROM', export_from_name: 'FROM' }]
     })
     setDirtySettings(true)
     setAutoSaveState('idle')
@@ -590,14 +653,15 @@ export default function Admin() {
     <div className="admin-page" style={{ minHeight: '100vh', backgroundColor: 'transparent', color: 'var(--text)', padding: 20 }}>
       {error && <div className="status-box status-error" style={{ marginBottom: 12 }}>{error}</div>}
       <div className="admin-tabs-row" style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', marginBottom: 16 }}>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {TABS.map((tab) => <button className={`tab-btn ${activeTab === tab.key ? 'active' : ''}`} key={tab.key} onClick={() => setActiveTab(tab.key)} style={{ padding: '8px 14px', cursor: 'pointer' }}>{tab.label}</button>)}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'nowrap', overflowX: 'auto', whiteSpace: 'nowrap', scrollbarWidth: 'none', msOverflowStyle: 'none', flex: 1, minWidth: 0 }}>
+          {TABS.map((tab) => <button className={`tab-btn admin-tab-btn ${activeTab === tab.key ? 'active' : ''} ${(tab.key === 'land_freight_rules' || tab.key === 'factory_packaging_overrides') ? 'admin-tab-btn-compact' : ''}`} key={tab.key} onClick={() => setActiveTab(tab.key)} style={{ padding: '8px 14px', cursor: 'pointer' }}>{tab.label}</button>)}
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
           <span className="status-pill status-info">{status || ta('common.ready')}</span>
           <span className={`status-pill ${autoSaveToneClass}`}>{autoSaveLabel}</span>
         </div>
       </div>
+      <div key={activeTab} className="admin-tab-content">
       {activeTab === 'settings' && (
         <div className="panel" style={sectionStyle}>
           <h2 style={{ marginTop: 0 }}>{ta('common.settings')}</h2>
@@ -605,19 +669,22 @@ export default function Admin() {
             <div className="subpanel settings-group" style={{ padding: 14 }}>
               <div className="section-title" style={{ marginBottom: 10 }}>{ta('settingsSection.basic')}</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 14 }}>
-                <div><label>{labelFor('fx_rate')}</label><input type="number" step="0.01" value={settingsFxRate} onChange={(e) => { setSettingsFxRate(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
-                <div><label>{labelFor('margin_pct')}</label><input type="number" step="0.01" value={settingsMarginPct} onChange={(e) => { setSettingsMarginPct(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
-                <div><label>{labelFor('quote_valid_days')}</label><input type="number" step="1" value={settingsQuoteValidDays} onChange={(e) => { setSettingsQuoteValidDays(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
-                <div><label>{labelFor('money_format_rmb_decimals')}</label><input type="number" step="1" value={settingsRmbDecimals} onChange={(e) => { setSettingsRmbDecimals(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
-                <div><label>{labelFor('money_format_usd_decimals')}</label><input type="number" step="1" value={settingsUsdDecimals} onChange={(e) => { setSettingsUsdDecimals(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} style={{ ...inputBaseStyle, marginTop: 6, padding: 8 }} /></div>
-                <div><label>{labelFor('rounding_policy')}</label><MantineSelect className="ui-select" mt={6} value={settingsRoundingPolicy} onChange={(value) => { setSettingsRoundingPolicy(value ?? 'ceil'); setDirtySettings(true); setAutoSaveState('idle') }} data={[{ value: 'ceil', label: ta('fields.rounding_policy') }]} searchable={false} allowDeselect={false} styles={{ input: inputBaseStyle, dropdown: { backgroundColor: 'var(--surface-2)' } }} /></div>
+                <div><label>{labelFor('fx_rate')}</label><input type="number" step="0.01" value={settingsFxRate} onChange={(e) => { setSettingsFxRate(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} className="admin-input admin-input-tight" /></div>
+                <div><label>{labelFor('margin_pct')}</label><input type="number" step="0.01" value={settingsMarginPct} onChange={(e) => { setSettingsMarginPct(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} className="admin-input admin-input-tight" /></div>
+                <div><label>{labelFor('quote_valid_days')}</label><input type="number" step="1" value={settingsQuoteValidDays} onChange={(e) => { setSettingsQuoteValidDays(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} className="admin-input admin-input-tight" /></div>
+                <div><label>{labelFor('money_format_rmb_decimals')}</label><input type="number" step="1" value={settingsRmbDecimals} onChange={(e) => { setSettingsRmbDecimals(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} className="admin-input admin-input-tight" /></div>
+                <div><label>{labelFor('money_format_usd_decimals')}</label><input type="number" step="1" value={settingsUsdDecimals} onChange={(e) => { setSettingsUsdDecimals(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} className="admin-input admin-input-tight" /></div>
+                <div><label>{labelFor('rounding_policy')}</label><MantineSelect className="ui-select" mt={6} value={settingsRoundingPolicy} onChange={(value) => { setSettingsRoundingPolicy(value ?? 'ceil'); setDirtySettings(true); setAutoSaveState('idle') }} data={[{ value: 'ceil', label: ta('fields.rounding_policy') }]} searchable={false} allowDeselect={false} /></div>
               </div>
             </div>
 
             <div className="subpanel settings-group" style={{ padding: 14 }}>
               <div className="section-title" style={{ marginBottom: 10 }}>{ta('settingsSection.pricingTheme')}</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 14 }}>
-                <div><label>{labelFor('pricing_formula_mode')}</label><MantineSelect className="ui-select" mt={6} value={settingsPricingFormulaMode} onChange={(value) => { setSettingsPricingFormulaMode(value ?? 'divide'); setDirtySettings(true); setAutoSaveState('idle') }} data={[{ value: 'divide', label: 'cost/(1-margin)' }]} searchable={false} allowDeselect={false} styles={{ input: inputBaseStyle, dropdown: { backgroundColor: 'var(--surface-2)' } }} /></div>
+                <div><label>{labelFor('pricing_formula_mode')}</label><MantineSelect className="ui-select" mt={6} value={settingsPricingFormulaMode} onChange={(value) => { setSettingsPricingFormulaMode(value ?? 'divide'); setDirtySettings(true); setAutoSaveState('idle') }} data={[{ value: 'divide', label: 'cost/(1-margin)' }]} searchable={false} allowDeselect={false} /></div>
+                <div><label>装柜基准</label><MantineSelect className="ui-select" mt={6} value={settingsLoadBasis} onChange={(value) => { setSettingsLoadBasis((value as 'tons' | 'cbm' | null) ?? 'tons'); setDirtySettings(true); setAutoSaveState('idle') }} data={[{ value: 'tons', label: '按吨（tons）' }, { value: 'cbm', label: '按方（CBM）' }]} searchable={false} allowDeselect={false} /></div>
+                <div><label>溢出策略</label><MantineSelect className="ui-select" mt={6} value={settingsOverflowStrategy} onChange={(value) => { setSettingsOverflowStrategy((value as 'upgrade_then_split' | 'split_same_type' | 'best_fit' | null) ?? 'upgrade_then_split'); setDirtySettings(true); setAutoSaveState('idle') }} data={[{ value: 'upgrade_then_split', label: '优先升级柜型，再拆分' }, { value: 'split_same_type', label: '保持柜型，直接拆分' }, { value: 'best_fit', label: '自动最佳匹配' }]} searchable={false} allowDeselect={false} /></div>
+                <div><label>配柜顺序（逗号分隔）</label><input type="text" value={settingsContainerSequence} onChange={(e) => { setSettingsContainerSequence(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} className="admin-input admin-input-tight" placeholder="20GP,40HQ,40FT" /></div>
                 <div>
                   <label>{labelFor('ui_theme')}</label>
                   <MantineSelect
@@ -639,7 +706,6 @@ export default function Admin() {
                     }}
                     searchable={false}
                     allowDeselect={false}
-                    styles={{ input: inputBaseStyle, dropdown: { backgroundColor: 'var(--surface-2)' } }}
                   />
                 </div>
                 <div>
@@ -656,7 +722,6 @@ export default function Admin() {
                     }}
                     searchable={false}
                     allowDeselect={false}
-                    styles={{ input: inputBaseStyle, dropdown: { backgroundColor: 'var(--surface-2)' } }}
                   />
                 </div>
               </div>
@@ -678,7 +743,7 @@ export default function Admin() {
 
             <div className="subpanel settings-group" style={{ padding: 14 }}>
               <div className="section-title" style={{ marginBottom: 10 }}>{labelFor('terms_template')}</div>
-              <textarea className="no-scroll" value={settingsTermsTemplate} onChange={(e) => { setSettingsTermsTemplate(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} rows={3} style={{ ...inputBaseStyle, minHeight: 88 }} />
+              <textarea className="no-scroll admin-input" value={settingsTermsTemplate} onChange={(e) => { setSettingsTermsTemplate(e.target.value); setDirtySettings(true); setAutoSaveState('idle') }} rows={3} style={{ minHeight: 88 }} />
             </div>
           </div>
         </div>
@@ -698,44 +763,77 @@ export default function Admin() {
               <span>{ta('tabs.products')}: {row.id}</span>
               <button className="btn-danger-soft" onClick={() => deleteRow('products', row.id)} style={{ cursor: 'pointer' }}>{ta('common.delete')}</button>
             </div>
-            <div className="admin-card-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 10, marginBottom: 14 }}>
+            <div
+              className="admin-card-grid"
+              style={{
+                marginBottom: 14,
+                display: 'grid',
+                gridTemplateColumns: 'repeat(7, minmax(0, 1fr))',
+                gap: '10px 12px',
+              }}
+            >
               <div>
                 <div style={fieldLabelStyle}>ID</div>
-                <input type="text" value={row.id} readOnly style={inputBaseStyle} />
+                <input type="text" value={row.id} readOnly className="admin-input" />
               </div>
               <div>
                 <div style={fieldLabelStyle}>{ta('fields.name')}</div>
-                <input type="text" value={row.name ?? ''} onChange={(e) => updateRow('products', row.id, 'name', e.target.value)} style={inputBaseStyle} />
+                <input type="text" value={row.name ?? ''} onChange={(e) => updateRow('products', row.id, 'name', e.target.value)} className="admin-input" />
               </div>
               <div>
                 <div style={fieldLabelStyle}>Name (EN)</div>
-                <input type="text" value={row.name_en ?? ''} onChange={(e) => updateRow('products', row.id, 'name_en', e.target.value)} style={inputBaseStyle} />
+                <input type="text" value={row.name_en ?? ''} onChange={(e) => updateRow('products', row.id, 'name_en', e.target.value)} className="admin-input" />
               </div>
               <div>
                 <div style={fieldLabelStyle}>{ta('fields.refund_rate')}</div>
-                <input type="number" value={formatNumberInput(row.refund_rate)} onChange={(e) => updateRow('products', row.id, 'refund_rate', parseNumberInput(e.target.value, false))} style={inputBaseStyle} />
+                <input type="number" value={formatNumberInput(row.refund_rate)} onChange={(e) => updateRow('products', row.id, 'refund_rate', parseNumberInput(e.target.value, false))} className="admin-input" />
               </div>
               <div>
                 <div style={fieldLabelStyle}>{ta('fields.purchase_vat_rate')}</div>
-                <input type="number" value={formatNumberInput(row.purchase_vat_rate)} onChange={(e) => updateRow('products', row.id, 'purchase_vat_rate', parseNumberInput(e.target.value, false))} style={inputBaseStyle} />
+                <input type="number" value={formatNumberInput(row.purchase_vat_rate)} onChange={(e) => updateRow('products', row.id, 'purchase_vat_rate', parseNumberInput(e.target.value, false))} className="admin-input" />
               </div>
               <div>
                 <div style={fieldLabelStyle}>{ta('fields.invoice_tax_point')}</div>
-                <input type="number" value={formatNumberInput(row.invoice_tax_point)} onChange={(e) => updateRow('products', row.id, 'invoice_tax_point', parseNumberInput(e.target.value, false))} style={inputBaseStyle} />
+                <input type="number" value={formatNumberInput(row.invoice_tax_point)} onChange={(e) => updateRow('products', row.id, 'invoice_tax_point', parseNumberInput(e.target.value, false))} className="admin-input" />
               </div>
               <div>
                   <div style={fieldLabelStyle}>{ta('fields.pol_port_id')}</div>
-                  <MantineSelect className="ui-select" value={row.pol_port_id ?? ''} onChange={(value) => updateRow('products', row.id, 'pol_port_id', value ?? '')} data={portOptions} searchable={false} allowDeselect={false} styles={{ input: inputBaseStyle, dropdown: { backgroundColor: 'var(--surface-2)' } }} />
+                  <MantineSelect className="ui-select" value={row.pol_port_id ?? ''} onChange={(value) => updateRow('products', row.id, 'pol_port_id', value ?? '')} data={portOptions} searchable={false} allowDeselect={false} />
                 </div>
             </div>
-            <div>
-              <div style={fieldLabelStyle}>Description (EN)</div>
-              <textarea
-                className="no-scroll"
-                value={row.description_en ?? ''}
-                onChange={(e) => updateRow('products', row.id, 'description_en', e.target.value)}
-                style={{ ...inputBaseStyle, minHeight: 80 }}
-              />
+            <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1fr', gap: 12, alignItems: 'start' }}>
+              <div>
+                <div style={fieldLabelStyle}>Description (EN)</div>
+                <textarea
+                  value={row.description_en ?? ''}
+                  onChange={(e) => updateRow('products', row.id, 'description_en', e.target.value)}
+                  className="no-scroll admin-input"
+                  style={{ minHeight: 80 }}
+                />
+              </div>
+              <div>
+                <div style={fieldLabelStyle}>上传图片</div>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+                  <button className="btn-outline-neon" onClick={() => void handleUploadProductImage(row.id)}>上传图片</button>
+                  {row.image_path ? (
+                    <a
+                      className="btn-outline-neon"
+                      href={encodeURI(`file:///${String(row.image_path).replace(/\\/g, '/')}`)}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      预览
+                    </a>
+                  ) : null}
+                </div>
+                <input
+                  type="text"
+                  value={row.image_path ?? ''}
+                  readOnly
+                  className="admin-input"
+                  placeholder="未上传图片"
+                />
+              </div>
             </div>
           </div>)}</div>}
 
@@ -765,10 +863,11 @@ export default function Admin() {
                   <div
                     className="admin-card-grid"
                     style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-                      gap: 10,
                       marginBottom: 12,
+                      display: 'grid',
+                      gridTemplateColumns: '0.7fr 1.2fr 1.2fr 1fr auto',
+                      gap: '10px 12px',
+                      alignItems: 'end',
                     }}
                   >
                     <div>
@@ -777,7 +876,8 @@ export default function Admin() {
                         type="text"
                         value={pack.id}
                         readOnly
-                        style={inputBaseStyle}
+                        className="admin-input"
+                        style={{ maxWidth: 180 }}
                       />
                     </div>
                     <div>
@@ -791,7 +891,6 @@ export default function Admin() {
                         data={productOptions}
                         searchable={false}
                         allowDeselect={false}
-                        styles={{ input: inputBaseStyle, dropdown: { backgroundColor: 'var(--surface-2)' } }}
                       />
                     </div>
                     <div>
@@ -800,8 +899,34 @@ export default function Admin() {
                         type="text"
                         value={pack.name}
                         onChange={(e) => updateRow('packaging_options', pack.id, 'name', e.target.value)}
-                        style={inputBaseStyle}
+                        className="admin-input"
                       />
+                    </div>
+                    <div>
+                      <div style={fieldLabelStyle}>{ta('fields.inner_pack_type')}</div>
+                      <MantineSelect
+                        className="ui-select"
+                        value={pack.inner_pack_type}
+                        onChange={(value) =>
+                          updateRow('packaging_options', pack.id, 'inner_pack_type', value ?? 'none')
+                        }
+                        data={innerPackOptions}
+                        searchable={false}
+                        allowDeselect={false}
+                      />
+                    </div>
+                    <div>
+                      <div style={fieldLabelStyle}>{ta('common.defaultMark')}</div>
+                      <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minHeight: 40 }}>
+                        <input
+                          type="checkbox"
+                          checked={Boolean(pack.default_selected)}
+                          onChange={(e) =>
+                            updateRow('packaging_options', pack.id, 'default_selected', e.target.checked)
+                          }
+                        />
+                        <span style={{ color: 'var(--text-dim)', fontSize: 12 }}>{ta('common.defaultMark')}</span>
+                      </label>
                     </div>
                   </div>
 
@@ -809,8 +934,8 @@ export default function Admin() {
                     className="admin-card-grid"
                     style={{
                       display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
-                      gap: 10,
+                      gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+                      gap: '10px 12px',
                     }}
                   >
                     <div>
@@ -827,7 +952,7 @@ export default function Admin() {
                             parseNumberInput(e.target.value, false),
                           )
                         }
-                        style={inputBaseStyle}
+                        className="admin-input"
                       />
                     </div>
                     <div>
@@ -844,7 +969,7 @@ export default function Admin() {
                             parseNumberInput(e.target.value, true),
                           )
                         }
-                        style={inputBaseStyle}
+                        className="admin-input"
                       />
                     </div>
                     <div>
@@ -862,7 +987,7 @@ export default function Admin() {
                             parseNumberInput(e.target.value, false),
                           )
                         }
-                        style={inputBaseStyle}
+                        className="admin-input"
                       />
                     </div>
                     <div>
@@ -880,35 +1005,8 @@ export default function Admin() {
                             parseNumberInput(e.target.value, false),
                           )
                         }
-                        style={inputBaseStyle}
+                        className="admin-input"
                       />
-                    </div>
-                    <div>
-                      <div style={fieldLabelStyle}>{ta('fields.inner_pack_type')}</div>
-                      <MantineSelect
-                        className="ui-select"
-                        value={pack.inner_pack_type}
-                        onChange={(value) =>
-                          updateRow('packaging_options', pack.id, 'inner_pack_type', value ?? 'none')
-                        }
-                        data={innerPackOptions}
-                        searchable={false}
-                        allowDeselect={false}
-                        styles={{ input: inputBaseStyle, dropdown: { backgroundColor: 'var(--surface-2)' } }}
-                      />
-                    </div>
-                    <div>
-                      <div style={fieldLabelStyle}>{ta('common.defaultMark')}</div>
-                      <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minHeight: 40 }}>
-                        <input
-                          type="checkbox"
-                          checked={Boolean(pack.default_selected)}
-                          onChange={(e) =>
-                            updateRow('packaging_options', pack.id, 'default_selected', e.target.checked)
-                          }
-                        />
-                        <span style={{ color: 'var(--text-dim)', fontSize: 12 }}>{ta('common.defaultMark')}</span>
-                      </label>
                     </div>
                   </div>
                 </div>
@@ -926,6 +1024,7 @@ export default function Admin() {
           {activeTab === 'customers' && <EditableTable columns={columnsByTable.customers} rows={tables.customers} onChange={(id, k, v) => updateRow('customers', id, String(k), v)} onDelete={(id) => deleteRow('customers', id)} />}
         </div>
       )}
+      </div>
 
       {addModalOpen && addDraftTable && addDraftRow && (
         <div className="modal-backdrop">
@@ -965,7 +1064,6 @@ export default function Admin() {
                           data={column.options ?? []}
                           searchable={false}
                           allowDeselect={false}
-                          styles={{ input: inputBaseStyle, dropdown: { backgroundColor: 'var(--surface-2)' } }}
                         />
                       </div>
                     )
@@ -984,7 +1082,7 @@ export default function Admin() {
                               parseNumberInput(e.target.value, Boolean(column.nullable)),
                             )
                           }
-                          style={inputBaseStyle}
+                          className="admin-input"
                         />
                       </div>
                     )
@@ -996,7 +1094,7 @@ export default function Admin() {
                         type="text"
                         value={(raw ?? '') as string}
                         onChange={(e) => updateDraftField(String(column.key), e.target.value)}
-                        style={inputBaseStyle}
+                        className="admin-input"
                       />
                     </div>
                   )
@@ -1019,7 +1117,7 @@ export default function Admin() {
             </div>
             <div className="subpanel" style={{ maxHeight: '70vh', overflow: 'auto', padding: 10 }}>
               {historyItems.length === 0 ? (
-                <div style={{ color: 'var(--text-dim)' }}>{ta('common.noHistory')}</div>
+                <div className="empty-hint">{ta('common.noHistory')}</div>
               ) : (
                 <table className="admin-table">
                   <thead>
@@ -1069,7 +1167,6 @@ export default function Admin() {
                   data={logActionOptions}
                   searchable={false}
                   allowDeselect={false}
-                  styles={{ input: inputBaseStyle, dropdown: { backgroundColor: 'var(--surface-2)' } }}
                 />
               </div>
               <button className="btn-outline-neon" onClick={() => setLogSortOrder((p) => (p === 'desc' ? 'asc' : 'desc'))}>
@@ -1078,7 +1175,7 @@ export default function Admin() {
             </div>
             <div className="subpanel" style={{ maxHeight: '70vh', overflow: 'auto', padding: 10 }}>
               {filteredOperationLogs.length === 0 ? (
-                <div style={{ color: 'var(--text-dim)' }}>{ta('common.noLogs')}</div>
+                <div className="empty-hint">{ta('common.noLogs')}</div>
               ) : (
                 <ul style={{ margin: 0, paddingLeft: 18 }}>
                   {filteredOperationLogs.map((item) => {
@@ -1100,7 +1197,7 @@ export default function Admin() {
 
       {profileModalOpen && (
         <div className="modal-backdrop">
-          <div className="modal-card glass-card" style={{ width: 1040, maxWidth: '96vw' }}>
+          <div className="modal-card glass-card user-profile-modal" style={{ width: 980, maxWidth: '96vw' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
               <h3 style={{ margin: 0 }}>{ta('user.title')}</h3>
               <div style={{ display: 'flex', gap: 8 }}>
@@ -1108,33 +1205,54 @@ export default function Admin() {
                 <button className="btn-outline-neon" onClick={() => setProfileModalOpen(false)}>{ta('common.close')}</button>
               </div>
             </div>
-            <div className="subpanel" style={{ maxHeight: '70vh', overflow: 'auto', padding: 10 }}>
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>{ta('user.name')}</th>
-                    <th>{ta('user.company')}</th>
-                    <th>{ta('user.address')}</th>
-                    <th>{ta('user.tel')}</th>
-                    <th>Email</th>
-                    <th>{ta('common.action')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {settingsUserProfiles.map((profile) => (
-                    <tr key={profile.id}>
-                      <td><input style={inputBaseStyle} value={profile.id} readOnly /></td>
-                      <td><input style={inputBaseStyle} value={profile.name ?? ''} onChange={(e) => updateUserProfileField(profile.id, 'name', e.target.value)} /></td>
-                      <td><input style={inputBaseStyle} value={profile.companyName ?? ''} onChange={(e) => updateUserProfileField(profile.id, 'companyName', e.target.value)} /></td>
-                      <td><input style={inputBaseStyle} value={profile.address ?? ''} onChange={(e) => updateUserProfileField(profile.id, 'address', e.target.value)} /></td>
-                      <td><input style={inputBaseStyle} value={profile.tel ?? ''} onChange={(e) => updateUserProfileField(profile.id, 'tel', e.target.value)} /></td>
-                      <td><input style={inputBaseStyle} value={profile.email ?? ''} onChange={(e) => updateUserProfileField(profile.id, 'email', e.target.value)} /></td>
-                      <td><button className="btn-danger-soft" onClick={() => deleteUserProfile(profile.id)}>{ta('common.delete')}</button></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="subpanel user-profile-body" style={{ maxHeight: '70vh', overflow: 'auto', padding: 10 }}>
+              <div className="user-profile-list" style={{ display: 'grid', gap: 12 }}>
+                {settingsUserProfiles.map((profile) => (
+                  <div key={profile.id} className="admin-card subpanel user-profile-card" style={{ padding: 12 }}>
+                    <div className="user-profile-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 }}>
+                      <div>
+                        <div style={fieldLabelStyle}>ID</div>
+                        <input className="admin-input" value={profile.id} readOnly />
+                      </div>
+                      <div>
+                        <div style={fieldLabelStyle}>{ta('user.name')}</div>
+                        <input className="admin-input" value={profile.name ?? ''} onChange={(e) => updateUserProfileField(profile.id, 'name', e.target.value)} />
+                      </div>
+                      <div>
+                        <div style={fieldLabelStyle}>{ta('user.company')}</div>
+                        <input className="admin-input" value={profile.companyName ?? ''} onChange={(e) => updateUserProfileField(profile.id, 'companyName', e.target.value)} />
+                      </div>
+                      <div>
+                        <div style={fieldLabelStyle}>From</div>
+                        <input className="admin-input" value={profile.export_from_name ?? ''} onChange={(e) => updateUserProfileField(profile.id, 'export_from_name', e.target.value)} />
+                      </div>
+                      <div>
+                        <div style={fieldLabelStyle}>{ta('user.address')}</div>
+                        <input className="admin-input" value={profile.address ?? ''} onChange={(e) => updateUserProfileField(profile.id, 'address', e.target.value)} />
+                      </div>
+                      <div>
+                        <div style={fieldLabelStyle}>{ta('user.tel')}</div>
+                        <input className="admin-input" value={profile.tel ?? ''} onChange={(e) => updateUserProfileField(profile.id, 'tel', e.target.value)} />
+                      </div>
+                      <div>
+                        <div style={fieldLabelStyle}>WhatsApp</div>
+                        <input className="admin-input" value={profile.whatsapp ?? ''} onChange={(e) => updateUserProfileField(profile.id, 'whatsapp', e.target.value)} />
+                      </div>
+                      <div>
+                        <div style={fieldLabelStyle}>Wechat</div>
+                        <input className="admin-input" value={profile.wechat ?? ''} onChange={(e) => updateUserProfileField(profile.id, 'wechat', e.target.value)} />
+                      </div>
+                      <div>
+                        <div style={fieldLabelStyle}>Email</div>
+                        <input className="admin-input" value={profile.email ?? ''} onChange={(e) => updateUserProfileField(profile.id, 'email', e.target.value)} />
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'end' }}>
+                        <button className="btn-danger-soft" onClick={() => deleteUserProfile(profile.id)}>{ta('common.delete')}</button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -1148,16 +1266,16 @@ export default function Admin() {
               <button className="btn-outline-neon" onClick={() => setThemeCustomOpen(false)}>{ta('common.close')}</button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }}>
-              <div><div style={fieldLabelStyle}>{ta('themeCustom.bgA')}</div><input type="color" value={themeDraft.bg0} onChange={(e) => setThemeDraft((p) => ({ ...p, bg0: e.target.value }))} style={inputBaseStyle} /></div>
-              <div><div style={fieldLabelStyle}>{ta('themeCustom.bgB')}</div><input type="color" value={themeDraft.bg1} onChange={(e) => setThemeDraft((p) => ({ ...p, bg1: e.target.value }))} style={inputBaseStyle} /></div>
-              <div><div style={fieldLabelStyle}>{ta('themeCustom.text')}</div><input type="color" value={themeDraft.text} onChange={(e) => setThemeDraft((p) => ({ ...p, text: e.target.value }))} style={inputBaseStyle} /></div>
-              <div><div style={fieldLabelStyle}>{ta('themeCustom.textDim')}</div><input type="color" value={themeDraft.textDim} onChange={(e) => setThemeDraft((p) => ({ ...p, textDim: e.target.value }))} style={inputBaseStyle} /></div>
-              <div><div style={fieldLabelStyle}>{ta('themeCustom.surface1')}</div><input type="color" value={themeDraft.surface1} onChange={(e) => setThemeDraft((p) => ({ ...p, surface1: e.target.value }))} style={inputBaseStyle} /></div>
-              <div><div style={fieldLabelStyle}>{ta('themeCustom.surface2')}</div><input type="color" value={themeDraft.surface2} onChange={(e) => setThemeDraft((p) => ({ ...p, surface2: e.target.value }))} style={inputBaseStyle} /></div>
-              <div><div style={fieldLabelStyle}>{ta('themeCustom.border')}</div><input type="color" value={themeDraft.border1} onChange={(e) => setThemeDraft((p) => ({ ...p, border1: e.target.value }))} style={inputBaseStyle} /></div>
-              <div><div style={fieldLabelStyle}>{ta('themeCustom.primary')}</div><input type="color" value={themeDraft.primary} onChange={(e) => setThemeDraft((p) => ({ ...p, primary: e.target.value }))} style={inputBaseStyle} /></div>
-              <div><div style={fieldLabelStyle}>{ta('themeCustom.accent1')}</div><input type="color" value={themeDraft.accent} onChange={(e) => setThemeDraft((p) => ({ ...p, accent: e.target.value }))} style={inputBaseStyle} /></div>
-              <div><div style={fieldLabelStyle}>{ta('themeCustom.accent2')}</div><input type="color" value={themeDraft.accent2} onChange={(e) => setThemeDraft((p) => ({ ...p, accent2: e.target.value }))} style={inputBaseStyle} /></div>
+              <div><div style={fieldLabelStyle}>{ta('themeCustom.bgA')}</div><input type="color" value={themeDraft.bg0} onChange={(e) => setThemeDraft((p) => ({ ...p, bg0: e.target.value }))} className="admin-input" /></div>
+              <div><div style={fieldLabelStyle}>{ta('themeCustom.bgB')}</div><input type="color" value={themeDraft.bg1} onChange={(e) => setThemeDraft((p) => ({ ...p, bg1: e.target.value }))} className="admin-input" /></div>
+              <div><div style={fieldLabelStyle}>{ta('themeCustom.text')}</div><input type="color" value={themeDraft.text} onChange={(e) => setThemeDraft((p) => ({ ...p, text: e.target.value }))} className="admin-input" /></div>
+              <div><div style={fieldLabelStyle}>{ta('themeCustom.textDim')}</div><input type="color" value={themeDraft.textDim} onChange={(e) => setThemeDraft((p) => ({ ...p, textDim: e.target.value }))} className="admin-input" /></div>
+              <div><div style={fieldLabelStyle}>{ta('themeCustom.surface1')}</div><input type="color" value={themeDraft.surface1} onChange={(e) => setThemeDraft((p) => ({ ...p, surface1: e.target.value }))} className="admin-input" /></div>
+              <div><div style={fieldLabelStyle}>{ta('themeCustom.surface2')}</div><input type="color" value={themeDraft.surface2} onChange={(e) => setThemeDraft((p) => ({ ...p, surface2: e.target.value }))} className="admin-input" /></div>
+              <div><div style={fieldLabelStyle}>{ta('themeCustom.border')}</div><input type="color" value={themeDraft.border1} onChange={(e) => setThemeDraft((p) => ({ ...p, border1: e.target.value }))} className="admin-input" /></div>
+              <div><div style={fieldLabelStyle}>{ta('themeCustom.primary')}</div><input type="color" value={themeDraft.primary} onChange={(e) => setThemeDraft((p) => ({ ...p, primary: e.target.value }))} className="admin-input" /></div>
+              <div><div style={fieldLabelStyle}>{ta('themeCustom.accent1')}</div><input type="color" value={themeDraft.accent} onChange={(e) => setThemeDraft((p) => ({ ...p, accent: e.target.value }))} className="admin-input" /></div>
+              <div><div style={fieldLabelStyle}>{ta('themeCustom.accent2')}</div><input type="color" value={themeDraft.accent2} onChange={(e) => setThemeDraft((p) => ({ ...p, accent2: e.target.value }))} className="admin-input" /></div>
               <div>
                 <div style={fieldLabelStyle}>{ta('themeCustom.glassIntensity')}</div>
                 <input
@@ -1169,7 +1287,8 @@ export default function Admin() {
                   onChange={(e) =>
                     setThemeDraft((p) => ({ ...p, glassIntensity: Number(e.target.value) / 100 }))
                   }
-                  style={{ ...inputBaseStyle, padding: '6px 10px' }}
+                  className="admin-input"
+                  style={{ padding: '6px 10px' }}
                 />
                 <div style={{ color: 'var(--text-dim)', fontSize: 12, marginTop: 4 }}>
                   {Math.round((themeDraft.glassIntensity ?? 0.2) * 100)}%
@@ -1177,7 +1296,7 @@ export default function Admin() {
               </div>
               <div style={{ gridColumn: 'span 2' }}>
                 <div style={fieldLabelStyle}>{ta('themeCustom.fontFamily')}</div>
-                <input type="text" value={themeDraft.fontFamily} onChange={(e) => setThemeDraft((p) => ({ ...p, fontFamily: e.target.value }))} style={inputBaseStyle} />
+                <input type="text" value={themeDraft.fontFamily} onChange={(e) => setThemeDraft((p) => ({ ...p, fontFamily: e.target.value }))} className="admin-input" />
               </div>
               <div>
                 <div style={fieldLabelStyle}>{ta('themeCustom.bgUpload')}</div>
@@ -1191,7 +1310,7 @@ export default function Admin() {
                     reader.onload = () => setThemeDraft((p) => ({ ...p, backgroundImage: String(reader.result ?? '') }))
                     reader.readAsDataURL(file)
                   }}
-                  style={inputBaseStyle}
+                  className="admin-input"
                 />
               </div>
             </div>
@@ -1206,7 +1325,7 @@ export default function Admin() {
         </div>
       )}
 
-      {!data && <div style={{ marginTop: 12, color: 'var(--text-dim)' }}>{ta('common.noData')}</div>}
+      {!data && <div className="empty-hint" style={{ marginTop: 12 }}>{ta('common.noData')}</div>}
     </div>
   )
 }

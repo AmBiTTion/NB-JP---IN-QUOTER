@@ -10,7 +10,7 @@ export interface ExternalQuotationPayload {
       bags_int: number
       tons: number
       mode: 'FCL' | 'LCL'
-      container_type: '20GP' | '40HQ'
+      container_type: '20GP' | '40HQ' | '40FT'
     }
     breakdown: Record<string, number>
     warnings: string[]
@@ -24,7 +24,7 @@ export interface ExternalQuotationPayload {
     description?: string
     packagingText?: string
     quantityBagsInt?: number
-    containerType?: '20GP' | '40HQ'
+    containerType?: '20GP' | '40HQ' | '40FT'
     polPortName?: string
     polPortNameEn?: string
     mode?: 'FCL' | 'LCL'
@@ -45,6 +45,7 @@ export interface ExternalQuotationPayload {
     quote_valid_days?: number
     terms_template?: string
     export_from_name?: string
+    user_name?: string
   }
   meta?: {
     appVersion?: string
@@ -104,7 +105,7 @@ function buildPackagingEnglish(input: ExternalQuotationPayload['input']): string
   return `${formatKg(unitWeightKg)}kg per bag\n${unitsPerCarton} bags per carton\nCarton packing`
 }
 
-function buildQuantityBlock(containerType: '20GP' | '40HQ', bagsInt: number): string {
+function buildQuantityBlock(containerType: '20GP' | '40HQ' | '40FT', bagsInt: number): string {
   return `1 x ${containerType}\n${bagsInt.toLocaleString()} Bags`
 }
 
@@ -140,10 +141,12 @@ export async function exportExternalQuotationExcel(
   const quantityBlockText = buildQuantityBlock(containerType, bagsInt)
   const remarksText = buildRemarksEnglish(payload.settings, polPortName)
 
+  const tel = payload.settings?.tel?.trim()
   const whatsapp = payload.settings?.whatsapp?.trim()
   const wechat = payload.settings?.wechat?.trim()
   const email = payload.settings?.email?.trim()
   const contactItems: string[] = []
+  if (tel) contactItems.push(`Mob: ${tel}`)
   if (whatsapp) contactItems.push(`WhatsApp: ${whatsapp}`)
   if (wechat) contactItems.push(`Wechat: ${wechat}`)
   if (email) contactItems.push(`Email: ${email}`)
@@ -167,8 +170,13 @@ export async function exportExternalQuotationExcel(
   if (isNonEmptyText(payload.input?.customerName)) {
     sheet.getCell('B3').value = payload.input.customerName.trim()
   }
-  if (isNonEmptyText(payload.settings?.export_from_name)) {
-    sheet.getCell('A4').value = `From: ${payload.settings.export_from_name.trim()}`
+  const fromName = isNonEmptyText(payload.settings?.export_from_name)
+    ? payload.settings.export_from_name.trim()
+    : isNonEmptyText(payload.settings?.user_name)
+      ? payload.settings.user_name.trim()
+      : ''
+  if (fromName) {
+    sheet.getCell('A4').value = `From: ${fromName}`
   }
   if (isNonEmptyText(quotationDate)) {
     sheet.getCell('A5').value = `Quotation Date: ${quotationDate}`
@@ -176,7 +184,12 @@ export async function exportExternalQuotationExcel(
 
   sheet.getCell('B9').value = desc
   const b9Alignment = sheet.getCell('B9').alignment ?? {}
-  sheet.getCell('B9').alignment = { ...b9Alignment, wrapText: true, vertical: 'top' }
+  sheet.getCell('B9').alignment = {
+    ...b9Alignment,
+    wrapText: true,
+    vertical: 'middle',
+    horizontal: 'left',
+  }
   sheet.getCell('C9').value = packagingText
   sheet.getCell('D9').value = quantityBlockText
   sheet.getCell('E9').value = Number(sellUsdPerBag.toFixed(2))
