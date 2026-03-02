@@ -313,6 +313,14 @@ html,body{
   -webkit-backdrop-filter: blur(var(--glass-blur-sub)) saturate(var(--glass-sat-sub));
 }
 
+.app-root .panel {
+  animation: panelEnter var(--motion-mid) var(--ease-smooth);
+}
+
+.app-root .subpanel {
+  animation: subpanelEnter calc(var(--motion-mid) + 60ms) var(--ease-smooth);
+}
+
 .app-root .quote-page .kpi-card {
   background: var(--surface-2) !important;
   border: 1px solid var(--border-1) !important;
@@ -510,6 +518,7 @@ html,body{
   border-radius: 12px;
   border: 1px solid transparent;
   padding: 10px 12px;
+  animation: statusIn var(--motion-fast) var(--ease-smooth);
 }
 
 .status-box.status-error{ background: var(--state-error-bg); border-color: var(--state-error-border); color: var(--state-error-text); }
@@ -650,6 +659,13 @@ html,body{
   border-radius: 10px;
   background: rgba(255,255,255,.025);
   padding: 8px 10px;
+  transition: transform var(--motion-fast) var(--ease-smooth), border-color var(--motion-fast) var(--ease-smooth), box-shadow var(--motion-fast) var(--ease-smooth);
+}
+
+.summary-box-item:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--border-1) 75%, var(--text) 25%);
+  box-shadow: 0 6px 16px rgba(0,0,0,calc(var(--glass-shadow-alpha) * .65));
 }
 
 .summary-box-label {
@@ -685,8 +701,9 @@ select option:checked{
 }
 
 @keyframes dropdownIn {
-  from { opacity: 0; transform: translateY(-4px) scaleY(.985); }
-  to { opacity: 1; transform: translateY(0) scaleY(1); }
+  0% { opacity: 0; transform: translateY(-8px) scale(.985); filter: blur(2px); }
+  70% { opacity: .92; transform: translateY(1px) scale(1.002); filter: blur(0); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
 }
 
 @keyframes tabRippleExpand {
@@ -700,11 +717,31 @@ select option:checked{
   }
 }
 
+@keyframes panelEnter {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes subpanelEnter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes statusIn {
+  from { opacity: 0; transform: translateY(3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 1ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 1ms !important;
     scroll-behavior: auto !important;
+  }
+  .app-root .panel,
+  .app-root .subpanel,
+  .status-box {
+    animation: none !important;
   }
 }
