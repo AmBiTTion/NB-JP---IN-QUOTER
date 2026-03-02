@@ -22,7 +22,7 @@ import type {
   UserRole,
 } from '@/types/domain'
 
-const APP_VERSION = '2.7.5'
+const APP_VERSION = '2.7.6'
 const dimTextStyle: CSSProperties = { color: 'var(--text-dim)' }
 const sectionTitleStyle: CSSProperties = { marginBottom: 8, fontSize: 13, color: 'var(--text-dim)' }
 const fieldLabelStyle: CSSProperties = { fontSize: 12, color: 'var(--text-dim)', marginBottom: 6 }
