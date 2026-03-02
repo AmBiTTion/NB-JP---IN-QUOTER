@@ -2,9 +2,11 @@ export type Mode = 'FCL' | 'LCL'
 export type ContainerType = '20GP' | '40HQ'
 export type QtyInputType = 'bags' | 'tons'
 export type InnerPackType = 'none' | 'carton' | 'woven_bag' | 'small_box' | 'big_box'
+export type UserRole = 'admin' | 'sales' | 'audit'
 export interface UserProfile {
   id: string
   name: string
+  role?: UserRole
   companyName?: string
   address?: string
   postCode?: string

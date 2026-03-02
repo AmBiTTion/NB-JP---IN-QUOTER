@@ -18,6 +18,7 @@ import type {
   Port,
   Product,
   QtyInputType,
+  UserRole,
 } from '@/types/domain'
 
 const APP_VERSION = '2.7.5'
@@ -84,6 +85,8 @@ function Quoter(props: { onOperationSaved?: () => void }) {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
   const [selectedProductId, setSelectedProductId] = useState('')
+  const [customerName, setCustomerName] = useState('')
+  const [quoteVersionTag, setQuoteVersionTag] = useState('V1')
   const [selectedPackagingId, setSelectedPackagingId] = useState('')
   const [selectedFactoryId, setSelectedFactoryId] = useState('')
   const [mode, setMode] = useState<Mode>('FCL')
@@ -203,6 +206,7 @@ function Quoter(props: { onOperationSaved?: () => void }) {
     setFclBagsHint('')
     setLclInputValue('')
     setLandFreightOverridePerTon('')
+    setQuoteVersionTag('V1')
   }, [selectedProductId, defaultPackagingId, factories, factoryCostByFactoryId, preferredFactoryId])
 
   useEffect(() => {
@@ -552,12 +556,14 @@ function Quoter(props: { onOperationSaved?: () => void }) {
       // @ts-ignore
       await window.ipcRenderer.invoke('save-calculation', {
         input: {
+          customerName,
           productName: selectedProduct.name,
           factoryId: selectedFactoryId,
           packagingId: selectedPackaging.id,
           mode,
           containerType,
         },
+        version_tag: quoteVersionTag || 'V1',
         summary: result.summary,
         warnings: result.warnings,
       })
@@ -613,6 +619,7 @@ function Quoter(props: { onOperationSaved?: () => void }) {
         unitWeightKg: effectiveWeight,
         unitsPerCarton: effectiveUnitsPerCarton ?? null,
         image_path: selectedProduct.image_path,
+        customerName: customerName.trim() || undefined,
       },
       settings: {
         quote_valid_days: data.settings.quote_valid_days,
@@ -714,6 +721,29 @@ function Quoter(props: { onOperationSaved?: () => void }) {
         <div className="panel glass-card">
           <div style={{ marginBottom: 8, fontSize: 13, color: '#9ca3af' }}>{t('quote.sectionProduct')}</div>
           <Select className="ui-select" value={selectedProductId || null} onChange={(value) => setSelectedProductId(value ?? '')} data={productSelectData} placeholder={t('quote.selectProduct')} searchable={false} />
+          <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 140px', gap: 10 }}>
+            <div>
+              <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>客户名称</div>
+              <input
+                type="text"
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                placeholder="用于历史和导出"
+                className="ui-input"
+                style={{ width: '100%' }}
+              />
+            </div>
+            <div>
+              <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>报价版本</div>
+              <input
+                type="text"
+                value={quoteVersionTag}
+                onChange={(e) => setQuoteVersionTag(e.target.value)}
+                className="ui-input"
+                style={{ width: '100%' }}
+              />
+            </div>
+          </div>
 
           {selectedProduct && (
             <Card className="subpanel" style={{ marginTop: 12, padding: 12 }}>
@@ -888,6 +918,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'quote' | 'admin'>('quote')
   const [recentOperations, setRecentOperations] = useState<CalculationHistory[]>([])
   const [recentOpen, setRecentOpen] = useState(false)
+  const [currentUserRole, setCurrentUserRole] = useState<UserRole>('admin')
   const uiThemeClass =
     uiThemeKey === 'neon'
       ? 'theme-creative'
@@ -926,6 +957,22 @@ export default function App() {
     void loadRecentOperations()
   }, [])
 
+  useEffect(() => {
+    const loadRole = async () => {
+      try {
+        // @ts-ignore
+        const appData = (await window.ipcRenderer.invoke('get-app-data')) as AppData
+        const activeId = appData.settings.active_user_profile_id
+        const activeUser = appData.settings.user_profiles?.find((p) => p.id === activeId)
+        const role = activeUser?.role ?? 'sales'
+        setCurrentUserRole(role === 'admin' || role === 'audit' || role === 'sales' ? role : 'sales')
+      } catch {
+        setCurrentUserRole('admin')
+      }
+    }
+    void loadRole()
+  }, [activeTab])
+
   return (
     <div className={`app-root ${uiThemeClass}`} style={{ minHeight: '100vh', color: 'var(--text)', padding: 20 }}>
       <div className="top-tab-row" style={{ display: 'flex', gap: 12, marginBottom: 16, alignItems: 'center' }}>
@@ -949,8 +996,12 @@ export default function App() {
               e.currentTarget.classList.remove('tab-ripple-active')
               e.currentTarget.classList.remove('tab-click-blue')
             }}
-            onClick={() => setActiveTab('admin')}
-            style={{ flex: 1, padding: '12px 14px', border: 'none', cursor: 'pointer' }}
+            onClick={() => {
+              if (currentUserRole === 'sales') return
+              setActiveTab('admin')
+            }}
+            style={{ flex: 1, padding: '12px 14px', border: 'none', cursor: currentUserRole === 'sales' ? 'not-allowed' : 'pointer', opacity: currentUserRole === 'sales' ? 0.55 : 1 }}
+            title={currentUserRole === 'sales' ? '当前角色无管理权限' : undefined}
           >
             {t('app.adminTab')}
           </button>

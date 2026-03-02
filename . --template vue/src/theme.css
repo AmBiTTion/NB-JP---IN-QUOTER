@@ -357,6 +357,7 @@ html,body{
 .settings-group {
   position: relative;
   overflow: hidden;
+  animation: uiSectionIn 320ms var(--ease-smooth) both;
 }
 
 .settings-group::before {
@@ -365,6 +366,44 @@ html,body{
   inset: 0;
   background: linear-gradient(120deg, rgba(255,255,255,.04), transparent 42%);
   pointer-events: none;
+}
+
+.settings-action-row {
+  align-items: center;
+  gap: 10px;
+}
+
+.settings-action-btn {
+  min-width: 112px;
+  letter-spacing: .2px;
+}
+
+.settings-group:nth-of-type(2) { animation-delay: 40ms; }
+.settings-group:nth-of-type(3) { animation-delay: 80ms; }
+.settings-group:nth-of-type(4) { animation-delay: 120ms; }
+
+@keyframes uiSectionIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .settings-group {
+    animation: none !important;
+  }
+  .tab-btn,
+  .btn-primary,
+  .btn-outline-neon,
+  .panel,
+  .subpanel {
+    transition: none !important;
+  }
 }
 
 /* Admin: Mantine Select should use the same single-layer frame as inputs */

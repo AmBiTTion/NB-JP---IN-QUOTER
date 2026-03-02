@@ -29,6 +29,7 @@ interface Settings {
   user_profiles?: Array<{
     id: string
     name: string
+    role?: 'admin' | 'sales' | 'audit'
     companyName?: string
     address?: string
     postCode?: string
@@ -259,6 +260,7 @@ function createEmptyData(): AppData {
         {
           id: 'user_default',
           name: '默认用户',
+          role: 'admin',
         },
       ],
       active_user_profile_id: 'user_default',
@@ -619,6 +621,7 @@ function normalizeAppData(raw: AppData): AppData {
               return {
                 id,
                 name,
+                role: ((profile as any)?.role === 'sales' || (profile as any)?.role === 'audit' || (profile as any)?.role === 'admin') ? (profile as any).role : 'sales',
                 companyName: nonEmptyText((profile as any)?.companyName, ''),
                 address: nonEmptyText((profile as any)?.address, ''),
                 postCode: nonEmptyText((profile as any)?.postCode, ''),

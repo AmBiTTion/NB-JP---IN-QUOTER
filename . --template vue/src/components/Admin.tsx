@@ -16,6 +16,7 @@ import type {
   Port,
   PortChargesRule,
   Product,
+  UserRole,
   UserProfile,
 } from '@/types/domain'
 import { nextIdFromRows } from '@/utils/id'
@@ -152,6 +153,8 @@ export default function Admin() {
   const [logsModalOpen, setLogsModalOpen] = useState(false)
   const [historyItems, setHistoryItems] = useState<CalculationHistory[]>([])
   const [operationLogs, setOperationLogs] = useState<CalculationHistory[]>([])
+  const [logActionFilter, setLogActionFilter] = useState('all')
+  const [logSortOrder, setLogSortOrder] = useState<'desc' | 'asc'>('desc')
   const [profileModalOpen, setProfileModalOpen] = useState(false)
   const [dirtyTables, setDirtyTables] = useState<EditableTableKey[]>([])
   const [dirtySettings, setDirtySettings] = useState(false)
@@ -549,6 +552,29 @@ export default function Admin() {
     setAutoSaveState('idle')
   }, [settingsActiveUserProfileId])
 
+  const logActionOptions = useMemo(() => {
+    const actions = new Set<string>()
+    operationLogs.forEach((item) => {
+      const payload = item.payload as Record<string, unknown>
+      const action = String(payload?.action ?? '').trim()
+      if (action) actions.add(action)
+    })
+    return [{ value: 'all', label: '全部操作' }, ...Array.from(actions).map((action) => ({ value: action, label: action }))]
+  }, [operationLogs])
+
+  const filteredOperationLogs = useMemo(() => {
+    const list = operationLogs.filter((item) => {
+      if (logActionFilter === 'all') return true
+      const payload = item.payload as Record<string, unknown>
+      return String(payload?.action ?? '') === logActionFilter
+    })
+    return list.sort((a, b) => {
+      const ta = Date.parse(a.timestamp)
+      const tb = Date.parse(b.timestamp)
+      return logSortOrder === 'desc' ? tb - ta : ta - tb
+    })
+  }, [operationLogs, logActionFilter, logSortOrder])
+
   const sectionStyle: React.CSSProperties = { padding: 14, border: '1px solid var(--border-1)', borderRadius: 12, backgroundColor: 'var(--surface-1)' }
 
   return (
@@ -625,19 +651,19 @@ export default function Admin() {
                   />
                 </div>
               </div>
-              <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <button className="btn-outline-neon" onClick={() => setThemeCustomOpen(true)}>主题定制</button>
-                <button className="btn-outline-neon" onClick={() => setProfileModalOpen(true)}>用户管理</button>
+              <div className="settings-action-row" style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <button className="btn-outline-neon settings-action-btn" onClick={() => setThemeCustomOpen(true)}>主题定制</button>
+                <button className="btn-primary settings-action-btn" onClick={() => setProfileModalOpen(true)}>用户管理</button>
               </div>
               <Text size="xs" c="dimmed" mt={8}>{ta('hint.theme')}</Text>
             </div>
 
             <div className="subpanel settings-group" style={{ padding: 14 }}>
               <div className="section-title" style={{ marginBottom: 10 }}>数据与记录</div>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <button className="btn-outline-neon" onClick={() => { void loadHistory(); setHistoryModalOpen(true) }}>报价历史</button>
-                <button className="btn-outline-neon" onClick={() => { void loadHistory(); setLogsModalOpen(true) }}>操作日志</button>
-                <button className="btn-outline-neon" onClick={() => { void loadHistory(); exportHistoryJson() }}>导出JSON</button>
+              <div className="settings-action-row" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <button className="btn-outline-neon settings-action-btn" onClick={() => { void loadHistory(); setHistoryModalOpen(true) }}>报价历史</button>
+                <button className="btn-outline-neon settings-action-btn" onClick={() => { void loadHistory(); setLogsModalOpen(true) }}>操作日志</button>
+                <button className="btn-primary settings-action-btn" onClick={() => { void loadHistory(); exportHistoryJson() }}>导出JSON</button>
               </div>
             </div>
 
@@ -993,12 +1019,14 @@ export default function Admin() {
                       const payload = item.payload as Record<string, unknown>
                       const quoteData = (payload?.kind === 'quote' ? payload?.data : payload) as Record<string, unknown>
                       const product = String((quoteData?.input as Record<string, unknown>)?.productName ?? '-')
+                      const customer = String((quoteData?.input as Record<string, unknown>)?.customerName ?? '')
+                      const versionTag = String(quoteData?.version_tag ?? '')
                       const mode = String((quoteData?.summary as Record<string, unknown>)?.mode ?? '-')
                       return (
                         <tr key={item.id}>
                           <td>{item.id}</td>
                           <td>{item.timestamp}</td>
-                          <td>{product} / {mode}</td>
+                          <td>{customer ? `${customer} / ` : ''}{product} / {mode}{versionTag ? ` / ${versionTag}` : ''}</td>
                         </tr>
                       )
                     })}
@@ -1017,12 +1045,28 @@ export default function Admin() {
               <h3 style={{ margin: 0 }}>操作日志</h3>
               <button className="btn-outline-neon" onClick={() => setLogsModalOpen(false)}>{ta('common.close')}</button>
             </div>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 10 }}>
+              <div style={{ width: 260 }}>
+                <MantineSelect
+                  className="ui-select"
+                  value={logActionFilter}
+                  onChange={(value) => setLogActionFilter(value ?? 'all')}
+                  data={logActionOptions}
+                  searchable={false}
+                  allowDeselect={false}
+                  styles={{ input: inputBaseStyle, dropdown: { backgroundColor: 'var(--surface-2)' } }}
+                />
+              </div>
+              <button className="btn-outline-neon" onClick={() => setLogSortOrder((p) => (p === 'desc' ? 'asc' : 'desc'))}>
+                {logSortOrder === 'desc' ? '时间：新到旧' : '时间：旧到新'}
+              </button>
+            </div>
             <div className="subpanel" style={{ maxHeight: '70vh', overflow: 'auto', padding: 10 }}>
-              {operationLogs.length === 0 ? (
+              {filteredOperationLogs.length === 0 ? (
                 <div style={{ color: 'var(--text-dim)' }}>暂无日志</div>
               ) : (
                 <ul style={{ margin: 0, paddingLeft: 18 }}>
-                  {operationLogs.slice().reverse().map((item) => {
+                  {filteredOperationLogs.map((item) => {
                     const payload = item.payload as Record<string, unknown>
                     const action = String(payload?.action ?? item.id)
                     return (
@@ -1055,6 +1099,7 @@ export default function Admin() {
                   <tr>
                     <th>ID</th>
                     <th>名称</th>
+                    <th>角色</th>
                     <th>公司名</th>
                     <th>地址</th>
                     <th>电话</th>
@@ -1067,6 +1112,21 @@ export default function Admin() {
                     <tr key={profile.id}>
                       <td><input style={inputBaseStyle} value={profile.id} readOnly /></td>
                       <td><input style={inputBaseStyle} value={profile.name ?? ''} onChange={(e) => updateUserProfileField(profile.id, 'name', e.target.value)} /></td>
+                      <td>
+                        <MantineSelect
+                          className="ui-select"
+                          value={(profile.role ?? 'sales') as UserRole}
+                          onChange={(value) => updateUserProfileField(profile.id, 'role', (value ?? 'sales') as UserRole)}
+                          data={[
+                            { value: 'admin', label: '管理员' },
+                            { value: 'sales', label: '报价员' },
+                            { value: 'audit', label: '审计' },
+                          ]}
+                          searchable={false}
+                          allowDeselect={false}
+                          styles={{ input: inputBaseStyle, dropdown: { backgroundColor: 'var(--surface-2)' } }}
+                        />
+                      </td>
                       <td><input style={inputBaseStyle} value={profile.companyName ?? ''} onChange={(e) => updateUserProfileField(profile.id, 'companyName', e.target.value)} /></td>
                       <td><input style={inputBaseStyle} value={profile.address ?? ''} onChange={(e) => updateUserProfileField(profile.id, 'address', e.target.value)} /></td>
                       <td><input style={inputBaseStyle} value={profile.tel ?? ''} onChange={(e) => updateUserProfileField(profile.id, 'tel', e.target.value)} /></td>
