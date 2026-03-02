@@ -17,7 +17,6 @@ import type {
   Port,
   PortChargesRule,
   Product,
-  UserRole,
   UserProfile,
 } from '@/types/domain'
 import { nextIdFromRows } from '@/utils/id'
@@ -1107,7 +1106,6 @@ export default function Admin() {
                   <tr>
                     <th>ID</th>
                     <th>{ta('user.name')}</th>
-                    <th>{ta('user.role')}</th>
                     <th>{ta('user.company')}</th>
                     <th>{ta('user.address')}</th>
                     <th>{ta('user.tel')}</th>
@@ -1120,21 +1118,6 @@ export default function Admin() {
                     <tr key={profile.id}>
                       <td><input style={inputBaseStyle} value={profile.id} readOnly /></td>
                       <td><input style={inputBaseStyle} value={profile.name ?? ''} onChange={(e) => updateUserProfileField(profile.id, 'name', e.target.value)} /></td>
-                      <td>
-                        <MantineSelect
-                          className="ui-select"
-                          value={(profile.role ?? 'sales') as UserRole}
-                          onChange={(value) => updateUserProfileField(profile.id, 'role', (value ?? 'sales') as UserRole)}
-                          data={[
-                            { value: 'admin', label: ta('user.admin') },
-                            { value: 'sales', label: ta('user.sales') },
-                            { value: 'audit', label: ta('user.audit') },
-                          ]}
-                          searchable={false}
-                          allowDeselect={false}
-                          styles={{ input: inputBaseStyle, dropdown: { backgroundColor: 'var(--surface-2)' } }}
-                        />
-                      </td>
                       <td><input style={inputBaseStyle} value={profile.companyName ?? ''} onChange={(e) => updateUserProfileField(profile.id, 'companyName', e.target.value)} /></td>
                       <td><input style={inputBaseStyle} value={profile.address ?? ''} onChange={(e) => updateUserProfileField(profile.id, 'address', e.target.value)} /></td>
                       <td><input style={inputBaseStyle} value={profile.tel ?? ''} onChange={(e) => updateUserProfileField(profile.id, 'tel', e.target.value)} /></td>

@@ -19,7 +19,6 @@ import type {
   Port,
   Product,
   QtyInputType,
-  UserRole,
 } from '@/types/domain'
 
 const APP_VERSION = '2.7.6'
@@ -956,7 +955,6 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'quote' | 'admin'>('quote')
   const [recentOperations, setRecentOperations] = useState<CalculationHistory[]>([])
   const [recentOpen, setRecentOpen] = useState(false)
-  const [currentUserRole, setCurrentUserRole] = useState<UserRole>('admin')
   const uiThemeClass =
     uiThemeKey === 'neon'
       ? 'theme-creative'
@@ -995,22 +993,6 @@ export default function App() {
     void loadRecentOperations()
   }, [])
 
-  useEffect(() => {
-    const loadRole = async () => {
-      try {
-        // @ts-ignore
-        const appData = (await window.ipcRenderer.invoke('get-app-data')) as AppData
-        const activeId = appData.settings.active_user_profile_id
-        const activeUser = appData.settings.user_profiles?.find((p) => p.id === activeId)
-        const role = activeUser?.role ?? 'sales'
-        setCurrentUserRole(role === 'admin' || role === 'audit' || role === 'sales' ? role : 'sales')
-      } catch {
-        setCurrentUserRole('admin')
-      }
-    }
-    void loadRole()
-  }, [activeTab])
-
   return (
     <div className={`app-root ${uiThemeClass}`} style={{ minHeight: '100vh', color: 'var(--text)', padding: 20 }}>
       <div className="top-tab-row" style={{ display: 'flex', gap: 12, marginBottom: 16, alignItems: 'center' }}>
@@ -1034,12 +1016,8 @@ export default function App() {
               e.currentTarget.classList.remove('tab-ripple-active')
               e.currentTarget.classList.remove('tab-click-blue')
             }}
-            onClick={() => {
-              if (currentUserRole === 'sales') return
-              setActiveTab('admin')
-            }}
-            style={{ flex: 1, padding: '12px 14px', border: 'none', cursor: currentUserRole === 'sales' ? 'not-allowed' : 'pointer', opacity: currentUserRole === 'sales' ? 0.55 : 1 }}
-            title={currentUserRole === 'sales' ? t('app.noAdminPermission') : undefined}
+            onClick={() => setActiveTab('admin')}
+            style={{ flex: 1, padding: '12px 14px', border: 'none', cursor: 'pointer' }}
           >
             {t('app.adminTab')}
           </button>
